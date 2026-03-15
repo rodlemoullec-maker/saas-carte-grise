@@ -17,42 +17,82 @@ sur ton Mac Studio. Aucune connaissance technique n'est requise.
 ---
 
 
-## Étape 1 — Copier le dossier sur ton Mac
+## Étape 1 — Recevoir et décompresser le dossier
 
-Tu as reçu un dossier `carte_grise_auto/`.
+Tu as reçu un fichier `carte_grise_auto.zip` (par email, clé USB, WeTransfer, etc.).
 
-1. Copie-le dans ton dossier **Documents** :
-   ```
-   /Users/TON_NOM/Documents/carte_grise_auto/
-   ```
+1. **Double-clique** sur `carte_grise_auto.zip` pour le décompresser
+   - macOS le décompresse automatiquement dans le même dossier
+   - Tu obtiens un dossier `carte_grise_auto/`
 
-2. Vérifie qu'il contient bien ces éléments :
+2. **Déplace ce dossier** dans tes Documents :
+   - Ouvre le Finder
+   - Fais glisser `carte_grise_auto/` dans le dossier **Documents** à gauche
+   - Le chemin final doit être : `/Users/TON_NOM/Documents/carte_grise_auto/`
+
+3. **Vérifie** en ouvrant le dossier qu'il contient bien :
    ```
    carte_grise_auto/
    ├── config/
    ├── dashboard/
    ├── data/
    ├── docs/
-   ├── scripts/
+   ├── scripts/          ← contient install.sh
    ├── skills/
    ├── src/
    ├── templates/
    ├── tests/
-   ├── requirements.txt
-   └── scripts/install.sh    ← c'est le script d'installation
+   ├── GUIDE_INSTALLATION.md   ← ce fichier
+   └── requirements.txt
    ```
 
 
 ---
 
 
-## Étape 2 — Ouvrir le Terminal
+## Étape 2 — Installer Visual Studio Code (optionnel mais recommandé)
 
-1. Ouvre l'application **Terminal** sur ton Mac
-   - Spotlight (Cmd + Espace) → tape "Terminal" → Entrée
-   - Ou : Applications → Utilitaires → Terminal
+VS Code est un éditeur de code **gratuit** qui te permettra de voir les
+fichiers du projet et d'utiliser le terminal intégré.
 
-2. Va dans le dossier du projet :
+1. Va sur : **https://code.visualstudio.com/**
+2. Clique **"Download for Mac"** (Universal ou Apple Silicon)
+3. Ouvre le fichier téléchargé (.zip) → un fichier `Visual Studio Code.app` apparaît
+4. Glisse-le dans ton dossier **Applications**
+5. Ouvre VS Code
+6. **Ouvre le projet** : menu Fichier → "Ouvrir un dossier..." → Documents → carte_grise_auto → Ouvrir
+7. Tu vois maintenant tous les fichiers du projet à gauche
+
+**Pour ouvrir le terminal dans VS Code :**
+- Menu : Terminal → Nouveau Terminal
+- Ou raccourci : Ctrl + ` (la touche backtick, en haut à gauche du clavier)
+
+Le terminal s'ouvre **directement dans le bon dossier** — pas besoin de
+taper `cd`. C'est plus pratique que le Terminal séparé.
+
+> Si tu ne veux pas installer VS Code, tu peux utiliser le **Terminal**
+> natif du Mac (voir ci-dessous).
+
+
+---
+
+
+## Étape 3 — Ouvrir le Terminal
+
+### Option A : Terminal dans VS Code (si installé)
+
+Si tu as installé VS Code à l'étape 2 :
+1. Ouvre VS Code avec le projet (s'il n'est pas déjà ouvert)
+2. Menu : Terminal → Nouveau Terminal
+3. Le terminal est déjà dans le bon dossier → passe à l'étape 4
+
+### Option B : Terminal natif du Mac
+
+1. Ouvre l'application **Terminal** sur ton Mac :
+   - Spotlight : appuie sur **Cmd + Espace** → tape "Terminal" → Entrée
+   - Ou : Finder → Applications → Utilitaires → Terminal
+
+2. Va dans le dossier du projet en tapant cette commande puis Entrée :
    ```bash
    cd ~/Documents/carte_grise_auto
    ```
@@ -61,8 +101,9 @@ Tu as reçu un dossier `carte_grise_auto/`.
    ```bash
    ls scripts/install.sh
    ```
-   Si ça affiche `scripts/install.sh` c'est bon.
-   Si ça affiche "No such file", tu n'es pas dans le bon dossier.
+   - Si ça affiche `scripts/install.sh` → c'est bon, passe à l'étape 4
+   - Si ça affiche "No such file" → tu n'es pas dans le bon dossier,
+     vérifie que le dossier est bien dans Documents
 
 
 ---
