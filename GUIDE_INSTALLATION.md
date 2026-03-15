@@ -398,6 +398,46 @@ cat /opt/homebrew/var/log/postgresql@17.log
 ---
 
 
+## Mises à jour
+
+### Ce qui se met à jour automatiquement
+
+- **Base véhicules** : chaque véhicule traité (moto, remorque, voiture) qui
+  n'est pas dans la base est automatiquement sauvegardé. La base s'enrichit
+  au fur et à mesure de l'utilisation.
+
+### Ce qui doit être mis à jour manuellement
+
+Les **barèmes de taxes** changent chaque année (généralement au 1er janvier) :
+- Tarifs régionaux (€/CV par région)
+- Barème malus CO2 (seuils et montants)
+- Barème malus masse (seuil en kg)
+- Taxe fixe Y6
+
+**Pour vérifier et mettre à jour, lance :**
+```bash
+cd ~/Documents/carte_grise_auto
+source venv/bin/activate
+./scripts/update.sh
+```
+
+Ce script :
+1. Télécharge les nouveaux modèles de véhicules (ADEME)
+2. Met à jour les modèles IA si une nouvelle version est disponible
+3. Met à jour les dépendances Python
+4. **Vérifie les barèmes de taxes** et t'alerte si ils sont périmés
+5. Affiche les statistiques de la base
+
+Si les barèmes sont périmés, le script t'indique quoi modifier et où
+trouver les nouveaux tarifs (liens service-public.fr).
+
+**Fréquence recommandée :** 1 fois par mois, et obligatoirement en janvier
+après la publication des nouveaux barèmes.
+
+
+---
+
+
 ## Résumé des commandes
 
 | Action | Commande |
@@ -405,6 +445,7 @@ cat /opt/homebrew/var/log/postgresql@17.log
 | **Installer** (1 seule fois) | `./scripts/install.sh` |
 | **Démarrer** | `source venv/bin/activate && streamlit run dashboard/app.py` |
 | **Arrêter** | Ctrl+C dans le terminal |
+| **Mettre à jour** | `./scripts/update.sh` |
 | **Relancer PostgreSQL** | `brew services start postgresql@17` |
 | **Relancer Ollama** | `ollama serve &` |
 | **Lancer OpenClaw** | `openclaw start` |

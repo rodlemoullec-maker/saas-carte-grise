@@ -260,6 +260,25 @@ def process_dossier(dossier_path: str | Path) -> dict:
         marque=cg_data.get("D1_marque", ""),
     )
 
+    # 4b. Auto-enrichissement — sauvegarder en BDD si véhicule inconnu
+    if "types_mines" not in vehicle_data.get("sources", []):
+        cnit = cg_data.get("D2_1_cnit", "") or cg_data.get("D2_type_variante_version", "")
+        if cnit:
+            from src.vehicle.types_mines import auto_enrich
+            auto_enrich(
+                cnit=cnit,
+                marque=cg_data.get("D1_marque", ""),
+                denomination=cg_data.get("D3_denomination_commerciale", ""),
+                genre=cg_data.get("J1_genre_national", ""),
+                carrosserie=cg_data.get("J2_carrosserie_ce", ""),
+                energie=cg_data.get("P3_energie", ""),
+                cylindree=int(cg_data["P1_cylindree"]) if cg_data.get("P1_cylindree") else None,
+                puissance_fiscale=int(cg_data["P6_puissance_fiscale"]) if cg_data.get("P6_puissance_fiscale") else None,
+                puissance_kw=float(cg_data["P2_puissance_kw"]) if cg_data.get("P2_puissance_kw") else None,
+                co2=int(cg_data["V7_co2"]) if cg_data.get("V7_co2") else None,
+                ptac=int(cg_data["F2_ptac"]) if cg_data.get("F2_ptac") else None,
+            )
+
     # 5. Cross-validation
     genre = vehicle_data.get("genre", cg_data.get("J1_genre_national", "VP"))
     validation = validate_dossier(documents_extraits, genre_vehicule=genre)

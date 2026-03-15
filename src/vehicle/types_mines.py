@@ -141,3 +141,64 @@ def search_fuzzy(marque: str, energie: str = "", cylindree: int = 0) -> list[dic
     with engine.connect() as conn:
         result = conn.execute(text(query), params)
         return [dict(row) for row in result.mappings().fetchall()]
+
+
+def auto_enrich(
+    cnit: str,
+    marque: str = "",
+    denomination: str = "",
+    genre: str = "",
+    carrosserie: str = "",
+    energie: str = "",
+    cylindree: int | None = None,
+    puissance_fiscale: int | None = None,
+    puissance_kw: float | None = None,
+    co2: int | None = None,
+    poids_vide: int | None = None,
+    ptac: int | None = None,
+) -> bool:
+    """Sauvegarde un véhicule dans la base types mines s'il n'existe pas.
+
+    Appelé automatiquement quand le système traite un véhicule inconnu
+    (moto, remorque, ou modèle absent de la base ADEME).
+    La base s'enrichit au fur et à mesure des dossiers traités.
+
+    Returns:
+        True si le véhicule a été ajouté, False s'il existait déjà.
+    """
+    if not cnit or not marque:
+        return False
+
+    # Vérifier s'il existe déjà
+    existing = search_by_cnit(cnit)
+    if existing:
+        return False
+
+    engine = _get_engine()
+    with engine.connect() as conn:
+        conn.execute(
+            text(
+                "INSERT INTO types_mines (cnit, marque, denomination_commerciale, "
+                "genre, carrosserie, energie, cylindree, puissance_fiscale, "
+                "puissance_kw, co2, poids_vide, ptac) "
+                "VALUES (:cnit, :marque, :denom, :genre, :carrosserie, :energie, "
+                ":cylindree, :pf, :pkw, :co2, :poids, :ptac) "
+                "ON CONFLICT (cnit) DO NOTHING"
+            ),
+            {
+                "cnit": cnit.strip(),
+                "marque": marque.strip(),
+                "denom": denomination.strip(),
+                "genre": genre.strip(),
+                "carrosserie": carrosserie.strip(),
+                "energie": energie.strip(),
+                "cylindree": cylindree,
+                "pf": puissance_fiscale,
+                "pkw": puissance_kw,
+                "co2": co2,
+                "poids": poids_vide,
+                "ptac": ptac,
+            },
+        )
+        conn.commit()
+    return True
