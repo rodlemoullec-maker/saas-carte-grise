@@ -141,6 +141,14 @@ fi
 python3 scripts/import_historique.py 2>/dev/null || true
 echo "✓ Base véhicules occasions importée (84 000+ modèles)"
 
+# 8c. Motos (Kaggle — thermiques + électriques)
+if [ -f "data/types_mines/motos_kaggle.csv" ]; then
+    python3 scripts/import_motos.py 2>/dev/null || true
+    echo "✓ Base motos importée (26 000+ modèles dont 882 électriques)"
+else
+    echo "⚠ Fichier motos_kaggle.csv absent — motos non importées"
+fi
+
 # --- 9. Modèles IA ---
 echo "Téléchargement des modèles IA (peut prendre plusieurs minutes)..."
 ollama pull "$MODEL_TEXT"
