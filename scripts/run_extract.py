@@ -15,6 +15,8 @@ EXTRACTORS = {
     "certificat_cession": "src.extraction.cession:CessionExtractor",
     "justificatif_domicile": "src.extraction.justificatif:JustificatifExtractor",
     "controle_technique": "src.extraction.controle_technique:ControleTechniqueExtractor",
+    "certificat_conformite": "src.extraction.conformite:ConformiteExtractor",
+    "permis_conduire": "src.extraction.permis:PermisExtractor",
 }
 
 if len(sys.argv) < 3:

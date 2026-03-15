@@ -191,6 +191,8 @@ def process_dossier(dossier_path: str | Path) -> dict:
     from src.extraction.cession import CessionExtractor
     from src.extraction.justificatif import JustificatifExtractor
     from src.extraction.controle_technique import ControleTechniqueExtractor
+    from src.extraction.conformite import ConformiteExtractor
+    from src.extraction.permis import PermisExtractor
     from src.vehicle.search import search as search_vehicle
     from src.validation.cross_checker import validate_dossier
     from src.taxes.calculator import calculer_taxes
@@ -203,6 +205,8 @@ def process_dossier(dossier_path: str | Path) -> dict:
         "certificat_cession": CessionExtractor(),
         "justificatif_domicile": JustificatifExtractor(),
         "controle_technique": ControleTechniqueExtractor(),
+        "certificat_conformite": ConformiteExtractor(),
+        "permis_conduire": PermisExtractor(),
     }
 
     dossier_path = Path(dossier_path)
@@ -252,6 +256,8 @@ def process_dossier(dossier_path: str | Path) -> dict:
 
     # 4. Recherche véhicule
     cg_data = documents_extraits.get("carte_grise", {})
+    coc_data = documents_extraits.get("certificat_conformite", {})
+
     vehicle_data = search_vehicle(
         vin=cg_data.get("E_vin", ""),
         immatriculation=cg_data.get("A_immatriculation", ""),
@@ -260,7 +266,28 @@ def process_dossier(dossier_path: str | Path) -> dict:
         marque=cg_data.get("D1_marque", ""),
     )
 
-    # 4b. Auto-enrichissement — sauvegarder en BDD si véhicule inconnu
+    # 4b. Compléter avec le COC si le véhicule n'est pas dans la base
+    if "types_mines" not in vehicle_data.get("sources", []) and coc_data:
+        # Le COC fournit les données techniques manquantes
+        for coc_key, cg_key in [
+            ("cylindree", "P1_cylindree"),
+            ("puissance_kw", "P2_puissance_kw"),
+            ("energie", "P3_energie"),
+            ("puissance_fiscale", "P6_puissance_fiscale"),
+            ("genre_national", "J1_genre_national"),
+            ("nb_places_assises", "S1_nb_places_assises"),
+            ("ptac", "F2_ptac"),
+            ("ptra", "G1_ptra"),
+            ("masse_max_charge", "F1_masse_max_charge"),
+            ("co2", "V7_co2"),
+            ("carrosserie", "J2_carrosserie_ce"),
+        ]:
+            coc_val = coc_data.get(coc_key)
+            if coc_val and str(coc_val).strip() not in ("", "null", "None"):
+                if not cg_data.get(cg_key) or str(cg_data[cg_key]).strip() in ("", "null", "None"):
+                    cg_data[cg_key] = coc_val
+
+    # 4c. Auto-enrichissement — sauvegarder en BDD si véhicule inconnu
     if "types_mines" not in vehicle_data.get("sources", []):
         cnit = cg_data.get("D2_1_cnit", "") or cg_data.get("D2_type_variante_version", "")
         if cnit:

@@ -13,15 +13,17 @@ import ollama
 
 from config.settings import MODEL_VISION
 
-CLASSIFICATION_PROMPT = """Tu es un expert en documents administratifs français.
+CLASSIFICATION_PROMPT = """Tu es un expert en documents administratifs français liés à l'automobile.
 Classifie ce document parmi les types suivants :
 
 - carte_grise : Certificat d'immatriculation (document gris/bleu avec des champs A, B, C.1, D.1, E, J.1, P.1, etc.)
 - cni : Carte nationale d'identité française (recto ou verso)
 - passeport : Passeport français ou étranger
+- permis_conduire : Permis de conduire français (format carte rose ou format carte à puce, avec catégories AM, A1, A2, A, B, etc.)
 - justificatif_domicile : Facture EDF, eau, téléphone, internet, avis d'impôt, quittance de loyer
 - certificat_cession : CERFA 15776, certificat de cession d'un véhicule (formulaire avec vendeur/acheteur)
 - controle_technique : Procès-verbal de contrôle technique (avec résultat favorable/défavorable)
+- certificat_conformite : Certificat de conformité européen (COC), document technique du constructeur avec rubriques numérotées (0.1, 0.2, 1, 2, 3...)
 - attestation_assurance : Attestation d'assurance automobile (carte verte)
 - facture_vente : Facture de vente d'un véhicule
 - autre : Document non reconnu
@@ -72,9 +74,10 @@ def classify_document(image_path: str | Path) -> dict:
 
     # Valider le type
     valid_types = {
-        "carte_grise", "cni", "passeport", "justificatif_domicile",
-        "certificat_cession", "controle_technique", "attestation_assurance",
-        "facture_vente", "autre",
+        "carte_grise", "cni", "passeport", "permis_conduire",
+        "justificatif_domicile", "certificat_cession", "controle_technique",
+        "certificat_conformite", "attestation_assurance", "facture_vente",
+        "autre",
     }
     if result.get("type") not in valid_types:
         result["type"] = "autre"
