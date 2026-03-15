@@ -1,0 +1,16 @@
+# Liste des expéditeurs autorisés (personnes habilitées SIV)
+#
+# Ajoutez ici les adresses email des personnes habilitées qui vous
+# envoient les documents pour les demandes de carte grise.
+#
+# Le système ne traitera QUE les emails provenant de ces adresses.
+# Tous les autres emails seront ignorés.
+#
+# Format : une adresse email par ligne
+# Les lignes commençant par # sont des commentaires
+#
+# Exemples :
+# personne.habilitee@garage-dupont.fr
+# secretariat@concession-martin.com
+#
+# ⚠️ IMPORTANT : Ajoutez au moins une adresse avant de lancer le système.

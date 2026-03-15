@@ -34,3 +34,9 @@ DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NA
 
 # CERFA
 CERFA_13750_TEMPLATE = TEMPLATES_DIR / "cerfa_13750_07.pdf"
+
+# Expéditeurs autorisés (personnes habilitées)
+# Seuls les emails provenant de ces adresses seront traités.
+# Les autres emails sont ignorés.
+# Fichier séparé pour faciliter la gestion.
+EXPEDITEURS_AUTORISES_FILE = BASE_DIR / "config" / "expediteurs_autorises.txt"

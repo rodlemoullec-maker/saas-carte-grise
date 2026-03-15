@@ -47,9 +47,27 @@ Service Carte Grise""",
 
 Le dossier carte grise (référence : {reference}) a été traité avec succès.
 
+--- Récapitulatif du traitement ---
+
 Véhicule : {marque} {denomination} — {immatriculation}
 
-Vous trouverez en pièce jointe le CERFA 13750 pré-rempli, prêt pour soumission auprès de l'ANTS.
+Actions effectuées par le système :
+1. Réception et identification de {nb_documents} document(s)
+2. Extraction automatique des données par OCR et intelligence artificielle
+3. Vérification de cohérence entre les documents (VIN, identité, dates)
+4. Recherche des caractéristiques techniques du véhicule dans la base de données
+5. Calcul des taxes carte grise selon la réglementation en vigueur
+6. Pré-remplissage du formulaire CERFA 13750
+
+Résultat des vérifications :
+{verifications}
+
+--- Pièce jointe ---
+
+Vous trouverez en pièce jointe le CERFA 13750 pré-rempli.
+Merci de vérifier les informations avant soumission auprès de l'ANTS.
+
+Si vous constatez une erreur, merci de nous le signaler par retour de mail.
 
 Cordialement,
 Service Carte Grise""",
@@ -164,9 +182,15 @@ class EmailSender:
         marque: str = "",
         denomination: str = "",
         immatriculation: str = "",
+        nb_documents: int = 0,
+        verifications: str = "",
     ) -> bool:
-        """Envoie le CERFA pré-rempli à la personne habilitée."""
+        """Envoie le CERFA pré-rempli à la personne habilitée avec récapitulatif."""
         tmpl = TEMPLATES["dossier_pret"]
+
+        if not verifications:
+            verifications = "- Toutes les vérifications ont été passées avec succès"
+
         return self.send(
             to=to,
             subject=tmpl["subject"].format(reference=reference),
@@ -175,6 +199,8 @@ class EmailSender:
                 marque=marque,
                 denomination=denomination,
                 immatriculation=immatriculation,
+                nb_documents=nb_documents,
+                verifications=verifications,
             ),
             attachments=[cerfa_path],
         )

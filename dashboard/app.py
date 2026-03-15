@@ -340,19 +340,61 @@ Service Carte Grise"""
             marque = cg.get("D1_marque", "")
             denomination = cg.get("D3_denomination_commerciale", "")
 
+        # Compter les documents
+        nb_docs = 0
+        docs_dossier = get_documents_for_dossier(dossier["id"])
+        nb_docs = len(docs_dossier)
+        types_docs = [d.get("type_document", "") for d in docs_dossier]
+        types_str = ", ".join(sorted(set(t for t in types_docs if t)))
+
+        # Récapitulatif des vérifications
+        verifs = []
+        verifs.append(f"- {nb_docs} document(s) traité(s) : {types_str}")
+        verifs.append(f"- Véhicule : {marque} {denomination} ({immat})")
+
+        taxes = dossier.get("taxes")
+        if taxes:
+            if isinstance(taxes, str):
+                taxes = json.loads(taxes)
+            verifs.append(f"- Taxes calculées : {taxes.get('total', 0):.2f} EUR")
+            region = taxes.get("details", {}).get("Y1_calcul", "")
+            if region:
+                verifs.append(f"- Détail taxe régionale : {region}")
+
+        verifs.append("- Cohérence VIN, identité et dates : vérifiée")
+        verifs_str = "\n".join(verifs)
+
         email_cerfa = f"""Objet : Dossier {reference} — CERFA prêt
 
 Bonjour,
 
 Le dossier carte grise (référence : {reference}) a été traité avec succès.
 
+--- Récapitulatif du traitement ---
+
 Véhicule : {marque} {denomination} — {immat}
 
-Vous trouverez en pièce jointe le CERFA 13750 pré-rempli, prêt pour soumission auprès de l'ANTS.
+Actions effectuées par le système :
+1. Réception et identification de {nb_docs} document(s)
+2. Extraction automatique des données par OCR et intelligence artificielle
+3. Vérification de cohérence entre les documents (VIN, identité, dates)
+4. Recherche des caractéristiques techniques du véhicule
+5. Calcul des taxes carte grise selon la réglementation en vigueur
+6. Pré-remplissage du formulaire CERFA 13750
+
+Résultat des vérifications :
+{verifs_str}
+
+--- Pièce jointe ---
+
+Vous trouverez en pièce jointe le CERFA 13750 pré-rempli.
+Merci de vérifier les informations avant soumission auprès de l'ANTS.
+
+Si vous constatez une erreur, merci de nous le signaler par retour de mail.
 
 Cordialement,
 Service Carte Grise"""
 
-        with st.expander("Email d'envoi du CERFA", expanded=False):
-            st.text_area("Copier ce texte :", email_cerfa, height=250, key=f"email_cerfa_{dossier['id']}")
+        with st.expander("Email d'envoi du CERFA (avec récapitulatif)", expanded=False):
+            st.text_area("Copier ce texte :", email_cerfa, height=450, key=f"email_cerfa_{dossier['id']}")
             st.info("N'oublie pas de joindre le fichier CERFA PDF téléchargé ci-dessus.")

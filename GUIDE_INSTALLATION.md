@@ -165,6 +165,33 @@ C'est prêt. Tu n'auras plus jamais à refaire cette étape.
 ---
 
 
+## Étape 3b — Configurer les expéditeurs autorisés
+
+**C'est obligatoire avant de lancer le système.**
+
+Le système ne traite que les emails venant d'adresses que tu autorises.
+Ça évite que n'importe qui déclenche un traitement.
+
+1. Ouvre ce fichier avec TextEdit (double-clic dessus dans le Finder) :
+   ```
+   Documents/nouveau_projet/config/expediteurs_autorises.txt
+   ```
+
+2. Ajoute les adresses email des personnes habilitées, une par ligne :
+   ```
+   personne.habilitee@garage-dupont.fr
+   secretariat@concession-martin.com
+   ```
+
+3. Sauvegarde le fichier (Cmd + S)
+
+Tu pourras ajouter ou retirer des adresses à tout moment en modifiant
+ce fichier.
+
+
+---
+
+
 ## Étape 4 — Démarrer le système
 
 Il y a **deux modes** de fonctionnement :

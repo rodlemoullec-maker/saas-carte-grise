@@ -1,11 +1,13 @@
-"""Boucle de polling email — connecte réception → traitement → réponse.
+"""Boucle de polling email — connecte réception → traitement → préparation réponse.
 
 C'est le module qui fait tourner le système en continu :
 1. Poll la boîte email
-2. Pour chaque nouvel email avec PJ : crée un dossier + traite
-3. Envoie la réponse adaptée (accusé, relance, CERFA)
+2. Vérifie que l'expéditeur est dans la liste autorisée
+3. Pour chaque email autorisé avec PJ : crée un dossier + traite
+4. Prépare les réponses (JAMAIS envoyées automatiquement sans validation)
 
-Utilisé par OpenClaw en mode automatique ou lancé directement.
+IMPORTANT : Aucun email n'est envoyé automatiquement par défaut.
+L'opérateur doit valider dans le dashboard avant tout envoi.
 """
 
 import time
@@ -15,18 +17,46 @@ from pathlib import Path
 from src.email_handler.receiver import EmailReceiver
 from src.email_handler.sender import EmailSender
 from src.pipeline.orchestrator import process_dossier, update_dossier_data
-from config.settings import EMAIL_POLL_INTERVAL
+from config.settings import EMAIL_POLL_INTERVAL, EXPEDITEURS_AUTORISES_FILE
+
+
+def _load_expediteurs_autorises() -> set[str]:
+    """Charge la liste des expéditeurs autorisés depuis le fichier config."""
+    autorises = set()
+    if not EXPEDITEURS_AUTORISES_FILE.exists():
+        return autorises
+    with open(EXPEDITEURS_AUTORISES_FILE, "r") as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith("#"):
+                autorises.add(line.lower())
+    return autorises
+
+
+def _is_expediteur_autorise(email: str) -> bool:
+    """Vérifie si un expéditeur est dans la liste autorisée."""
+    autorises = _load_expediteurs_autorises()
+    if not autorises:
+        # Si aucun expéditeur configuré, tout bloquer
+        return False
+    return email.lower().strip() in autorises
 
 
 def run_email_loop(
-    auto_send: bool = True,
+    auto_send: bool = False,
     poll_interval: int = 0,
 ):
-    """Boucle principale : poll email → traite → répond.
+    """Boucle principale : poll email → filtre expéditeur → traite → prépare réponses.
+
+    IMPORTANT :
+    - Seuls les emails provenant d'expéditeurs autorisés sont traités
+    - auto_send est TOUJOURS False par défaut
+    - Les emails de réponse sont préparés dans le dashboard
+    - L'opérateur DOIT valider avant tout envoi
 
     Args:
-        auto_send: Si True, envoie les emails automatiquement (mode OpenClaw).
-                   Si False, ne fait que traiter (mode dashboard manuel).
+        auto_send: False par défaut. Ne mettre True que si l'opérateur
+                   a explicitement activé l'envoi automatique.
         poll_interval: Intervalle de polling en secondes (0 = une seule fois).
     """
     if poll_interval == 0:
@@ -35,8 +65,21 @@ def run_email_loop(
     receiver = EmailReceiver()
     sender = EmailSender()
 
-    print(f"Démarrage de la boucle email (polling toutes les {poll_interval}s)")
-    print(f"Mode envoi automatique : {'OUI' if auto_send else 'NON'}")
+    # Vérifier la liste des expéditeurs autorisés
+    autorises = _load_expediteurs_autorises()
+    if not autorises:
+        print("⚠ ATTENTION : Aucun expéditeur autorisé configuré !")
+        print(f"  Modifiez le fichier : {EXPEDITEURS_AUTORISES_FILE}")
+        print("  Ajoutez les adresses email des personnes habilitées.")
+        print("  Le système ignorera TOUS les emails tant que ce fichier est vide.")
+        print()
+    else:
+        print(f"Expéditeurs autorisés : {len(autorises)}")
+        for a in sorted(autorises):
+            print(f"  - {a}")
+
+    print(f"Polling toutes les {poll_interval}s")
+    print(f"Envoi automatique : {'OUI (activé par l opérateur)' if auto_send else 'NON (validation requise dans le dashboard)'}")
     print()
 
     while True:
@@ -80,6 +123,19 @@ def _poll_and_process(
         nb_pj = len(email_data.get("attachments", []))
 
         print(f"  → De: {sender_email} | Sujet: {subject} | PJ: {nb_pj}")
+
+        # 0. Vérifier que l'expéditeur est autorisé
+        if not _is_expediteur_autorise(sender_email):
+            print(f"    ✗ Expéditeur NON autorisé — email ignoré")
+            print(f"      Pour l'autoriser, ajoutez '{sender_email}' dans :")
+            print(f"      {EXPEDITEURS_AUTORISES_FILE}")
+            try:
+                receiver.mark_as_read(email_data["email_id"])
+            except Exception:
+                pass
+            continue
+
+        print(f"    ✓ Expéditeur autorisé")
 
         # 1. Sauvegarder les PJ dans un dossier
         dossier_info = receiver.save_dossier(email_data)
