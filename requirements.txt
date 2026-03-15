@@ -1,0 +1,28 @@
+# Backend
+fastapi==0.115.12
+uvicorn==0.34.2
+python-dotenv==1.1.0
+
+# IA / OCR
+ollama==0.4.8
+surya-ocr==0.8.4
+opencv-python-headless==4.11.0.86
+
+# BDD
+sqlalchemy==2.0.40
+psycopg2-binary==2.9.10
+alembic==1.15.2
+
+# PDF
+fillpdf==0.7.3
+pdfrw==0.4
+reportlab==4.4.0
+
+# Dashboard
+streamlit==1.44.1
+
+# Utilitaires
+pydantic==2.11.1
+python-multipart==0.0.20
+celery==5.4.0
+redis==5.3.0

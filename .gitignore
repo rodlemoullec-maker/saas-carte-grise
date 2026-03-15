@@ -1,0 +1,33 @@
+# Python
+venv/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.pytest_cache/
+
+# Environnement
+.env
+
+# Données locales
+data/dossiers/
+data/output/
+data/types_mines/tmp_*/
+data/types_mines/ademe_20*.zip
+data/types_mines/ademe_20*.7z
+data/types_mines/_tmp_*
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+docker-compose.override.yml
+
+# Node
+node_modules/

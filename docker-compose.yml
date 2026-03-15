@@ -1,0 +1,98 @@
+version: "3.8"
+
+services:
+  # === Base de données ===
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-carte_grise}
+      POSTGRES_USER: ${DB_USER:-carte_grise}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-changez_ce_mot_de_passe}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-carte_grise}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # === IA locale (Ollama) ===
+  ollama:
+    image: ollama/ollama:latest
+    restart: unless-stopped
+    volumes:
+      - ollama_data:/root/.ollama
+    ports:
+      - "11434:11434"
+    # Sur Mac, Ollama utilise automatiquement l'accélération Metal/MPS
+    # Sur Linux avec GPU NVIDIA, ajouter :
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+
+  # === Application (Dashboard + Pipeline) ===
+  app:
+    build: .
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DB_HOST: db
+      OLLAMA_HOST: http://ollama:11434
+    volumes:
+      - ./data:/app/data
+      - ./templates:/app/templates
+    ports:
+      - "8501:8501"
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      ollama:
+        condition: service_started
+
+  # === Setup initial (exécuté une seule fois) ===
+  setup:
+    build: .
+    env_file:
+      - .env
+    environment:
+      DB_HOST: db
+      OLLAMA_HOST: http://ollama:11434
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      db:
+        condition: service_healthy
+      ollama:
+        condition: service_started
+    entrypoint: ["bash", "-c"]
+    command:
+      - |
+        echo "=== Setup Carte Grise Auto ==="
+
+        echo "1. Création des tables..."
+        python3 scripts/setup_db.py
+
+        echo "2. Import base types mines..."
+        python3 scripts/import_types_mines.py || true
+        python3 scripts/import_historique.py || true
+
+        echo "3. Téléchargement modèles Ollama..."
+        curl -s http://ollama:11434/api/pull -d '{"name": "${MODEL_TEXT:-qwen2.5:7b}"}' || true
+        curl -s http://ollama:11434/api/pull -d '{"name": "${MODEL_VISION:-qwen2.5vl:7b}"}' || true
+
+        echo "=== Setup terminé ==="
+    profiles:
+      - setup
+
+volumes:
+  postgres_data:
+  ollama_data:

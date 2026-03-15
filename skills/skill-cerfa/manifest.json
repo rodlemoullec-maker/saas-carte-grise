@@ -1,0 +1,14 @@
+{
+  "name": "skill-cerfa",
+  "description": "Pré-remplit le CERFA 13750 (demande de certificat d'immatriculation) avec les données extraites des documents, les informations techniques du véhicule et les taxes calculées. Génère un PDF prêt à imprimer ou soumettre.",
+  "input": {
+    "donnees_demandeur": "Nom, prénom, adresse, date naissance (depuis CNI + justificatif)",
+    "donnees_vehicule": "Immat, VIN, marque, genre, énergie, etc. (depuis carte grise + BDD)",
+    "taxes": "Montants Y1-Y6 calculés",
+    "type_operation": "Type d'opération (changement_titulaire, premiere_immat, etc.)"
+  },
+  "output": {
+    "cerfa_path": "Chemin du fichier PDF CERFA généré",
+    "champs_remplis": "Nombre de champs remplis sur le total"
+  }
+}

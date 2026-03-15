@@ -1,0 +1,12 @@
+{
+  "name": "skill-extract",
+  "description": "Structure le texte OCR brut en données JSON selon le type de document. Utilise un prompt spécifique par type (carte_grise, cni, cession, justificatif, controle_technique) et le LLM Qwen2.5 via Ollama pour extraire les champs.",
+  "input": {
+    "texte_ocr": "Texte brut issu de l'OCR",
+    "type_document": "Type du document (carte_grise, cni, cession, justificatif, controle_technique)"
+  },
+  "output": {
+    "donnees": "Objet JSON avec les champs extraits selon le type de document",
+    "champs_manquants": "Liste des champs non trouvés ou illisibles"
+  }
+}

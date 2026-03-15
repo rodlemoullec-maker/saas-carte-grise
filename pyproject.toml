@@ -1,0 +1,8 @@
+[project]
+name = "carte-grise-auto"
+version = "0.1.0"
+description = "Automatisation du traitement des demandes de carte grise"
+requires-python = ">=3.12"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

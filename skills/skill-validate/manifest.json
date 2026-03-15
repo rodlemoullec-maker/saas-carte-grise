@@ -1,0 +1,14 @@
+{
+  "name": "skill-validate",
+  "description": "Vérifie la cohérence entre tous les documents d'un dossier carte grise. Compare les VIN, immatriculations, noms, dates entre carte grise, CNI, certificat de cession et justificatif de domicile. Détecte les incohérences et documents manquants.",
+  "input": {
+    "dossier_id": "Identifiant du dossier à valider",
+    "documents": "Liste des documents avec leurs données extraites"
+  },
+  "output": {
+    "is_valid": "true si aucune erreur bloquante",
+    "errors": "Liste des erreurs bloquantes",
+    "warnings": "Liste des avertissements non bloquants",
+    "documents_manquants": "Liste des documents obligatoires absents"
+  }
+}

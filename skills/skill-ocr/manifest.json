@@ -1,0 +1,12 @@
+{
+  "name": "skill-ocr",
+  "description": "Extrait le texte d'un document scanné ou photographié. Applique un preprocessing image (redressement, contraste, débruitage) puis utilise Surya OCR pour l'extraction du texte.",
+  "input": {
+    "image_path": "Chemin vers le fichier image ou PDF du document"
+  },
+  "output": {
+    "texte_brut": "Texte extrait du document",
+    "nb_lignes": "Nombre de lignes détectées",
+    "confidence_ocr": "Score de confiance moyen de l'OCR"
+  }
+}
