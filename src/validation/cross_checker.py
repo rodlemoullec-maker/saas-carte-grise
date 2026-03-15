@@ -57,13 +57,19 @@ DOCUMENTS_OBLIGATOIRES = [
 GENRES_EXEMPTES_CT = ["MTL"]  # Motos < 125cc
 
 
-def validate_dossier(documents: dict[str, dict], genre_vehicule: str = "VP") -> ValidationReport:
+def validate_dossier(
+    documents: dict[str, dict],
+    genre_vehicule: str = "VP",
+    vehicle_found_in_db: bool = True,
+    vehicle_data: dict | None = None,
+) -> ValidationReport:
     """Valide la cohérence de tous les documents d'un dossier.
 
     Args:
         documents: Dict avec clé = type de document, valeur = données extraites.
-            Ex: {"carte_grise": {...}, "cni": {...}, "certificat_cession": {...}}
         genre_vehicule: Genre du véhicule (VP, MTL, MTT1, etc.)
+        vehicle_found_in_db: True si le véhicule a été trouvé dans la base types mines.
+        vehicle_data: Données véhicule issues de la recherche (optionnel).
 
     Returns:
         ValidationReport avec erreurs, warnings et checks passés.
@@ -81,6 +87,9 @@ def validate_dossier(documents: dict[str, dict], genre_vehicule: str = "VP") -> 
 
     # 4. Cohérence noms (acheteur = titulaire CNI)
     _check_noms(documents, report)
+
+    # 4b. Vérifier les données techniques si véhicule inconnu
+    _check_donnees_techniques(documents, genre_vehicule, vehicle_found_in_db, vehicle_data, report)
 
     # 5. Validité justificatif de domicile (< 6 mois)
     _check_justificatif_date(documents, report)
@@ -249,6 +258,174 @@ def _check_controle_technique(docs: dict, genre: str, report: ValidationReport):
                 report.add_ok(f"CT valide jusqu'au {date_val}")
             else:
                 report.add_error(f"CT expiré depuis le {date_val}")
+
+
+def _check_donnees_techniques(
+    docs: dict, genre: str, vehicle_found: bool, vehicle_data: dict | None, report: ValidationReport
+):
+    """Vérifie que les données techniques sont complètes pour le CERFA.
+
+    Si le véhicule n'est pas dans la base, identifie les champs manquants
+    et demande les documents complémentaires adaptés au type de véhicule.
+    """
+    cg = docs.get("carte_grise", {})
+
+    # Champs techniques indispensables pour le CERFA (communs à tous)
+    champs_communs = {
+        "D1_marque": "Marque",
+        "E_vin": "VIN",
+        "J1_genre_national": "Genre national",
+        "P3_energie": "Énergie",
+        "P6_puissance_fiscale": "Puissance fiscale",
+    }
+
+    # Champs spécifiques par type de véhicule
+    champs_specifiques = {
+        "VP": {
+            "P1_cylindree": "Cylindrée",
+            "P2_puissance_kw": "Puissance kW",
+            "S1_nb_places_assises": "Nombre de places",
+        },
+        "MTL": {
+            "P1_cylindree": "Cylindrée",
+            "P2_puissance_kw": "Puissance kW",
+        },
+        "MTT1": {
+            "P1_cylindree": "Cylindrée",
+            "P2_puissance_kw": "Puissance kW",
+        },
+        "MTT2": {
+            "P1_cylindree": "Cylindrée",
+            "P2_puissance_kw": "Puissance kW",
+        },
+        "REM": {
+            "F2_ptac": "PTAC",
+            "G1_ptra": "PTRA",
+            "F1_masse_max_charge": "Masse maximale en charge",
+        },
+        "RESP": {
+            "F2_ptac": "PTAC",
+            "G1_ptra": "PTRA",
+            "F1_masse_max_charge": "Masse maximale en charge",
+        },
+    }
+
+    # Fusionner les champs à vérifier
+    champs = dict(champs_communs)
+    if genre in champs_specifiques:
+        champs.update(champs_specifiques[genre])
+    else:
+        champs.update(champs_specifiques.get("VP", {}))
+
+    # Si véhicule électrique, la cylindrée n'est pas requise
+    energie = cg.get("P3_energie", "")
+    if energie and energie.upper() in ("EL", "HY"):
+        champs.pop("P1_cylindree", None)
+
+    # Si remorque, énergie et puissance ne sont pas requises
+    if genre in ("REM", "RESP"):
+        champs.pop("P3_energie", None)
+        champs.pop("P6_puissance_fiscale", None)
+
+    # Vérifier chaque champ — d'abord dans la carte grise, puis dans la BDD
+    manquants = []
+    for champ, label in champs.items():
+        val_cg = cg.get(champ)
+        val_db = vehicle_data.get(champ) if vehicle_data else None
+
+        if val_cg and str(val_cg).strip() not in ("", "null", "None"):
+            continue
+        if val_db and str(val_db).strip() not in ("", "null", "None", "0"):
+            continue
+        manquants.append((champ, label))
+
+    if not manquants and vehicle_found:
+        report.add_ok("Données techniques complètes")
+        return
+
+    if not manquants and not vehicle_found:
+        report.add_ok("Données techniques extraites de la carte grise (véhicule absent de la base)")
+        return
+
+    # Il manque des données → déterminer quels documents demander
+    labels_manquants = [label for _, label in manquants]
+
+    if vehicle_found:
+        report.add_warning(
+            f"Données techniques incomplètes sur la carte grise : {', '.join(labels_manquants)}. "
+            f"Complétées par la base de données."
+        )
+        return
+
+    # Véhicule inconnu + données manquantes → demander des documents
+    report.add_error(
+        f"Véhicule absent de la base de données. "
+        f"Données techniques manquantes : {', '.join(labels_manquants)}"
+    )
+
+    # Documents à demander selon le type de véhicule
+    docs_a_demander = _documents_complementaires(genre, manquants)
+    for doc in docs_a_demander:
+        report.documents_manquants.append(doc)
+        report.add_error(f"Document complémentaire requis : {doc}")
+
+
+def _documents_complementaires(genre: str, manquants: list[tuple[str, str]]) -> list[str]:
+    """Détermine les documents complémentaires à demander selon le véhicule et les données manquantes."""
+    docs = []
+
+    # Si données techniques de base manquent
+    champs_manquants = {champ for champ, _ in manquants}
+    has_missing_tech = champs_manquants & {
+        "P1_cylindree", "P2_puissance_kw", "P6_puissance_fiscale",
+        "J1_genre_national", "P3_energie",
+    }
+    has_missing_poids = champs_manquants & {"F2_ptac", "G1_ptra", "F1_masse_max_charge"}
+
+    if genre in ("VP",):
+        if has_missing_tech:
+            docs.append(
+                "Certificat de conformité (COC) ou fiche technique constructeur "
+                "— contient : cylindrée, puissance, énergie, genre, places"
+            )
+    elif genre in ("MTL", "MTT1", "MTT2"):
+        if has_missing_tech:
+            docs.append(
+                "Certificat de conformité moto (COC) ou carte grise lisible "
+                "— contient : cylindrée, puissance kW, puissance fiscale, énergie"
+            )
+        if "P1_cylindree" in champs_manquants:
+            docs.append(
+                "Préciser la cylindrée exacte du véhicule (nécessaire pour "
+                "déterminer le genre MTL/MTT1/MTT2 et la catégorie de permis)"
+            )
+    elif genre in ("REM", "RESP"):
+        if has_missing_poids:
+            docs.append(
+                "Plaque de tare de la remorque ou certificat de conformité "
+                "— contient : PTAC, PTRA, masse maximale en charge"
+            )
+        if has_missing_tech:
+            docs.append(
+                "Certificat de conformité remorque (COC) "
+                "— contient : genre (REM/RESP), caractéristiques techniques"
+            )
+    else:
+        # Genre inconnu
+        if has_missing_tech or has_missing_poids:
+            docs.append(
+                "Certificat de conformité (COC) du véhicule ou fiche technique "
+                "constructeur — le véhicule n'est pas reconnu dans la base de données"
+            )
+
+    # Si aucun document spécifique identifié mais données manquantes
+    if not docs and manquants:
+        labels = [label for _, label in manquants]
+        docs.append(
+            f"Document complémentaire avec les informations suivantes : {', '.join(labels)}"
+        )
+
+    return docs
 
 
 # --- Utilitaires ---

@@ -281,7 +281,13 @@ def process_dossier(dossier_path: str | Path) -> dict:
 
     # 5. Cross-validation
     genre = vehicle_data.get("genre", cg_data.get("J1_genre_national", "VP"))
-    validation = validate_dossier(documents_extraits, genre_vehicule=genre)
+    vehicle_in_db = "types_mines" in vehicle_data.get("sources", [])
+    validation = validate_dossier(
+        documents_extraits,
+        genre_vehicule=genre,
+        vehicle_found_in_db=vehicle_in_db,
+        vehicle_data=vehicle_data,
+    )
 
     if not validation.is_valid:
         update_dossier_status(dossier_id, "documents_manquants")
