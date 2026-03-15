@@ -91,17 +91,55 @@ createdb carte_grise 2>/dev/null || true
 python3 scripts/setup_db.py
 echo "✓ Base de données"
 
-# --- 8. Import types mines ---
-if [ -f "data/types_mines/ademe_car_labelling.csv" ]; then
-    python3 scripts/import_types_mines.py 2>/dev/null || true
-    python3 scripts/import_historique.py 2>/dev/null || true
-else
-    echo "Téléchargement base types mines..."
+# --- 8. Import base véhicules (neufs + occasions) ---
+mkdir -p data/types_mines
+
+# 8a. Véhicules neufs (ADEME Car Labelling)
+if [ ! -f "data/types_mines/ademe_car_labelling.csv" ]; then
+    echo "Téléchargement base véhicules neufs..."
     curl -sL -o data/types_mines/ademe_car_labelling.csv \
         "https://www.data.gouv.fr/api/1/datasets/r/669a1f00-299f-4c7c-9db2-cd32401e7b25"
-    python3 scripts/import_types_mines.py 2>/dev/null || true
 fi
-echo "✓ Base types mines"
+python3 scripts/import_types_mines.py 2>/dev/null || true
+echo "✓ Base véhicules neufs importée"
+
+# 8b. Véhicules occasions (ADEME historique 2012-2015)
+echo "Téléchargement base véhicules occasions (2012-2015)..."
+
+# 2015 (ZIP)
+if [ ! -f "data/types_mines/tmp_2015/fic_etiq_edition_40-mars-2015.csv" ]; then
+    curl -sL -o data/types_mines/ademe_2015.zip \
+        "https://www.data.gouv.fr/fr/datasets/r/bc42c2e3-d24c-4499-a966-d35656c6cfc1"
+    mkdir -p data/types_mines/tmp_2015
+    unzip -o data/types_mines/ademe_2015.zip -d data/types_mines/tmp_2015 -q 2>/dev/null || true
+fi
+
+# 2014 (ZIP déguisé en CSV)
+if [ ! -d "data/types_mines/tmp_2014" ]; then
+    curl -sL -o data/types_mines/ademe_2014.zip \
+        "https://www.data.gouv.fr/fr/datasets/r/da84abee-6038-43ea-b316-cdaea2514f66"
+    mkdir -p data/types_mines/tmp_2014
+    unzip -o data/types_mines/ademe_2014.zip -d data/types_mines/tmp_2014 -q 2>/dev/null || true
+fi
+
+# 2013 (ZIP déguisé en CSV)
+if [ ! -d "data/types_mines/tmp_2013" ]; then
+    curl -sL -o data/types_mines/ademe_2013.zip \
+        "https://www.data.gouv.fr/fr/datasets/r/6ff09b59-84ca-4346-a8d1-3587ed94da15"
+    mkdir -p data/types_mines/tmp_2013
+    unzip -o data/types_mines/ademe_2013.zip -d data/types_mines/tmp_2013 -q 2>/dev/null || true
+fi
+
+# 2012 (ZIP déguisé en CSV)
+if [ ! -d "data/types_mines/tmp_2012" ]; then
+    curl -sL -o data/types_mines/ademe_2012.zip \
+        "https://www.data.gouv.fr/fr/datasets/r/b6c87a29-2df0-4e23-8837-1a71cdf254b9"
+    mkdir -p data/types_mines/tmp_2012
+    unzip -o data/types_mines/ademe_2012.zip -d data/types_mines/tmp_2012 -q 2>/dev/null || true
+fi
+
+python3 scripts/import_historique.py 2>/dev/null || true
+echo "✓ Base véhicules occasions importée (84 000+ modèles)"
 
 # --- 9. Modèles IA ---
 echo "Téléchargement des modèles IA (peut prendre plusieurs minutes)..."
