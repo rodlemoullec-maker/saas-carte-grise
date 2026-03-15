@@ -169,24 +169,46 @@ C'est prêt. Tu n'auras plus jamais à refaire cette étape.
 
 **C'est obligatoire avant de lancer le système.**
 
-Le système ne traite que les emails venant d'adresses que tu autorises.
-Ça évite que n'importe qui déclenche un traitement.
+Le système ne traite que les emails venant de personnes que tu as
+autorisées. Si une adresse n'est pas dans la liste, l'email est ignoré.
+C'est une sécurité.
 
-1. Ouvre ce fichier avec TextEdit (double-clic dessus dans le Finder) :
+**Comment faire :**
+
+1. Ouvre le **Finder** sur ton Mac
+
+2. Va dans : **Documents** → **nouveau_projet** → **config**
+
+3. Double-clique sur le fichier **`expediteurs_autorises.txt`**
+   → Il s'ouvre dans TextEdit (l'éditeur de texte de base du Mac)
+
+4. Tu verras des lignes qui commencent par `#` — ce sont des commentaires,
+   ne les touche pas. Va à la fin du fichier.
+
+5. **Ajoute les adresses email** des personnes habilitées qui t'envoient
+   les documents. Écris une adresse par ligne, par exemple :
+
    ```
-   Documents/nouveau_projet/config/expediteurs_autorises.txt
+   jean.dupont@garage-moto.fr
+   secretariat@concession-auto.com
    ```
 
-2. Ajoute les adresses email des personnes habilitées, une par ligne :
-   ```
-   personne.habilitee@garage-dupont.fr
-   secretariat@concession-martin.com
-   ```
+6. Enregistre le fichier : **Cmd + S** (appuie sur Cmd et S en même temps)
 
-3. Sauvegarde le fichier (Cmd + S)
+7. Ferme TextEdit
 
-Tu pourras ajouter ou retirer des adresses à tout moment en modifiant
-ce fichier.
+**C'est tout.** Le système ne traitera que les emails venant de ces adresses.
+
+**Plus tard, pour ajouter ou retirer une adresse :**
+- Refais la même chose : Finder → Documents → nouveau_projet → config →
+  double-clic sur `expediteurs_autorises.txt`
+- Ajoute une nouvelle adresse sur une nouvelle ligne
+- Ou supprime une ligne pour retirer une adresse
+- Enregistre avec Cmd + S
+
+**Attention :** l'adresse doit correspondre exactement à celle qui apparaît
+dans l'email que tu reçois. Si la personne habilitée envoie depuis
+`jean.dupont@garage-moto.fr`, c'est exactement ça qu'il faut écrire.
 
 
 ---
