@@ -31,3 +31,4 @@ docker-compose.override.yml
 
 # Node
 node_modules/
+docs/WHITEPAPER_tmp.html
