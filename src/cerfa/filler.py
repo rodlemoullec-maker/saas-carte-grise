@@ -45,7 +45,16 @@ FIELD_POSITIONS = {
     "carrosserie_ce": (380, 390, 9),
     "energie": (50, 410, 9),
     "puissance_fiscale": (150, 410, 9),
-    "nb_places": (250, 410, 9),
+    "cylindree": (250, 410, 9),
+    "puissance_kw": (350, 410, 9),
+    "nb_places": (450, 410, 9),
+    "masse_max_charge": (50, 430, 9),
+    "ptac": (150, 430, 9),
+    "ptra": (250, 430, 9),
+
+    # --- Cadre opération ---
+    "nature_operation": (50, 480, 9),
+    "date_cession": (250, 480, 9),
 
     # --- Taxes ---
     "Y1": (460, 590, 9),
@@ -149,15 +158,21 @@ def fill_cerfa_from_dossier(
             data["demandeur_naissance_mois"] = parts[1]
             data["demandeur_naissance_annee"] = parts[2]
 
-    data["demandeur_naissance_commune"] = demandeur.get("lieu_naissance", "")
+    data["demandeur_naissance_commune"] = demandeur.get("lieu_naissance_commune", demandeur.get("lieu_naissance", ""))
+    data["demandeur_naissance_departement"] = demandeur.get("lieu_naissance_departement", "")
+    data["demandeur_naissance_pays"] = demandeur.get("lieu_naissance_pays", "")
 
-    # Adresse
+    # Adresse (décomposée pour le CERFA)
+    data["demandeur_adresse_numero"] = demandeur.get("adresse_numero", "")
+    data["demandeur_adresse_extension"] = demandeur.get("adresse_extension", "")
+    data["demandeur_adresse_type_voie"] = demandeur.get("adresse_type_voie", "")
+    data["demandeur_adresse_nom_voie"] = demandeur.get("adresse_nom_voie", demandeur.get("adresse_rue", ""))
+    data["demandeur_adresse_etage"] = demandeur.get("adresse_complement", "")
+    data["demandeur_adresse_lieu_dit"] = demandeur.get("adresse_lieu_dit", "")
     data["demandeur_adresse_code_postal"] = demandeur.get("adresse_code_postal", "")
     data["demandeur_adresse_commune"] = demandeur.get("adresse_ville", "")
-    data["demandeur_adresse_nom_voie"] = demandeur.get("adresse_rue", "")
-    data["demandeur_adresse_numero"] = demandeur.get("adresse_numero", "")
 
-    # Véhicule
+    # Véhicule — champs communs voitures/motos/remorques
     data["immatriculation"] = vehicule.get("A_immatriculation", vehicule.get("immatriculation", ""))
     data["marque"] = vehicule.get("D1_marque", vehicule.get("marque", ""))
     data["tvv_cnit"] = vehicule.get("D2_type_variante_version", vehicule.get("cnit", ""))
@@ -166,8 +181,19 @@ def fill_cerfa_from_dossier(
     data["genre"] = vehicule.get("J1_genre_national", vehicule.get("genre", ""))
     data["carrosserie_ce"] = vehicule.get("J2_carrosserie_ce", vehicule.get("carrosserie", ""))
     data["energie"] = vehicule.get("P3_energie", vehicule.get("energie", ""))
+    data["cylindree"] = str(vehicule.get("P1_cylindree", vehicule.get("cylindree", "")))
+    data["puissance_kw"] = str(vehicule.get("P2_puissance_kw", vehicule.get("puissance_kw", "")))
     data["puissance_fiscale"] = str(vehicule.get("P6_puissance_fiscale", vehicule.get("puissance_fiscale", "")))
     data["nb_places"] = str(vehicule.get("S1_nb_places_assises", vehicule.get("nb_places", "")))
+
+    # Champs spécifiques remorques
+    data["masse_max_charge"] = str(vehicule.get("F1_masse_max_charge", ""))
+    data["ptac"] = str(vehicule.get("F2_ptac", vehicule.get("ptac", "")))
+    data["ptra"] = str(vehicule.get("G1_ptra", ""))
+
+    # Opération
+    data["nature_operation"] = vehicule.get("nature_operation", "Changement de titulaire")
+    data["date_cession"] = vehicule.get("date_cession", "")
 
     # Taxes
     data["Y1"] = f"{taxes.get('Y1_taxe_regionale', 0):.2f} €"
