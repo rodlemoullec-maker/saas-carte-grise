@@ -6,21 +6,6 @@ une fois le développement terminé et le système en production.
 
 ## Démarrage du système
 
-### Avec Docker (recommandé — production)
-
-```bash
-# Première installation
-./scripts/install.sh
-
-# Démarrage quotidien
-docker compose up -d
-
-# Arrêt
-docker compose down
-```
-
-### Sans Docker (développement)
-
 ```bash
 # 1. Démarrer Ollama (IA locale)
 ollama serve
@@ -122,27 +107,6 @@ Pour un changement de titulaire (cas le plus fréquent) :
 
 
 ## Commandes utiles
-
-### Docker (production)
-
-```bash
-# Démarrer tout
-docker compose up -d
-
-# Arrêter tout
-docker compose down
-
-# Voir les logs
-docker compose logs -f app
-
-# Redémarrer l'app
-docker compose restart app
-
-# Vérifier le statut
-docker compose ps
-```
-
-### Sans Docker (développement)
 
 ```bash
 # Statut OpenClaw
