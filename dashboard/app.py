@@ -259,6 +259,9 @@ def _render_dossier_detail(dossier: dict):
                 mime="application/pdf",
             )
 
+    # Emails pré-remplis (mode manuel — copier-coller)
+    _render_email_templates(dossier)
+
     # Actions
     st.subheader("Actions")
     action_cols = st.columns(4)
@@ -278,3 +281,78 @@ def _render_dossier_detail(dossier: dict):
     if action_cols[1].button("Remettre en attente", key=f"reset_{dossier_id}"):
         update_dossier_status(dossier_id, "nouveau")
         st.rerun()
+
+
+def _render_email_templates(dossier: dict):
+    """Affiche des emails pré-remplis copiables pour le mode manuel."""
+    reference = dossier.get("reference", "")
+    statut = dossier.get("statut", "")
+    immat = dossier.get("immatriculation", "")
+    email_source = dossier.get("email_source", "destinataire@email.com")
+
+    st.subheader("Emails pré-remplis (copier-coller)")
+
+    # Si documents manquants → email de relance
+    if statut == "documents_manquants":
+        donnees = dossier.get("donnees_extraites")
+        if isinstance(donnees, str):
+            donnees = json.loads(donnees)
+
+        # Chercher les documents manquants dans la validation
+        docs_manquants = []
+        if donnees and isinstance(donnees, dict):
+            # Relancer la validation pour avoir les détails
+            from src.validation.cross_checker import validate_dossier
+            genre = "VP"
+            if donnees.get("carte_grise", {}).get("J1_genre_national"):
+                genre = donnees["carte_grise"]["J1_genre_national"]
+            v = validate_dossier(donnees, genre_vehicule=genre)
+            docs_manquants = v.documents_manquants + v.errors
+
+        docs_list = "\n".join(f"  - {d}" for d in docs_manquants) if docs_manquants else "  - (voir les erreurs ci-dessus)"
+
+        email_relance = f"""Objet : Dossier {reference} — Documents manquants
+
+Bonjour,
+
+Le dossier carte grise (référence : {reference}) pour le véhicule {immat} est incomplet.
+
+Document(s) manquant(s) ou problème(s) détecté(s) :
+{docs_list}
+
+Merci de nous transmettre ces documents par retour de mail afin que nous puissions finaliser le traitement.
+
+Cordialement,
+Service Carte Grise"""
+
+        with st.expander("Email de relance (documents manquants)", expanded=True):
+            st.text_area("Copier ce texte :", email_relance, height=300, key=f"email_relance_{dossier['id']}")
+
+    # Si dossier validé → email d'envoi du CERFA
+    if statut in ("valide", "pret"):
+        donnees = dossier.get("donnees_extraites")
+        if isinstance(donnees, str):
+            donnees = json.loads(donnees)
+        marque = ""
+        denomination = ""
+        if donnees and isinstance(donnees, dict):
+            cg = donnees.get("carte_grise", {})
+            marque = cg.get("D1_marque", "")
+            denomination = cg.get("D3_denomination_commerciale", "")
+
+        email_cerfa = f"""Objet : Dossier {reference} — CERFA prêt
+
+Bonjour,
+
+Le dossier carte grise (référence : {reference}) a été traité avec succès.
+
+Véhicule : {marque} {denomination} — {immat}
+
+Vous trouverez en pièce jointe le CERFA 13750 pré-rempli, prêt pour soumission auprès de l'ANTS.
+
+Cordialement,
+Service Carte Grise"""
+
+        with st.expander("Email d'envoi du CERFA", expanded=False):
+            st.text_area("Copier ce texte :", email_cerfa, height=250, key=f"email_cerfa_{dossier['id']}")
+            st.info("N'oublie pas de joindre le fichier CERFA PDF téléchargé ci-dessus.")

@@ -332,9 +332,15 @@ def process_dossier(dossier_path: str | Path) -> dict:
         }
 
     # 6. Calcul taxes
+    # Détecter la région depuis le code postal du justificatif de domicile
+    justif_data = documents_extraits.get("justificatif_domicile", {})
+    from src.taxes.region_detector import detect_region
+    code_postal = justif_data.get("adresse_code_postal", "")
+    region = detect_region(code_postal)
+
     taxes = calculer_taxes(
         puissance_fiscale=int(vehicle_data.get("puissance_fiscale") or cg_data.get("P6_puissance_fiscale") or 0),
-        region="ile_de_france",  # TODO: détecter la région depuis l'adresse
+        region=region,
         energie=vehicle_data.get("energie", cg_data.get("P3_energie", "")),
         co2=int(vehicle_data.get("co2") or cg_data.get("V7_co2") or 0),
         masse=int(vehicle_data.get("poids_vide") or 0),

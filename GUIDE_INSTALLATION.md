@@ -50,60 +50,39 @@ Tu as reçu un fichier `carte_grise_auto.zip` (par email, clé USB, WeTransfer, 
 ---
 
 
-## Étape 2 — Installer Visual Studio Code (optionnel mais recommandé)
+## Étape 2 — Ouvrir le Terminal
 
-VS Code est un éditeur de code **gratuit** qui te permettra de voir les
-fichiers du projet et d'utiliser le terminal intégré.
+Le Terminal est une application déjà installée sur ton Mac. C'est là
+que tu vas taper les commandes pour installer et lancer le système.
 
-1. Va sur : **https://code.visualstudio.com/**
-2. Clique **"Download for Mac"** (Universal ou Apple Silicon)
-3. Ouvre le fichier téléchargé (.zip) → un fichier `Visual Studio Code.app` apparaît
-4. Glisse-le dans ton dossier **Applications**
-5. Ouvre VS Code
-6. **Ouvre le projet** : menu Fichier → "Ouvrir un dossier..." → Documents → carte_grise_auto → Ouvrir
-7. Tu vois maintenant tous les fichiers du projet à gauche
+**Comment ouvrir le Terminal :**
 
-**Pour ouvrir le terminal dans VS Code :**
-- Menu : Terminal → Nouveau Terminal
-- Ou raccourci : Ctrl + ` (la touche backtick, en haut à gauche du clavier)
+1. Appuie sur **Cmd + Espace** (les deux touches en même temps)
+   → La barre de recherche Spotlight apparaît en haut de l'écran
 
-Le terminal s'ouvre **directement dans le bon dossier** — pas besoin de
-taper `cd`. C'est plus pratique que le Terminal séparé.
+2. Tape le mot **Terminal** au clavier
 
-> Si tu ne veux pas installer VS Code, tu peux utiliser le **Terminal**
-> natif du Mac (voir ci-dessous).
+3. Appuie sur **Entrée**
+   → Une fenêtre noire/blanche s'ouvre avec un curseur qui clignote
 
+   Si ça ne marche pas, tu peux aussi y accéder par :
+   Finder → menu "Aller" → Utilitaires → double-clic sur "Terminal"
 
----
+**Aller dans le dossier du projet :**
 
-
-## Étape 3 — Ouvrir le Terminal
-
-### Option A : Terminal dans VS Code (si installé)
-
-Si tu as installé VS Code à l'étape 2 :
-1. Ouvre VS Code avec le projet (s'il n'est pas déjà ouvert)
-2. Menu : Terminal → Nouveau Terminal
-3. Le terminal est déjà dans le bon dossier → passe à l'étape 4
-
-### Option B : Terminal natif du Mac
-
-1. Ouvre l'application **Terminal** sur ton Mac :
-   - Spotlight : appuie sur **Cmd + Espace** → tape "Terminal" → Entrée
-   - Ou : Finder → Applications → Utilitaires → Terminal
-
-2. Va dans le dossier du projet en tapant cette commande puis Entrée :
+4. Dans le Terminal, tape cette commande **exactement** puis appuie sur Entrée :
    ```bash
-   cd ~/Documents/carte_grise_auto
+   cd ~/Documents/nouveau_projet
    ```
+   (le `~` représente ton dossier personnel, pas besoin de le remplacer)
 
-3. Vérifie que tu es au bon endroit :
+5. Vérifie que tu es au bon endroit en tapant :
    ```bash
    ls scripts/install.sh
    ```
-   - Si ça affiche `scripts/install.sh` → c'est bon, passe à l'étape 4
-   - Si ça affiche "No such file" → tu n'es pas dans le bon dossier,
-     vérifie que le dossier est bien dans Documents
+   - Si ça affiche `scripts/install.sh` → tout est bon, passe à l'étape 3
+   - Si ça affiche "No such file or directory" → le dossier n'est pas
+     au bon endroit. Vérifie qu'il est bien dans tes Documents (étape 1)
 
 
 ---
@@ -188,7 +167,13 @@ C'est prêt. Tu n'auras plus jamais à refaire cette étape.
 
 ## Étape 4 — Démarrer le système
 
-Chaque jour, pour démarrer le système, ouvre le Terminal et tape :
+Il y a **deux modes** de fonctionnement :
+- **Mode manuel** : tu importes les documents toi-même via le dashboard
+- **Mode automatique (OpenClaw)** : l'agent IA surveille les emails et traite tout seul
+
+### Mode manuel (dashboard uniquement)
+
+Ouvre le Terminal et tape :
 
 ```bash
 cd ~/Documents/carte_grise_auto
@@ -209,7 +194,59 @@ Tu verras :
 http://localhost:8501
 ```
 
-Le dashboard s'affiche. Tu es prêt à travailler.
+Le dashboard s'affiche. Tu importes les documents manuellement via
+l'onglet "Nouveau traitement".
+
+### Mode automatique (OpenClaw)
+
+OpenClaw est un agent IA qui tourne en arrière-plan. Il :
+- Surveille ta boîte email en continu
+- Détecte les emails avec pièces jointes de la personne habilitée
+- Traite automatiquement chaque dossier (classification, OCR, extraction, CERFA)
+- Te notifie quand un dossier est prêt à valider
+- Relance automatiquement si des documents manquent
+
+**Pour le lancer :**
+
+```bash
+# 1. D'abord, démarrer le dashboard (dans un premier terminal)
+cd ~/Documents/carte_grise_auto
+source venv/bin/activate
+streamlit run dashboard/app.py
+
+# 2. Puis, dans un DEUXIÈME terminal, lancer OpenClaw
+openclaw start
+```
+
+Tu verras :
+```
+OpenClaw Gateway started
+Listening for messages...
+```
+
+**OpenClaw est maintenant actif.** Il travaille tout seul. Tu n'as plus
+qu'à ouvrir le dashboard pour valider les dossiers qu'il a traités.
+
+**Pour l'arrêter :**
+
+```bash
+openclaw stop
+```
+
+**Conseils :**
+- Tu peux utiliser le dashboard ET OpenClaw en même temps
+- OpenClaw ne fait que traiter — toi tu valides dans le dashboard
+- Si OpenClaw rencontre un problème (document illisible, incohérence),
+  il met le dossier en "incomplet" et tu le vois dans le dashboard
+- Pas besoin de laisser OpenClaw tourner 24h/24 — lance-le quand tu
+  veux traiter les emails reçus, arrête-le quand tu as fini
+
+**Note :** OpenClaw a été configuré automatiquement pendant l'installation.
+Tu n'as rien à calibrer. Si tu veux vérifier sa config :
+
+```bash
+cat ~/.openclaw/openclaw.json
+```
 
 
 ---
@@ -303,14 +340,16 @@ Tape `http://100.64.0.1:8501` dans le navigateur du portable → dashboard.
 
 ## Arrêter le système
 
-Dans le Terminal, appuie sur **Ctrl+C** pour arrêter Streamlit.
+Dans le Terminal :
 
-Pour tout arrêter proprement :
 ```bash
-# Arrêter PostgreSQL
-brew services stop postgresql@17
+# 1. Arrêter OpenClaw (s'il tourne)
+openclaw stop
 
-# Arrêter Ollama
+# 2. Arrêter Streamlit : Ctrl+C dans le terminal du dashboard
+
+# 3. (Optionnel) Arrêter les services de fond
+brew services stop postgresql@17
 pkill ollama
 ```
 
@@ -336,6 +375,9 @@ sleep 5
 cd ~/Documents/carte_grise_auto
 source venv/bin/activate
 streamlit run dashboard/app.py
+
+# 5. (Optionnel) Lancer OpenClaw dans un 2ème terminal
+openclaw start
 ```
 
 **Astuce** : Tu peux créer un raccourci. Crée un fichier `start.sh` :
@@ -346,8 +388,11 @@ cat > start.sh << 'EOF'
 brew services start postgresql@17
 ollama serve &
 sleep 5
+cd ~/Documents/carte_grise_auto
 source venv/bin/activate
-streamlit run dashboard/app.py
+streamlit run dashboard/app.py &
+echo "Dashboard démarré : http://localhost:8501"
+echo "Pour lancer OpenClaw : openclaw start"
 EOF
 chmod +x start.sh
 ```
