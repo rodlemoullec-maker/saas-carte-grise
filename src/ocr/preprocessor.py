@@ -10,24 +10,41 @@ import numpy as np
 from pathlib import Path
 
 
-def preprocess_image(image_path: str | Path, output_path: str | Path | None = None) -> np.ndarray:
-    """Prétraite une image de document pour l'OCR.
+def _pdf_to_cv2(pdf_path: str | Path) -> np.ndarray:
+    """Convertit la premiere page d'un PDF en image OpenCV."""
+    import pypdfium2 as pdfium
 
-    Étapes :
-    1. Conversion en niveaux de gris
-    2. Redimensionnement si trop petit
-    3. Débruitage
-    4. Amélioration du contraste (CLAHE)
-    5. Binarisation adaptative
+    pdf = pdfium.PdfDocument(str(pdf_path))
+    page = pdf[0]
+    bitmap = page.render(scale=2)
+    pil_image = bitmap.to_pil()
+    pdf.close()
+
+    img_array = np.array(pil_image)
+    # Convertir RGB -> BGR pour OpenCV
+    if len(img_array.shape) == 3 and img_array.shape[2] >= 3:
+        img_array = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
+    return img_array
+
+
+def preprocess_image(image_path: str | Path, output_path: str | Path | None = None) -> np.ndarray:
+    """Prétraite une image ou PDF de document pour l'OCR.
 
     Args:
-        image_path: Chemin vers l'image source.
+        image_path: Chemin vers l'image ou PDF source.
         output_path: Si fourni, sauvegarde l'image prétraitée.
 
     Returns:
         Image prétraitée (numpy array).
     """
-    img = cv2.imread(str(image_path))
+    image_path = Path(image_path)
+
+    # Convertir PDF en image si necessaire
+    if image_path.suffix.lower() == ".pdf":
+        img = _pdf_to_cv2(image_path)
+    else:
+        img = cv2.imread(str(image_path))
+
     if img is None:
         raise FileNotFoundError(f"Impossible de lire l'image: {image_path}")
 

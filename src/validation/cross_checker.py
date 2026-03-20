@@ -45,16 +45,16 @@ class ValidationReport:
         }
 
 
-# Documents obligatoires pour un changement de titulaire
+# Documents a scanner pour remplir le CERFA
+# - Certificat de cession : immatriculation, VIN, date vente, vendeur/acheteur
+# - CNI : identite de l'acheteur
+# - Justificatif domicile : adresse de l'acheteur
+# Les donnees techniques vehicule viennent de la base types_mines.
 DOCUMENTS_OBLIGATOIRES = [
-    "carte_grise",
     "certificat_cession",
     "cni",
     "justificatif_domicile",
 ]
-
-# Genres exemptés de contrôle technique
-GENRES_EXEMPTES_CT = ["MTL"]  # Motos < 125cc
 
 
 def validate_dossier(
@@ -79,26 +79,14 @@ def validate_dossier(
     # 1. Vérifier la présence des documents obligatoires
     _check_documents_presents(documents, genre_vehicule, report)
 
-    # 2. Cohérence VIN
-    _check_vin(documents, report)
-
-    # 3. Cohérence immatriculation
-    _check_immatriculation(documents, report)
-
-    # 4. Cohérence noms (acheteur = titulaire CNI)
+    # 2. Cohérence noms (acheteur = titulaire CNI)
     _check_noms(documents, report)
 
-    # 4b. Vérifier les données techniques si véhicule inconnu
-    _check_donnees_techniques(documents, genre_vehicule, vehicle_found_in_db, vehicle_data, report)
-
-    # 5. Validité justificatif de domicile (< 6 mois)
+    # 3. Validité justificatif de domicile (< 6 mois)
     _check_justificatif_date(documents, report)
 
-    # 6. Validité CNI (non expirée)
+    # 4. Validité CNI (non expirée)
     _check_cni_validite(documents, report)
-
-    # 7. Contrôle technique (si applicable)
-    _check_controle_technique(documents, genre_vehicule, report)
 
     return report
 
@@ -106,10 +94,6 @@ def validate_dossier(
 def _check_documents_presents(docs: dict, genre: str, report: ValidationReport):
     """Vérifie que tous les documents obligatoires sont présents."""
     obligatoires = list(DOCUMENTS_OBLIGATOIRES)
-
-    # CT obligatoire si pas exempté
-    if genre not in GENRES_EXEMPTES_CT:
-        obligatoires.append("controle_technique")
 
     for doc_type in obligatoires:
         if doc_type not in docs or not docs[doc_type]:

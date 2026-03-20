@@ -32,11 +32,27 @@ Réponds UNIQUEMENT avec un objet JSON valide, sans texte avant ni après :
 {"type": "le_type", "confidence": 0.XX, "details": "courte description"}"""
 
 
+def _pdf_to_image(pdf_path: Path) -> bytes:
+    """Convertit la premiere page d'un PDF en image PNG."""
+    import pypdfium2 as pdfium
+
+    pdf = pdfium.PdfDocument(str(pdf_path))
+    page = pdf[0]
+    bitmap = page.render(scale=2)  # 2x pour bonne qualite
+    pil_image = bitmap.to_pil()
+    pdf.close()
+
+    import io
+    buf = io.BytesIO()
+    pil_image.save(buf, format="PNG")
+    return buf.getvalue()
+
+
 def classify_document(image_path: str | Path) -> dict:
-    """Classifie un document image via le modèle vision.
+    """Classifie un document (image ou PDF) via le modèle vision.
 
     Args:
-        image_path: Chemin vers l'image du document.
+        image_path: Chemin vers l'image ou le PDF du document.
 
     Returns:
         Dict avec les clés : type, confidence, details.
@@ -45,9 +61,12 @@ def classify_document(image_path: str | Path) -> dict:
     if not image_path.exists():
         raise FileNotFoundError(f"Image non trouvée: {image_path}")
 
-    # Encoder l'image en base64
-    with open(image_path, "rb") as f:
-        image_data = f.read()
+    # Convertir PDF en image si necessaire
+    if image_path.suffix.lower() == ".pdf":
+        image_data = _pdf_to_image(image_path)
+    else:
+        with open(image_path, "rb") as f:
+            image_data = f.read()
 
     response = ollama.chat(
         model=MODEL_VISION,
