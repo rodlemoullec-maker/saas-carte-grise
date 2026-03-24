@@ -1,0 +1,100 @@
+version: "3.9"
+
+services:
+
+  # ─── API ──────────────────────────────────────────────────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: api
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_ENV=development
+    env_file:
+      - .env
+    volumes:
+      - ./data/documents:/app/data/documents
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ─── DASHBOARD ────────────────────────────────────────────────────────────
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dashboard
+    ports:
+      - "8501:8501"
+    env_file:
+      - .env
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  # ─── WORKER ───────────────────────────────────────────────────────────────
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: worker
+    env_file:
+      - .env
+    volumes:
+      - ./data/documents:/app/data/documents
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    command: celery -A workers.pipeline worker --loglevel=info --concurrency=4
+
+  # ─── BASE DE DONNÉES ──────────────────────────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: carte_grise
+      POSTGRES_PASSWORD: carte_grise_dev
+      POSTGRES_DB: carte_grise
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U carte_grise"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ─── REDIS ────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ─── ADMINER (dev seulement) ───────────────────────────────────────────────
+  adminer:
+    image: adminer
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    profiles:
+      - dev
+
+volumes:
+  postgres_data:
+  redis_data:

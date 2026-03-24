@@ -32,3 +32,23 @@ docker-compose.override.yml
 # Node
 node_modules/
 docs/WHITEPAPER_tmp.html
+
+# Données volumineuses — ne pas versionner
+data/types_mines/*.csv
+data/wmi/
+data/reference/
+
+# Environnement Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+.env
+*.egg-info/
+dist/
+build/
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/

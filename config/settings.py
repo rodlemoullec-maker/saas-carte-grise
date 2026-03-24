@@ -1,42 +1,81 @@
-# Configuration centrale du projet Carte Grise Auto
+"""
+Configuration centralisée via Pydantic Settings.
+Toutes les valeurs sont chargées depuis les variables d'environnement.
+"""
+from __future__ import annotations
+from enum import Enum
+from functools import lru_cache
+from pydantic_settings import BaseSettings
 
-import os
-from pathlib import Path
 
-# Chemins
-BASE_DIR = Path(__file__).resolve().parent.parent
-DATA_DIR = BASE_DIR / "data"
-DOSSIERS_DIR = DATA_DIR / "dossiers"
-OUTPUT_DIR = DATA_DIR / "output"
-TEMPLATES_DIR = BASE_DIR / "templates"
-TYPES_MINES_DIR = DATA_DIR / "types_mines"
+class AppEnv(str, Enum):
+    DEVELOPMENT = "development"
+    STAGING = "staging"
+    PRODUCTION = "production"
 
-# Ollama
-OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434")
-MODEL_VISION = os.getenv("MODEL_VISION", "qwen2.5vl:7b")
-MODEL_TEXT = os.getenv("MODEL_TEXT", "qwen2.5:7b")
 
-# Email IMAP
-IMAP_SERVER = os.getenv("IMAP_SERVER", "")
-IMAP_PORT = int(os.getenv("IMAP_PORT", "993"))
-IMAP_USER = os.getenv("IMAP_USER", "")
-IMAP_PASSWORD = os.getenv("IMAP_PASSWORD", "")
-EMAIL_POLL_INTERVAL = 120  # secondes
+class Settings(BaseSettings):
+    # App
+    app_env: AppEnv = AppEnv.DEVELOPMENT
+    app_secret_key: str = "changeme"
+    app_debug: bool = True
+    app_host: str = "0.0.0.0"
+    app_port: int = 8000
 
-# PostgreSQL
-DB_HOST = os.getenv("DB_HOST", "localhost")
-DB_PORT = int(os.getenv("DB_PORT", "5432"))
-DB_NAME = os.getenv("DB_NAME", "carte_grise")
-DB_USER = os.getenv("DB_USER", os.getenv("USER", "postgres"))
-DB_PASSWORD = os.getenv("DB_PASSWORD", "")
+    # Base de données
+    database_url: str = "postgresql+asyncpg://user:password@localhost:5432/carte_grise"
+    database_pool_size: int = 10
 
-DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+    # Redis
+    redis_url: str = "redis://localhost:6379/0"
 
-# CERFA
-CERFA_13750_TEMPLATE = TEMPLATES_DIR / "cerfa_13750_07.pdf"
+    # Storage
+    storage_backend: str = "local"
+    storage_local_path: str = "./data/documents"
 
-# Expéditeurs autorisés (personnes habilitées)
-# Seuls les emails provenant de ces adresses seront traités.
-# Les autres emails sont ignorés.
-# Fichier séparé pour faciliter la gestion.
-EXPEDITEURS_AUTORISES_FILE = BASE_DIR / "config" / "expediteurs_autorises.txt"
+    # OCR
+    ocr_provider: str = "google_docai"
+    ocr_confidence_threshold: float = 0.70
+
+    # Google Document AI
+    google_project_id: str = ""
+    google_location: str = "eu"
+    google_docai_processor_id: str = ""
+    google_application_credentials: str = ""
+
+    # LLM
+    llm_provider: str = "anthropic"
+    anthropic_api_key: str = ""
+
+    # INSEE
+    insee_api_key: str = ""
+
+    # SIV
+    siv_api_url: str = ""
+    siv_api_key: str = ""
+    siv_habilitation_id: str = ""
+    siv_environment: str = "sandbox"
+
+    # JWT
+    jwt_algorithm: str = "HS256"
+    jwt_access_token_expire_minutes: int = 60
+
+    # Rate limiting
+    rate_limit_per_minute: int = 60
+
+    # Celery
+    celery_broker_url: str = "redis://localhost:6379/1"
+    celery_result_backend: str = "redis://localhost:6379/2"
+
+    # Monitoring
+    sentry_dsn: str = ""
+    log_level: str = "INFO"
+
+    class Config:
+        env_file = ".env"
+        case_sensitive = False
+
+
+@lru_cache
+def get_settings() -> Settings:
+    return Settings()
