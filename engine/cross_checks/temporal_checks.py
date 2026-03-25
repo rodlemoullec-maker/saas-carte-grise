@@ -77,7 +77,7 @@ class TemporalCoherenceCheck(BaseCrossCheck):
                 status=CrossCheckStatus.WARNING,
                 source_a="FACTURE", source_b="ASSURANCE",
                 field="date_effet",
-                value_a=str(factura.date_vente), value_b=str(assurance.date_effet),
+                value_a=str(facture.date_vente), value_b=str(assurance.date_effet),
                 confidence=0.8,
                 detail=f"Assurance souscrite {delta_assurance} jours après la vente (> 30j)",
             ))

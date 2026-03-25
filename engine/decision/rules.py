@@ -72,6 +72,75 @@ BLOCKING_RULES: dict[str, BlockingRule] = {
         code="vin_format_invalid",
         message="Format de VIN invalide (longueur, caractères interdits)",
     ),
+    # ─── Règles VO ────────────────────────────────────────────────────────────
+    "cg_non_barree": BlockingRule(
+        code="cg_non_barree",
+        message="Carte grise non barrée en diagonale — transfert de propriété impossible",
+    ),
+    "cg_barree_date_missing": BlockingRule(
+        code="cg_barree_date_missing",
+        message="Date ou heure de vente absente sur la carte grise barrée",
+    ),
+    "cg_barree_signature_missing": BlockingRule(
+        code="cg_barree_signature_missing",
+        message="Signatures insuffisantes sur la carte grise barrée",
+    ),
+    "ct_critique": BlockingRule(
+        code="ct_critique",
+        message="Contrôle technique défavorable critique (R) — véhicule dangereux, vente interdite",
+    ),
+    "ct_too_old": BlockingRule(
+        code="ct_too_old",
+        message="Contrôle technique expiré à la date de saisie SIV",
+    ),
+    "da_missing": BlockingRule(
+        code="da_missing",
+        message="Déclaration d'achat (D-05) absente — obligatoire pour les pros",
+    ),
+    "attestation_pro_missing": BlockingRule(
+        code="attestation_pro_missing",
+        message="Attestation de vérification d'identité pro absente (D-31) — obligation légale SIV",
+    ),
+    "gage_actif": BlockingRule(
+        code="gage_actif",
+        message="Gage actif sur le véhicule — transfert de propriété bloqué",
+    ),
+    "otci_active": BlockingRule(
+        code="otci_active",
+        message="Opposition au Transfert de Carte Grise (OTCI) active — transfert impossible",
+    ),
+    "vec_status": BlockingRule(
+        code="vec_status",
+        message="Véhicule Économiquement Compromis (VEC) — expertise obligatoire avant circulation",
+    ),
+    "vei_status": BlockingRule(
+        code="vei_status",
+        message="Véhicule Économiquement Irréparable (VEI) — immatriculation impossible",
+    ),
+    "vol_signale": BlockingRule(
+        code="vol_signale",
+        message="ALERTE FRAUDE — Véhicule signalé volé dans la base nationale",
+        is_fraud_related=True,
+    ),
+    "doublon_vin_interne": BlockingRule(
+        code="doublon_vin_interne",
+        message="VIN déjà présent dans un dossier actif — possible double soumission",
+    ),
+    "chaine_propriete_mismatch": BlockingRule(
+        code="chaine_propriete_mismatch",
+        message="Chaîne de propriété incohérente — vendeur DA ≠ titulaire CG barrée",
+        is_fraud_related=True,
+    ),
+    "dates_vo_incoherentes": BlockingRule(
+        code="dates_vo_incoherentes",
+        message="Dates VO incohérentes : CG barrée / DA / cession non chronologiques",
+        is_fraud_related=True,
+    ),
+    "vin_cg_da_mismatch": BlockingRule(
+        code="vin_cg_da_mismatch",
+        message="VIN différent entre la CG barrée et la DA — incohérence critique",
+        is_fraud_related=True,
+    ),
 }
 
 
@@ -81,15 +150,32 @@ def get_triggered_blocking_rules(cross_check_results: list[CrossCheckResult]) ->
     """
     triggered = []
 
+    _RULE_MAP: dict[str, str] = {
+        "vin_coc_facture": "vin_coc_facture_mismatch",
+        "vin_coc_assurance": "vin_coc_assurance_mismatch",
+        "assurance_active_today": "insurance_expired",
+        "assurance_not_active": "insurance_not_active",
+        # VO
+        "vin_cg_vs_da": "vin_cg_da_mismatch",
+        "vendeur_da_vs_titulaire_cg": "chaine_propriete_mismatch",
+        "cg_date_vs_da_date": "dates_vo_incoherentes",
+        "da_date_vs_cession_date": "dates_vo_incoherentes",
+        "cg_signatures_vs_cotitulaires": "cg_barree_signature_missing",
+        "cession_signature_vendeur": "cg_barree_signature_missing",
+        "ct_validity_at_saisie_siv": "ct_too_old",
+        # SIV status
+        "gage_actif": "gage_actif",
+        "otci_active": "otci_active",
+        "vec_status": "vec_status",
+        "vei_status": "vei_status",
+        "vol_signale": "vol_signale",
+        "doublon_vin_interne": "doublon_vin_interne",
+    }
+
     for result in cross_check_results:
         if result.status == CrossCheckStatus.FAIL:
-            if result.rule_name == "vin_coc_facture":
-                triggered.append("vin_coc_facture_mismatch")
-            elif result.rule_name == "vin_coc_assurance" and result.confidence == 0.0:
-                triggered.append("vin_coc_assurance_mismatch")
-            elif result.rule_name == "assurance_active_today":
-                triggered.append("insurance_expired")
-            elif result.rule_name == "assurance_not_active":
-                triggered.append("insurance_not_active")
+            blocking_code = _RULE_MAP.get(result.rule_name)
+            if blocking_code:
+                triggered.append(blocking_code)
 
     return list(set(triggered))

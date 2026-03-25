@@ -72,5 +72,25 @@ def _map_rule_to_category(rule_name: str) -> str | None:
         "name_cni_domicile_nom": "identity_consistency",
         "facture_date_vs_today": "document_validity",
         "assurance_active_today": "document_validity",
+        "assurance_delay_after_sale": "document_validity",
+        # VO — chaîne propriété / cohérence
+        "vin_cg_vs_da": "vin_consistency",
+        "vendeur_da_vs_titulaire_cg": "identity_consistency",
+        "siret_cession_vs_da": "identity_consistency",
+        "cg_date_vs_da_date": "document_validity",
+        "da_date_vs_cession_date": "document_validity",
+        "recepisse_da_delay": "document_validity",
+        "cg_signatures_vs_cotitulaires": "document_validity",
+        "cession_signature_vendeur": "document_validity",
+        "cession_tampon_siret": "document_validity",
+        "ct_validity_at_saisie_siv": "document_validity",
+        # SIV status — pondérés en cohérence véhicule
+        "gage_actif": "vehicle_coherence",
+        "otci_active": "vehicle_coherence",
+        "vec_status": "vehicle_coherence",
+        "vei_status": "vehicle_coherence",
+        "vol_signale": "vehicle_coherence",
+        "doublon_vin_interne": "vin_consistency",
+        "vec_vei_status": "vehicle_coherence",
     }
     return mapping.get(rule_name)

@@ -119,18 +119,132 @@ class DocumentDateValidator(BaseValidator):
 
 
 class AgeValidator(BaseValidator):
-    """Vérifie que l'acheteur est majeur (≥ 18 ans)."""
+    """
+    Vérifie la cohérence âge ↔ catégorie de permis (règle C-16).
 
-    def validate(self, date_naissance: date, reference_date: date | None = None) -> ValidationResult:
+    < 14 ans : aucun véhicule autorisé
+    14-15 ans : AM uniquement (cyclo ≤ 50cc)
+    16-17 ans : AM + A1 (125cc / 11kW)
+    ≥ 18 ans  : A2 + B (voiture, moto ≤ 35kW)
+    ≥ 20 ans (avec 2 ans A2) : A
+    """
+
+    # Catégories autorisées par tranche d'âge
+    CATEGORIES_BY_AGE: dict[tuple[int, int], set[str]] = {
+        (14, 15): {"AM"},
+        (16, 17): {"AM", "A1"},
+        (18, 19): {"AM", "A1", "A2", "B"},
+        (20, 999): {"AM", "A1", "A2", "A", "B", "BE", "C", "CE", "D"},
+    }
+
+    def validate(self, date_naissance: date, permis_categories: list[str] | None = None,
+                 reference_date: date | None = None) -> ValidationResult:
         result = ValidationResult(valid=True)
         ref = reference_date or date.today()
         age = (ref - date_naissance).days // 365
 
-        if age < 18:
+        if age < 14:
             result.add_error(
-                code="BUYER_UNDERAGE",
-                message=f"L'acheteur est mineur ({age} ans) — immatriculation impossible",
-                level=ValidationLevel.BLOCKING,
-                field="date_naissance",
+                code="BUYER_TOO_YOUNG",
+                message=f"L'acheteur a {age} ans — aucun véhicule motorisé autorisé",
+                level=ValidationLevel.BLOCKING, field="date_naissance",
+            )
+            return result
+
+        if age < 18:
+            allowed = set()
+            for (min_age, max_age), cats in self.CATEGORIES_BY_AGE.items():
+                if min_age <= age <= max_age:
+                    allowed = cats
+                    break
+            if permis_categories:
+                held = set(permis_categories)
+                forbidden = held - allowed
+                if forbidden:
+                    result.add_error(
+                        code="AGE_CATEGORY_MISMATCH",
+                        message=(
+                            f"L'acheteur a {age} ans — catégorie(s) {forbidden} non autorisée(s). "
+                            f"Autorisé : {allowed}"
+                        ),
+                        level=ValidationLevel.BLOCKING, field="categories_permis",
+                        correction_action="Vérifier l'âge et les catégories de permis"
+                    )
+            result.add_error(
+                code="BUYER_UNDERAGE_ESCALADE",
+                message=f"L'acheteur est mineur ({age} ans) — escalade obligatoire",
+                level=ValidationLevel.WARNING, field="date_naissance",
+                correction_action="Dossier mineur : autorisation parentale (D-27) + livret famille (D-26) requis"
+            )
+        return result
+
+
+class CTDateValidator(BaseValidator):
+    """
+    Vérifie la validité du contrôle technique pour une vente (règles V-16, V-17).
+
+    Règle : CT < 6 mois à la DATE DE SAISIE SIV (pas à la date de commande).
+    5-6 mois → WARNING (risque expiration avant saisie).
+    Contre-visite : < 2 mois.
+    """
+
+    def validate(self, date_ct: date, saisie_siv_date: date | None = None) -> ValidationResult:
+        result = ValidationResult(valid=True)
+        ref = saisie_siv_date or date.today()
+        age_days = (ref - date_ct).days
+
+        if age_days > 183:  # > 6 mois
+            result.add_error(
+                code="CT_TOO_OLD",
+                message=f"Contrôle technique trop ancien ({age_days} jours — max 183 jours à la saisie SIV)",
+                level=ValidationLevel.BLOCKING, field="date_ct",
+                correction_action="Un nouveau contrôle technique est requis avant la saisie SIV"
+            )
+        elif age_days > 152:  # 5-6 mois → WARNING
+            result.add_error(
+                code="CT_EXPIRING_SOON",
+                message=f"Contrôle technique proche de l'expiration ({age_days} jours — expire dans {183 - age_days} jours)",
+                level=ValidationLevel.WARNING, field="date_ct",
+                correction_action="Vérifier que la saisie SIV pourra être effectuée avant expiration"
+            )
+        return result
+
+    def validate_contre_visite(self, date_cv: date, reference_date: date | None = None) -> ValidationResult:
+        result = ValidationResult(valid=True)
+        ref = reference_date or date.today()
+        age_days = (ref - date_cv).days
+        if age_days > 61:  # > 2 mois
+            result.add_error(
+                code="CONTRE_VISITE_EXPIRED",
+                message=f"Contre-visite expirée ({age_days} jours — max 61 jours)",
+                level=ValidationLevel.BLOCKING, field="date_contre_visite",
+                correction_action="Repasser un contrôle technique complet"
+            )
+        return result
+
+
+class CodeCessionValidator(BaseValidator):
+    """
+    Vérifie la validité du code de cession ANTS (règle V-18).
+
+    5 caractères. Validité : 15 jours.
+    Ignoré si le pro est habilité SIV direct.
+    """
+
+    def validate(self, date_generation: date, pro_habilite_siv: bool = False,
+                 reference_date: date | None = None) -> ValidationResult:
+        result = ValidationResult(valid=True)
+        if pro_habilite_siv:
+            return result  # Pro habilité SIV : code cession non requis
+
+        ref = reference_date or date.today()
+        age_days = (ref - date_generation).days
+
+        if age_days > 15:
+            result.add_error(
+                code="CODE_CESSION_EXPIRED",
+                message=f"Code de cession ANTS expiré ({age_days} jours — max 15 jours)",
+                level=ValidationLevel.BLOCKING, field="code_cession",
+                correction_action="Le vendeur doit générer un nouveau code de cession sur ANTS"
             )
         return result

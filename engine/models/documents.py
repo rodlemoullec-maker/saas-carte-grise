@@ -17,15 +17,31 @@ from pydantic import BaseModel, Field
 
 
 class DocumentType(str, Enum):
+    # Formulaires
     COC = "COC"
+    CERFA_VN = "CERFA_VN"           # D-01 : 13749*06 demande CG VN
+    CERFA_VO = "CERFA_VO"           # D-02 : 13750*07 demande CG VO
+    CERFA_CESSION = "CERFA_CESSION" # D-03 : 15776*02 cession
+    MANDAT = "MANDAT"               # D-04 : 13757*03 mandat
+    DA = "DA"                       # D-05 : 13751*02 déclaration d'achat
+    # Identité
     FACTURE = "FACTURE"
     CNI = "CNI"
     PASSEPORT = "PASSEPORT"
     TITRE_SEJOUR = "TITRE_SEJOUR"
-    DOMICILE = "DOMICILE"
     PERMIS = "PERMIS"
-    ASSURANCE = "ASSURANCE"
-    KBIS = "KBIS"
+    # Domicile
+    DOMICILE = "DOMICILE"
+    # Véhicule
+    CG_BARREE = "CG_BARREE"         # D-17
+    CONTROLE_TECHNIQUE = "CONTROLE_TECHNIQUE"  # D-18
+    ASSURANCE = "ASSURANCE"         # D-19
+    RECEPISEE_DA = "RECEPISEE_DA"   # D-21
+    CSA_HISTOVEC = "CSA_HISTOVEC"   # D-22
+    # Personne morale
+    KBIS = "KBIS"                   # D-23
+    # Attestation pro
+    ATTESTATION_IDENTITE_PRO = "ATTESTATION_IDENTITE_PRO"  # D-31
 
 
 class DocumentStatus(str, Enum):
@@ -148,6 +164,7 @@ class ExtractedAssurance(BaseModel):
     nom_assure: str
     prenom_assure: str
     vin: str | None = None
+    immatriculation: str | None = None   # VO : immat au lieu du VIN
     marque: str | None = None
     modele: str | None = None
     n_contrat: str | None = None
@@ -156,5 +173,126 @@ class ExtractedAssurance(BaseModel):
     compagnie: str | None = None
     garanties: list[str] = Field(default_factory=list)
     rc_incluse: bool = False
-    provisoire: bool = False
+    provisoire: bool = False             # Attestation provisoire 1 mois
+    memo_vehicule_assure: bool = False   # Mémo Véhicule Assuré 2025
     ocr_confidence: float = 0.0
+
+
+# ─── Documents VO ─────────────────────────────────────────────────────────────
+
+class CTResultat(str, Enum):
+    A = "A"   # Favorable (Avis Favorable)
+    S = "S"   # Défavorable avec défaillances majeures
+    R = "R"   # Défavorable avec défaillances critiques (BLOCAGE TOTAL)
+
+
+class ExtractedCGBarree(BaseModel):
+    """D-17 — Carte grise barrée (VO)."""
+    vin: str | None = None
+    immatriculation: str | None = None
+    n_formule: str | None = None        # Numéro de formule (11 chars)
+    titulaire_nom: str | None = None
+    date_vente: date | None = None      # "Vendu le" + date
+    heure_vente: str | None = None      # Heure obligatoire (HH:MM)
+    barre_diagonale: bool = False       # Barre diagonale détectée
+    signatures_count: int = 0          # Nb de signatures détectées
+    co_titulaires_count: int = 0       # Nb co-titulaires sur la CG
+    ocr_confidence: float = 0.0
+
+
+class ExtractedCT(BaseModel):
+    """D-18 — Contrôle technique."""
+    vin: str | None = None
+    immatriculation: str | None = None
+    date_ct: date | None = None
+    resultat: CTResultat | None = None
+    contre_visite: bool = False
+    date_contre_visite: date | None = None
+    centre_ct: str | None = None
+    ocr_confidence: float = 0.0
+
+
+class ExtractedDA(BaseModel):
+    """D-05 — Déclaration d'achat pro."""
+    vin: str | None = None
+    immatriculation: str | None = None
+    siren_pro: str | None = None
+    siret_pro: str | None = None
+    nom_pro: str | None = None
+    date_achat: date | None = None
+    vendeur_nom: str | None = None      # Titulaire de la CG cédée
+    ocr_confidence: float = 0.0
+
+
+class ExtractedRecepisseDA(BaseModel):
+    """D-21 — Récépissé déclaration d'achat."""
+    vin: str | None = None
+    immatriculation: str | None = None
+    siren_pro: str | None = None
+    date_enregistrement: date | None = None
+    ocr_confidence: float = 0.0
+
+
+class ExtractedCerfa(BaseModel):
+    """D-01/D-02 — Cerfa demande de CG (VN ou VO)."""
+    type_cerfa: str | None = None       # "13749" ou "13750"
+    vin: str | None = None
+    immatriculation: str | None = None
+    nom_titulaire: str | None = None
+    prenoms_titulaire: str | None = None
+    adresse: str | None = None
+    code_postal: str | None = None
+    ville: str | None = None
+    signe: bool = False
+    date_signature: date | None = None
+    rature_detectee: bool = False
+    n_formule_ancienne_cg: str | None = None  # VO uniquement
+    ocr_confidence: float = 0.0
+
+
+class ExtractedCession(BaseModel):
+    """D-03 — Cerfa 15776 cession."""
+    vin: str | None = None
+    immatriculation: str | None = None
+    vendeur_nom: str | None = None
+    vendeur_siret: str | None = None
+    acheteur_nom: str | None = None
+    date_cession: date | None = None
+    signatures_vendeur: bool = False
+    signature_acheteur: bool = False
+    tampon_siret: bool = False
+    ocr_confidence: float = 0.0
+
+
+class ExtractedKbis(BaseModel):
+    """D-23 — Kbis / avis SIRENE."""
+    raison_sociale: str | None = None
+    siren: str | None = None
+    siret_siege: str | None = None
+    representant_nom: str | None = None
+    representant_prenom: str | None = None
+    adresse_siege: str | None = None
+    date_kbis: date | None = None
+    ocr_confidence: float = 0.0
+
+
+class HistoVecStatut(str, Enum):
+    GAGE = "GAGE"
+    OTCI = "OTCI"       # Opposition au Transfert de Carte Grise
+    VOL = "VOL"
+    VEC = "VEC"         # Véhicule Économiquement Compromis
+    VEI = "VEI"         # Véhicule Économiquement Irréparable
+    SAIN = "SAIN"       # Aucune anomalie
+
+
+class ExtractedHistoVec(BaseModel):
+    """D-22 — Résultat consultation HistoVec / CSA."""
+    immatriculation: str
+    statuts: list[HistoVecStatut] = Field(default_factory=list)
+    gage_actif: bool = False
+    otci_active: bool = False
+    vol_signale: bool = False
+    vec: bool = False
+    vei: bool = False
+    km_dernier_ct: int | None = None
+    date_consultation: date | None = None

@@ -163,6 +163,7 @@ class PermisDocumentValidator(BaseValidator):
 class AssuranceDocumentValidator(BaseValidator):
     def validate(self, assurance: ExtractedAssurance, reference_date: date | None = None) -> ValidationResult:
         result = ValidationResult(valid=True)
+        ref = reference_date or date.today()
 
         effet_result = DocumentDateValidator().validate("assurance_effet", assurance.date_effet, reference_date)
         result.errors.extend(effet_result.errors)
@@ -173,6 +174,17 @@ class AssuranceDocumentValidator(BaseValidator):
         result.errors.extend(echeance_result.errors)
         if echeance_result.is_blocking:
             result.valid = False
+
+        # Assurance provisoire < 7j restants → WARNING
+        if assurance.provisoire:
+            jours_restants = (assurance.date_echeance - ref).days
+            if 0 < jours_restants < 7:
+                result.add_error(
+                    "ASSURANCE_PROVISOIRE_EXPIRING",
+                    f"Attestation provisoire expire dans {jours_restants} jour(s) — risque avant saisie SIV",
+                    ValidationLevel.WARNING, "date_echeance",
+                    correction_action="Obtenir l'attestation d'assurance définitive avec VIN avant la saisie SIV"
+                )
 
         if not assurance.rc_incluse:
             result.add_error(
@@ -188,6 +200,192 @@ class AssuranceDocumentValidator(BaseValidator):
                 f"VIN partiel sur l'assurance ({len(assurance.vin)} chars)",
                 ValidationLevel.BLOCKING, "vin",
                 correction_action="Fournir une attestation d'assurance avec le VIN complet"
+            )
+
+        return result
+
+
+# ─── Validators VO ────────────────────────────────────────────────────────────
+
+from engine.models.documents import ExtractedCGBarree, ExtractedCT, CTResultat
+
+
+class CGBarreeValidator(BaseValidator):
+    """
+    Valide la carte grise barrée (V-33, V-34).
+
+    Règles :
+    - Barre diagonale détectée (V-33)
+    - Mention "vendu le" + date + heure présentes
+    - Nb signatures ↔ nb co-titulaires (V-34)
+    """
+
+    def validate(self, cg: ExtractedCGBarree) -> ValidationResult:
+        result = ValidationResult(valid=True)
+
+        # V-33 : barre diagonale
+        if not cg.barre_diagonale:
+            result.add_error(
+                "CG_NON_BARREE",
+                "La carte grise n'est pas barrée en diagonale",
+                ValidationLevel.BLOCKING, "barre_diagonale",
+                correction_action="Le vendeur doit barrer la CG en diagonale, noter 'vendu le', la date, l'heure et signer"
+            )
+
+        # Date + heure obligatoires
+        if not cg.date_vente:
+            result.add_error(
+                "CG_BARREE_DATE_MISSING",
+                "Date de vente absente sur la CG barrée",
+                ValidationLevel.BLOCKING, "date_vente",
+            )
+
+        if not cg.heure_vente:
+            result.add_error(
+                "CG_BARREE_HEURE_MISSING",
+                "Heure de vente absente sur la CG barrée (obligatoire)",
+                ValidationLevel.BLOCKING, "heure_vente",
+                correction_action="L'heure est obligatoire sur la CG barrée"
+            )
+
+        # V-34 : signatures — nb signatures ≥ nb co-titulaires
+        nb_required = max(1, cg.co_titulaires_count)
+        if cg.signatures_count < nb_required:
+            result.add_error(
+                "CG_BARREE_SIGNATURE_MISSING",
+                f"Signatures insuffisantes : {cg.signatures_count} détectée(s), {nb_required} requise(s) "
+                f"({cg.co_titulaires_count} co-titulaire(s))",
+                ValidationLevel.BLOCKING, "signatures_count",
+                correction_action="Tous les co-titulaires doivent signer la CG barrée"
+            )
+
+        # Numéro de formule
+        if not cg.n_formule:
+            result.add_error(
+                "CG_BARREE_N_FORMULE_MISSING",
+                "Numéro de formule absent sur la CG barrée",
+                ValidationLevel.WARNING, "n_formule",
+            )
+
+        return result
+
+
+class CTDocumentValidator(BaseValidator):
+    """
+    Valide le contrôle technique (V-35, V-16, V-17).
+
+    Règles :
+    - Résultat favorable (A ou S) — R = BLOCAGE TOTAL (V-35)
+    - Date < 6 mois à la saisie SIV (V-16)
+    - 5-6 mois → WARNING (V-17)
+    - Contre-visite < 2 mois
+    """
+
+    def validate(self, ct: ExtractedCT, saisie_siv_date: date | None = None) -> ValidationResult:
+        from engine.validators.dates import CTDateValidator
+        result = ValidationResult(valid=True)
+
+        # V-35 : résultat
+        if ct.resultat == CTResultat.R:
+            result.add_error(
+                "CT_CRITIQUE",
+                "Contrôle technique défavorable critique (R) — véhicule dangereux, vente interdite",
+                ValidationLevel.BLOCKING, "resultat",
+                correction_action="Le véhicule doit être réparé et repasser un CT complet"
+            )
+        elif ct.resultat == CTResultat.S:
+            result.add_error(
+                "CT_DEFAUTS_MAJEURS",
+                "Contrôle technique avec défauts majeurs (S) — contre-visite dans 2 mois",
+                ValidationLevel.WARNING, "resultat",
+                correction_action="Vérifier que la contre-visite est disponible et valide"
+            )
+
+        # Contre-visite
+        if ct.contre_visite and ct.date_contre_visite:
+            cv_result = CTDateValidator().validate_contre_visite(ct.date_contre_visite, saisie_siv_date)
+            result.errors.extend(cv_result.errors)
+            if cv_result.is_blocking:
+                result.valid = False
+
+        # V-16/V-17 : fraîcheur du CT
+        if ct.date_ct:
+            date_result = CTDateValidator().validate(ct.date_ct, saisie_siv_date)
+            result.errors.extend(date_result.errors)
+            result.warnings.extend(date_result.warnings)
+            if date_result.is_blocking:
+                result.valid = False
+
+        return result
+
+
+class AttestationIdentiteProValidator(BaseValidator):
+    """
+    Vérifie que l'attestation de vérification d'identité pro est présente (V-38, D-31).
+
+    Le pro doit avoir coché + signé électroniquement dans le portail
+    qu'il a vérifié physiquement l'identité du client (NIV.1).
+    Sans cette attestation, le dossier est bloqué.
+    """
+
+    def validate(self, attestation_presente: bool, attestation_datee: bool = True) -> ValidationResult:
+        result = ValidationResult(valid=True)
+        if not attestation_presente:
+            result.add_error(
+                "ATTESTATION_PRO_MISSING",
+                "Attestation de vérification d'identité pro absente (D-31) — OBLIGATION LÉGALE convention SIV",
+                ValidationLevel.BLOCKING, "attestation_identite_pro",
+                correction_action="Le professionnel doit cocher l'attestation dans le portail (NIV.1 obligatoire)"
+            )
+        elif not attestation_datee:
+            result.add_error(
+                "ATTESTATION_PRO_NOT_DATED",
+                "Attestation pro non datée",
+                ValidationLevel.BLOCKING, "attestation_identite_pro",
+            )
+        return result
+
+
+class CerfaValidator(BaseValidator):
+    """
+    Valide un formulaire Cerfa de demande de CG (V-23, V-34).
+
+    Règles :
+    - Signé (V-34)
+    - Pas de rature (V-23)
+    - Champs obligatoires présents
+    """
+
+    def validate(self, cerfa: "ExtractedCerfa") -> ValidationResult:
+        from engine.models.documents import ExtractedCerfa
+        result = ValidationResult(valid=True)
+
+        if cerfa.rature_detectee:
+            result.add_error(
+                "CERFA_RATURE",
+                "Rature détectée sur le Cerfa — document refusé",
+                ValidationLevel.BLOCKING, "rature",
+                correction_action="Fournir un nouveau Cerfa sans rature"
+            )
+
+        if not cerfa.signe:
+            result.add_error(
+                "CERFA_NON_SIGNE",
+                "Cerfa non signé par le titulaire",
+                ValidationLevel.BLOCKING, "signe",
+                correction_action="Le portail peut générer un Cerfa pré-rempli à faire signer au client"
+            )
+
+        if not cerfa.nom_titulaire:
+            result.add_error(
+                "CERFA_NOM_MISSING", "Nom du titulaire absent sur le Cerfa",
+                ValidationLevel.BLOCKING, "nom_titulaire",
+            )
+
+        if not cerfa.vin and not cerfa.immatriculation:
+            result.add_error(
+                "CERFA_VIN_MISSING", "VIN et immatriculation absents sur le Cerfa",
+                ValidationLevel.BLOCKING, "vin",
             )
 
         return result
