@@ -89,6 +89,8 @@ class ExtractedCOC(BaseModel):
     n_homologation_eu: str | None = None
     constructeur: str | None = None
     date_premiere_immat_ue: date | None = None
+    co2_wltp: float | None = None   # g/km — cycle WLTP (post-2021, base malus)
+    co2_nedc: float | None = None   # g/km — cycle NEDC (pré-2021, legacy)
     ocr_confidence: float = 0.0
 
 
@@ -243,6 +245,7 @@ class ExtractedCerfa(BaseModel):
     adresse: str | None = None
     code_postal: str | None = None
     ville: str | None = None
+    puissance_fiscale_cv: int | None = None     # Case P.6 du Cerfa
     signe: bool = False
     date_signature: date | None = None
     rature_detectee: bool = False

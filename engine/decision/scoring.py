@@ -92,5 +92,13 @@ def _map_rule_to_category(rule_name: str) -> str | None:
         "vol_signale": "vehicle_coherence",
         "doublon_vin_interne": "vin_consistency",
         "vec_vei_status": "vehicle_coherence",
+        # Adresse
+        "address_cerfa_vs_domicile": "address_validity",
+        "address_cerfa_vs_titre_sejour": "address_validity",
+        # COC / Cerfa cohérence technique
+        "cnit_format": "vehicle_coherence",
+        "puissance_fiscale_coc_cerfa": "vehicle_coherence",
+        "co2_wltp_source": "vehicle_coherence",
+        "co2_wltp_nedc_gap": "vehicle_coherence",
     }
     return mapping.get(rule_name)

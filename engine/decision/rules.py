@@ -141,6 +141,18 @@ BLOCKING_RULES: dict[str, BlockingRule] = {
         message="VIN différent entre la CG barrée et la DA — incohérence critique",
         is_fraud_related=True,
     ),
+    "address_cerfa_domicile_mismatch": BlockingRule(
+        code="address_cerfa_domicile_mismatch",
+        message="Adresse Cerfa incohérente avec le justificatif de domicile (code postal différent)",
+    ),
+    "puissance_fiscale_mismatch": BlockingRule(
+        code="puissance_fiscale_mismatch",
+        message="Puissance fiscale incohérente entre COC et Cerfa (écart ≥ 3 CV)",
+    ),
+    "co2_wltp_missing_post2021": BlockingRule(
+        code="co2_wltp_missing_post2021",
+        message="CO2 WLTP absent pour véhicule ≥ 2021 — requis par le SIV pour le calcul du malus",
+    ),
 }
 
 
@@ -163,6 +175,11 @@ def get_triggered_blocking_rules(cross_check_results: list[CrossCheckResult]) ->
         "cg_signatures_vs_cotitulaires": "cg_barree_signature_missing",
         "cession_signature_vendeur": "cg_barree_signature_missing",
         "ct_validity_at_saisie_siv": "ct_too_old",
+        # Adresse
+        "address_cerfa_vs_domicile": "address_cerfa_domicile_mismatch",
+        # COC / Cerfa technique
+        "puissance_fiscale_coc_cerfa": "puissance_fiscale_mismatch",
+        "co2_wltp_source": "co2_wltp_missing_post2021",
         # SIV status
         "gage_actif": "gage_actif",
         "otci_active": "otci_active",
