@@ -1,0 +1,15 @@
+CERTIFICAT DE CONFORMITE
+CERTIFICATE OF CONFORMITY - COC
+
+Constructeur: RENAULT SAS
+D.1 Marque: RENAULT
+D.3 Denomination commerciale: CLIO V TCE 100
+E VIN: WBA3A5C50CF256789
+D.2.1 CNIT: FE123456A
+P.2 Puissance nette maximale: 74 kW
+P.3 Carburant: Essence
+P.6 Puissance administrative: 5 CV
+S.1 Places assises: 5
+F.2 PTAC Masse en charge: 1600 kg
+V.7 CO2 WLTP: 119 g/km
+Homologation CE e2*2018/858*00123

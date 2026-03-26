@@ -367,12 +367,12 @@ code {
   </script>
 <h1 id="carte-grise-pro--whitepaper-technique--business">Carte Grise Pro — Whitepaper Technique &amp; Business</h1>
 <p><strong>Plateforme B2B d'automatisation des demandes d'immatriculation</strong>
-<em>Version 1.0 — Mars 2026</em></p>
+<em>Version 2.0 — Mars 2026</em></p>
 <hr>
 <h2 id="1-executive-summary">1. Executive Summary</h2>
 <p>Carte Grise Pro est une plateforme SaaS B2B qui automatise de bout en bout les demandes de carte grise (certificat d'immatriculation) pour les professionnels de l'automobile : garages, concessionnaires, revendeurs motos et voitures.</p>
 <p>Le marche francais compte plus de <strong>40 000 garages et revendeurs</strong> qui traitent chacun entre 50 et 500 demandes de carte grise par an. Chaque dossier mobilise en moyenne <strong>30 a 45 minutes</strong> de travail administratif manuel : collecte de documents, verification de conformite, remplissage de formulaires, soumission SIV, suivi.</p>
-<p>Carte Grise Pro reduit ce temps a <strong>moins de 5 minutes</strong> par dossier grace a un moteur d'automatisation qui enchaine OCR, extraction structuree, 38 regles de validation, 21 croisements inter-documents, scoring de confiance, estimation des taxes et generation de Cerfa pre-remplis.</p>
+<p>Carte Grise Pro reduit ce temps a <strong>moins de 5 minutes</strong> par dossier grace a un moteur d'automatisation qui enchaine OCR, extraction structuree, 38 regles de verrouillage, 21 croisements inter-documents, diagnostic binaire VERT/ORANGE/ROUGE, estimation des taxes et generation de Cerfa pre-remplis.</p>
 <p><strong>Deux offres complementaires</strong> :</p>
 <ul>
 <li><strong>Full Service</strong> — pour les pros non habilites SIV : on gere tout, de la verification a la soumission.</li>
@@ -404,7 +404,7 @@ code {
         |
         v
    FastAPI REST API
-   /dossiers  /documents  /decisions  /webhooks
+   /dossiers  /dossiers/batch  /documents  /decisions  /webhooks
         |
         v (Redis queue)
    Celery Pipeline Worker
@@ -455,11 +455,30 @@ code {
 </tbody>
 </table>
 <h3 id="33-diagnostic-tri-couleur">3.3 Diagnostic tri-couleur</h3>
-<p>Le moteur produit un diagnostic en 3 niveaux :</p>
+<p>Un dossier carte grise est conforme ou il ne l'est pas. Il n'y a pas de &quot;75% bon&quot;. Le moteur produit un diagnostic binaire :</p>
 <ul>
-<li><strong>VERT</strong> (score &gt;= 95) — Tous les controles passent. Le pro peut lancer le traitement en un clic.</li>
-<li><strong>ORANGE</strong> (score 60-94) — Des avertissements existent mais aucun blocage. Le pro peut continuer apres verification.</li>
-<li><strong>ROUGE</strong> (score &lt; 60 ou blocage) — Des corrections sont requises. Le systeme genere une liste precise des actions correctives.</li>
+<li><strong>VERT</strong> — Zero verrouillage V-XX, zero warning. Le dossier est complet et conforme. Le pro peut lancer le traitement en un clic.</li>
+<li><strong>ORANGE</strong> — Zero verrouillage, mais au moins un avertissement non bloquant (CT bientot expire, OCR moyen, assurance provisoire &lt; 7 jours). Le pro peut continuer apres verification.</li>
+<li><strong>ROUGE</strong> — Au moins un verrouillage V-XX declenche. Le dossier ne peut pas avancer. Le pro voit la liste exacte des blocages avec les actions correctives a mener.</li>
+</ul>
+<p>Le pro voit la <strong>liste detaillee des blocages et warnings</strong>, pas un score abstrait. Chaque blocage indique le code V-XX, le document concerne, et l'action corrective a mener.</p>
+<h3 id="34-mode-batch">3.4 Mode batch</h3>
+<p>Le pro peut traiter plusieurs dossiers en lot :</p>
+<ul>
+<li><strong>Upload multiple</strong> — creer jusqu'a 50 dossiers en un seul appel (<code>POST /dossiers/batch</code>)</li>
+<li><strong>Traitement parallele</strong> — Phase 0 + Phase 1 executees en parallele sur tous les dossiers</li>
+<li><strong>Tableau recapitulatif</strong> — le pro voit le diagnostic VERT/ORANGE/ROUGE par dossier</li>
+<li><strong>GO groupe</strong> — le pro selectionne les dossiers VERT et lance le traitement en lot (<code>POST /dossiers/batch/launch</code>)</li>
+<li><strong>Pre-autorisation CB groupee</strong> — montant = honoraires x nombre de dossiers lances</li>
+<li><strong>Debit uniquement sur les dossiers aboutis</strong> (CPI genere)</li>
+</ul>
+<h3 id="35-relances-automatiques">3.5 Relances automatiques</h3>
+<p>Quand un dossier est ROUGE, le systeme declenche des relances automatiques :</p>
+<ul>
+<li>Le pro configure dans son portail : <strong>&quot;me relancer&quot;</strong> ou <strong>&quot;relancer directement mon client&quot;</strong></li>
+<li>Frequence configurable : J+1, J+3, J+7 (defaut)</li>
+<li>Escalade automatique si pas de reponse apres N relances</li>
+<li>Chaque relance precise les pieces manquantes et corrections requises</li>
 </ul>
 <hr>
 <h2 id="4-moteur-de-regles">4. Moteur de Regles</h2>
@@ -514,6 +533,7 @@ code {
 <p><strong>Permis et age (C-15, C-16)</strong> — Categorie permis vs type vehicule. Age vs categorie autorisee (&lt; 14 : rien, 14-15 : AM, 16-17 : A1, &gt;= 18 : B).</p>
 <p><strong>Statut SIV (C-17 a C-21)</strong> — Gage, OTCI, VEC/VEI, vol signale, doublon VIN interne.</p>
 <h3 id="43-criteres-de-verrouillage-38-regles-v-xx">4.3 Criteres de verrouillage (38 regles V-XX)</h3>
+<p>Chaque V-XX declenche un <strong>blocage ROUGE</strong> si non satisfait :</p>
 <table>
 <thead>
 <tr>
@@ -555,61 +575,28 @@ code {
 </tr>
 </tbody>
 </table>
-<h3 id="44-scoring">4.4 Scoring</h3>
-<p>Le score global (0-100) est calcule a partir de 6 categories ponderees :</p>
-<table>
-<thead>
-<tr>
-<th>Categorie</th>
-<th>Poids</th>
-<th>Sources</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Coherence VIN</td>
-<td>30%</td>
-<td>C-06, C-07</td>
-</tr>
-<tr>
-<td>Coherence identite</td>
-<td>20%</td>
-<td>C-01 a C-05</td>
-</tr>
-<tr>
-<td>Validite documents</td>
-<td>20%</td>
-<td>Dates, signatures, completude</td>
-</tr>
-<tr>
-<td>Coherence vehicule</td>
-<td>15%</td>
-<td>C-08 a C-10, marque, energie</td>
-</tr>
-<tr>
-<td>Validite adresse</td>
-<td>10%</td>
-<td>C-04, C-05</td>
-</tr>
-<tr>
-<td>Permis / age</td>
-<td>5%</td>
-<td>C-15, C-16</td>
-</tr>
-</tbody>
-</table>
+<h3 id="44-personne-morale-pm">4.4 Personne morale (PM)</h3>
+<p>Quand l'acheteur est une personne morale, le moteur adapte son comportement :</p>
+<ul>
+<li><strong>Permis</strong> : non exige (exception a V-02). Seul le titulaire principal personne physique doit avoir un permis.</li>
+<li><strong>Justificatif de domicile</strong> : remplace par le Kbis. L'adresse sur la CG = adresse du siege social.</li>
+<li><strong>CNI</strong> : celle du representant legal (gerant/president sur le Kbis), pas du &quot;client&quot;.</li>
+<li><strong>Coherence nom</strong> : le Cerfa mentionne la raison sociale du Kbis, pas le nom du gerant.</li>
+<li><strong>Kbis</strong> : doit etre de moins de 3 mois (V-15).</li>
+<li><strong>Detection auto</strong> : presence d'un Kbis dans les docs ou SIREN/SIRET dans le Cerfa.</li>
+</ul>
 <hr>
 <h2 id="5-pipeline-technique">5. Pipeline Technique</h2>
 <h3 id="51-ocr-et-extraction-structuree">5.1 OCR et extraction structuree</h3>
 <ol>
 <li><strong>Upload</strong> — Le pro uploade un document (PDF, JPG, PNG). Le systeme calcule le SHA-256 et stocke le fichier.</li>
-<li><strong>Classification automatique</strong> — Un classifieur par mots-cles ponderes identifie le type parmi 17 categories avec un score de confiance. Si confiance &lt; 60%, le pro est invite a preciser.</li>
-<li><strong>OCR</strong> — Google Document AI extrait le texte brut avec scores de confiance par bloc.</li>
+<li><strong>Classification automatique</strong> — Un classifieur par mots-cles ponderes identifie le type parmi 17 categories. Si confiance &lt; 60%, le pro est invite a preciser manuellement.</li>
+<li><strong>OCR</strong> — Google Document AI extrait le texte brut avec un <strong>score de confiance OCR par document</strong> (conserve pour evaluer la lisibilite, V-20).</li>
 <li><strong>Extraction structuree</strong> — Des regex metier specialisees par type de document extraient les champs structures (VIN, dates, noms, montants, etc.).</li>
 <li><strong>Fallback LLM</strong> — Pour les documents complexes ou mal structures, un LLM (Claude) extrait les donnees en mode conversationnel.</li>
 </ol>
 <h3 id="52-estimation-des-taxes">5.2 Estimation des taxes</h3>
-<p>Le calculateur estime les 5 composantes de la taxe d'immatriculation :</p>
+<p>Le calculateur estime les composantes de la taxe d'immatriculation :</p>
 <table>
 <thead>
 <tr>
@@ -683,9 +670,47 @@ code {
 </tr>
 </tbody>
 </table>
+<h3 id="54-endpoint-siv-payload">5.4 Endpoint SIV Payload</h3>
+<p>L'endpoint <code>GET /dossiers/{id}/siv-payload</code> retourne toutes les donnees du dossier formatees pour le formulaire SIV (dans l'ordre des champs). Ce payload sert a :</p>
+<ul>
+<li><strong>L'extension navigateur</strong> — pre-remplissage automatique des champs SIV</li>
+<li><strong>Le recapitulatif copier-coller</strong> — fallback si l'extension est indisponible</li>
+<li><strong>La livraison dossier SaaS</strong> — donnees structurees pour le pro habilite</li>
+</ul>
 <hr>
 <h2 id="6-modele-economique">6. Modele Economique</h2>
-<h3 id="61-offre-full-service">6.1 Offre Full Service</h3>
+<h3 id="61-separation-honoraires--taxes">6.1 Separation honoraires / taxes</h3>
+<p>Le systeme de paiement distingue clairement deux flux :</p>
+<table>
+<thead>
+<tr>
+<th>Flux</th>
+<th>Quoi</th>
+<th>A qui</th>
+<th>Comment</th>
+<th>Statut</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Honoraires</strong></td>
+<td>Remuneration du porteur de projet (30-60 EUR FS, 10-25 EUR SaaS)</td>
+<td>Au porteur</td>
+<td>Stripe/PayPlug : pre-auth CB au GO, debit sur CPI genere</td>
+<td>Pret a developper</td>
+</tr>
+<tr>
+<td><strong>Taxes SIV</strong></td>
+<td>Taxes d'immatriculation (Y1+Y3+Y4+Y5+Y6)</td>
+<td>A l'Etat</td>
+<td>Payees par CB dans le formulaire web SIV</td>
+<td><strong>En attente reponse ANTS</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Point bloquant (Full Service uniquement)</strong> : Le porteur est habilite SIV <strong>sans agrement Tresor Public</strong> (non eligible : pas de commerce de vehicules). Sans agrement, il ne peut pas percevoir les taxes pour le compte de l'Etat. Un mail a ete envoye a l'ANTS (siv-pha@interieur.gouv.fr) pour clarifier le mecanisme de paiement CB dans le formulaire SIV habilite sans agrement.</p>
+<p>Ce point ne bloque <strong>ni le SaaS</strong> (le pro paie ses taxes dans son propre SIV), <strong>ni le portail</strong>, <strong>ni la Phase 0/1</strong>, <strong>ni le KYC</strong>.</p>
+<h3 id="62-offre-full-service">6.2 Offre Full Service</h3>
 <p><strong>Cible</strong> : Pros non habilites SIV (la majorite des petits garages).</p>
 <table>
 <thead>
@@ -712,7 +737,7 @@ code {
 <td>60 - 150 EUR</td>
 </tr>
 <tr>
-<td>Paiement</td>
+<td>Paiement honoraires</td>
 <td>Pre-autorisation CB au GO ; debit sur CPI genere</td>
 </tr>
 <tr>
@@ -721,7 +746,7 @@ code {
 </tr>
 </tbody>
 </table>
-<h3 id="62-offre-saas">6.2 Offre SaaS</h3>
+<h3 id="63-offre-saas">6.3 Offre SaaS</h3>
 <p><strong>Cible</strong> : Pros deja habilites SIV (concessionnaires, mandataires).</p>
 <table>
 <thead>
@@ -753,7 +778,7 @@ code {
 </tr>
 </tbody>
 </table>
-<h3 id="63-projection">6.3 Projection</h3>
+<h3 id="64-projection">6.4 Projection</h3>
 <table>
 <thead>
 <tr>
@@ -766,27 +791,27 @@ code {
 <tbody>
 <tr>
 <td>Pros actifs</td>
-<td>50</td>
-<td>200</td>
-<td>500</td>
+<td>10 - 20</td>
+<td>80 - 150</td>
+<td>300 - 500</td>
 </tr>
 <tr>
 <td>Dossiers / pro / mois</td>
-<td>10</td>
-<td>15</td>
-<td>20</td>
+<td>5 - 10</td>
+<td>10 - 15</td>
+<td>15 - 20</td>
 </tr>
 <tr>
 <td>Dossiers / mois</td>
-<td>500</td>
-<td>3 000</td>
-<td>10 000</td>
+<td>100 - 200</td>
+<td>1 000 - 2 000</td>
+<td>5 000 - 10 000</td>
 </tr>
 <tr>
-<td>CA mensuel moyen (mix 60% FS / 40% SaaS)</td>
-<td>15 000 EUR</td>
-<td>90 000 EUR</td>
-<td>300 000 EUR</td>
+<td>CA mensuel (mix 60% FS / 40% SaaS)</td>
+<td>3 000 - 8 000 EUR</td>
+<td>30 000 - 70 000 EUR</td>
+<td>150 000 - 300 000 EUR</td>
 </tr>
 <tr>
 <td>Marge brute</td>
@@ -973,8 +998,12 @@ code {
 <td>Ariadnext / IDnow</td>
 </tr>
 <tr>
+<td>Paiement honoraires</td>
+<td>Stripe / PayPlug</td>
+</tr>
+<tr>
 <td>Dashboard</td>
-<td>Streamlit</td>
+<td>Streamlit (prototype) → React/Next.js (production)</td>
 </tr>
 <tr>
 <td>CI/CD</td>
@@ -993,7 +1022,7 @@ code {
 <h3 id="conformite">Conformite</h3>
 <ul>
 <li><strong>RGPD</strong> — Donnees hebergees en France (AWS eu-west-3). Chiffrement au repos et en transit. Purge automatique apres delai legal. Registre des traitements.</li>
-<li><strong>Archivage 5 ans</strong> — Coffre-fort numerique obligatoire depuis 2026.</li>
+<li><strong>Archivage 5 ans</strong> — Coffre-fort numerique certifie obligatoire depuis 2026 (arrete du 1er juillet 2025).</li>
 <li><strong>Habilitation SIV</strong> — Demande en cours de preparation aupres de l'ANTS.</li>
 </ul>
 <hr>
@@ -1007,19 +1036,19 @@ code {
 </thead>
 <tbody>
 <tr>
-<td>Fichiers Python (moteur)</td>
-<td>~50 modules</td>
+<td>Modules Python (moteur + API)</td>
+<td>~60</td>
 </tr>
 <tr>
-<td>Lignes de code (moteur + API)</td>
-<td>~6 600</td>
+<td>Lignes de code</td>
+<td>~8 500</td>
 </tr>
 <tr>
 <td>Tests unitaires</td>
-<td>130 (100% pass)</td>
+<td>132 (100% pass)</td>
 </tr>
 <tr>
-<td>Regles de validation (V-XX)</td>
+<td>Regles de verrouillage (V-XX)</td>
 <td>38</td>
 </tr>
 <tr>
@@ -1036,10 +1065,10 @@ code {
 </tr>
 <tr>
 <td>Endpoints API</td>
-<td>12</td>
+<td>15 (dont 3 batch)</td>
 </tr>
 <tr>
-<td>Templates email</td>
+<td>Templates email / relance</td>
 <td>7</td>
 </tr>
 </tbody>
@@ -1048,38 +1077,80 @@ code {
 <h2 id="10-roadmap">10. Roadmap</h2>
 <h3 id="phase-actuelle-q1-2026--moteur--api">Phase actuelle (Q1 2026) — Moteur + API</h3>
 <ul>
-<li><input type="checkbox" id="checkbox0" checked="true"><label for="checkbox0">38 regles de validation implementees et testees</label></li>
+<li><input type="checkbox" id="checkbox0" checked="true"><label for="checkbox0">38 regles de verrouillage implementees et testees</label></li>
 <li><input type="checkbox" id="checkbox1" checked="true"><label for="checkbox1">21 regles de croisement implementees et testees</label></li>
 <li><input type="checkbox" id="checkbox2" checked="true"><label for="checkbox2">Pipeline Phase 0 (HistoVec) et Phase 1 (pre-qualification)</label></li>
-<li><input type="checkbox" id="checkbox3" checked="true"><label for="checkbox3">API REST complete (dossiers, documents, decisions)</label></li>
-<li><input type="checkbox" id="checkbox4" checked="true"><label for="checkbox4">Classification et extraction OCR</label></li>
-<li><input type="checkbox" id="checkbox5" checked="true"><label for="checkbox5">Estimation des taxes (Y1-Y6)</label></li>
-<li><input type="checkbox" id="checkbox6" checked="true"><label for="checkbox6">Generation Cerfa pre-remplis</label></li>
-<li><input type="checkbox" id="checkbox7" checked="true"><label for="checkbox7">130 tests unitaires</label></li>
+<li><input type="checkbox" id="checkbox3" checked="true"><label for="checkbox3">Diagnostic binaire VERT/ORANGE/ROUGE (pas de score pondere)</label></li>
+<li><input type="checkbox" id="checkbox4" checked="true"><label for="checkbox4">API REST complete (dossiers, documents, decisions, batch)</label></li>
+<li><input type="checkbox" id="checkbox5" checked="true"><label for="checkbox5">Classification et extraction OCR</label></li>
+<li><input type="checkbox" id="checkbox6" checked="true"><label for="checkbox6">Estimation des taxes (Y1, Y3-Y6)</label></li>
+<li><input type="checkbox" id="checkbox7" checked="true"><label for="checkbox7">Generation Cerfa pre-remplis</label></li>
+<li><input type="checkbox" id="checkbox8" checked="true"><label for="checkbox8">Separation paiement honoraires / taxes SIV</label></li>
+<li><input type="checkbox" id="checkbox9" checked="true"><label for="checkbox9">Moteur de relances automatiques (PRO/SYSTEME, J+1/3/7)</label></li>
+<li><input type="checkbox" id="checkbox10" checked="true"><label for="checkbox10">Mode batch (creation + lancement + statut groupe)</label></li>
+<li><input type="checkbox" id="checkbox11" checked="true"><label for="checkbox11">Logique personne morale (detection auto, adaptation regles)</label></li>
+<li><input type="checkbox" id="checkbox12" checked="true"><label for="checkbox12">Endpoint SIV payload (extension + copier-coller + SaaS)</label></li>
+<li><input type="checkbox" id="checkbox13" checked="true"><label for="checkbox13">132 tests unitaires</label></li>
 </ul>
 <h3 id="q2-2026--portail-pro--ocr-reel">Q2 2026 — Portail Pro + OCR reel</h3>
 <ul>
-<li><input type="checkbox" id="checkbox8"><label for="checkbox8">Cablage Google Document AI (OCR production)</label></li>
-<li><input type="checkbox" id="checkbox9"><label for="checkbox9">Dashboard Streamlit operationnel</label></li>
-<li><input type="checkbox" id="checkbox10"><label for="checkbox10">Authentification JWT + RBAC</label></li>
-<li><input type="checkbox" id="checkbox11"><label for="checkbox11">Integration Stripe (pre-autorisation, debit, facturation)</label></li>
-<li><input type="checkbox" id="checkbox12"><label for="checkbox12">Alembic migrations + deploiement staging</label></li>
+<li><input type="checkbox" id="checkbox14"><label for="checkbox14">Cablage Google Document AI (OCR production)</label></li>
+<li><input type="checkbox" id="checkbox15"><label for="checkbox15">Dashboard Streamlit operationnel → portail React/Next.js en parallele</label></li>
+<li><input type="checkbox" id="checkbox16"><label for="checkbox16">Authentification JWT + RBAC + 2FA</label></li>
+<li><input type="checkbox" id="checkbox17"><label for="checkbox17">Integration Stripe (pre-autorisation, debit, facturation SEPA)</label></li>
+<li><input type="checkbox" id="checkbox18"><label for="checkbox18">Alembic migrations + deploiement staging</label></li>
 </ul>
 <h3 id="q3-2026--kyc--habilitation-siv">Q3 2026 — KYC + Habilitation SIV</h3>
 <ul>
-<li><input type="checkbox" id="checkbox13"><label for="checkbox13">Integration KYC (Ariadnext ou IDnow)</label></li>
-<li><input type="checkbox" id="checkbox14"><label for="checkbox14">Obtention habilitation SIV</label></li>
-<li><input type="checkbox" id="checkbox15"><label for="checkbox15">Acces au formulaire SIV reel</label></li>
-<li><input type="checkbox" id="checkbox16"><label for="checkbox16">Developpement extension navigateur</label></li>
-<li><input type="checkbox" id="checkbox17"><label for="checkbox17">Beta avec 5-10 garages pilotes</label></li>
+<li><input type="checkbox" id="checkbox19"><label for="checkbox19">Integration KYC (Ariadnext ou IDnow)</label></li>
+<li><input type="checkbox" id="checkbox20"><label for="checkbox20">Obtention habilitation SIV</label></li>
+<li><input type="checkbox" id="checkbox21"><label for="checkbox21">Acces au formulaire SIV reel → finalisation extension navigateur</label></li>
+<li><input type="checkbox" id="checkbox22"><label for="checkbox22">Resolution mecanisme paiement taxes (reponse ANTS)</label></li>
+<li><input type="checkbox" id="checkbox23"><label for="checkbox23">Beta avec 5-10 garages pilotes</label></li>
 </ul>
 <h3 id="q4-2026--lancement-commercial">Q4 2026 — Lancement commercial</h3>
 <ul>
-<li><input type="checkbox" id="checkbox18"><label for="checkbox18">Extension navigateur validee (Full Service)</label></li>
-<li><input type="checkbox" id="checkbox19"><label for="checkbox19">Livraison dossier SaaS validee</label></li>
-<li><input type="checkbox" id="checkbox20"><label for="checkbox20">Coffre-fort numerique 5 ans</label></li>
-<li><input type="checkbox" id="checkbox21"><label for="checkbox21">Lancement commercial (objectif : 50 pros actifs)</label></li>
+<li><input type="checkbox" id="checkbox24"><label for="checkbox24">Extension navigateur validee (Full Service)</label></li>
+<li><input type="checkbox" id="checkbox25"><label for="checkbox25">Livraison dossier SaaS validee</label></li>
+<li><input type="checkbox" id="checkbox26"><label for="checkbox26">Coffre-fort numerique certifie (Certigna CFN ou equivalent)</label></li>
+<li><input type="checkbox" id="checkbox27"><label for="checkbox27">Lancement commercial (objectif : 10-20 pros actifs)</label></li>
 </ul>
+<hr>
+<h2 id="11-points-dinterrogation-en-cours">11. Points d'interrogation en cours</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Sujet</th>
+<th>Impact</th>
+<th>Bloque quoi</th>
+<th>Statut</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Paiement taxes SIV sans agrement Tresor Public</td>
+<td>HAUT</td>
+<td>Derniere etape Full Service uniquement</td>
+<td>Mail envoye a l'ANTS, en attente</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Extension navigateur — protections anti-bot sur le site SIV</td>
+<td>MOYEN</td>
+<td>Extension (pas le portail ni Phase 1)</td>
+<td>A tester apres habilitation</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Estimation taxes vs montant exact SIV</td>
+<td>BAS</td>
+<td>Rien (estimation = indicatif non contractuel)</td>
+<td>Resolu par design</td>
+</tr>
+</tbody>
+</table>
 <hr>
 <p><em>Carte Grise Pro — Automatiser l'administratif pour que les pros se concentrent sur leur metier.</em></p>
 

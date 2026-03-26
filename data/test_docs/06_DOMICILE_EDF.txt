@@ -1,0 +1,12 @@
+EDF
+Electricite de France
+
+Facture electricite
+Date: 01/02/2026
+
+Destinataire: DUPONT Jean Pierre
+45 avenue des Champs
+75008 PARIS
+France
+
+Montant TTC: 89.50 EUR
