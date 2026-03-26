@@ -42,7 +42,8 @@ class ChaineProprieteCheck(BaseCrossCheck):
 
         # CG titulaire vs DA vendeur_nom
         if cg.titulaire_nom and da.vendeur_nom:
-            score, method = match_names(cg.titulaire_nom, da.vendeur_nom)
+            match_result = match_names(cg.titulaire_nom, da.vendeur_nom)
+            score = match_result.confidence
             if score >= 0.97:
                 status = CrossCheckStatus.PASS
                 detail = None

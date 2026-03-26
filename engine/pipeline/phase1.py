@@ -226,7 +226,7 @@ class Phase1Pipeline:
         score = compute_score(all_cross_checks)
 
         # ──── ETAPE 7 : Décision ─────────────────────────────────────────
-        decision = DecisionEngine().decide(all_cross_checks)
+        decision = DecisionEngine().decide(all_cross_checks, [])
 
         # ──── ETAPE 8 : Estimation taxes ─────────────────────────────────
         tax_estimate = self._estimate_taxes(docs)

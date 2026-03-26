@@ -18,9 +18,14 @@ class TestDecisionEngine:
             for rule, status in statuses.items()
         ]
 
-    def test_blocking_rule_forces_rejet(self):
+    def test_blocking_rule_forces_fraude(self):
         results = self._make_results({"vin_coc_facture": CrossCheckStatus.FAIL})
         decision = self.engine.decide(results, [], extra_blocking_rules=["vin_coc_facture_mismatch"])
+        assert decision.status == DecisionStatus.FRAUDE
+
+    def test_non_fraud_blocking_rule_forces_rejet(self):
+        results = self._make_results({"vin_coc_facture": CrossCheckStatus.PASS})
+        decision = self.engine.decide(results, [], extra_blocking_rules=["ct_too_old"])
         assert decision.status == DecisionStatus.REJET
 
     def test_all_pass_gives_accepte(self):
