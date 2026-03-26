@@ -1,12 +1,17 @@
 """
 Calcul du score de confiance global du dossier.
+
+Les ponderations sont configurables via config/scoring.yaml
+et peuvent etre overrides par type de dossier (VN vs VO).
 """
 from __future__ import annotations
 
+from pathlib import Path
+
 from engine.models.decision import CrossCheckResult, CrossCheckStatus
 
-# Pondération des critères (total = 100)
-SCORE_WEIGHTS: dict[str, float] = {
+# Ponderation par defaut (fallback si YAML absent)
+_DEFAULT_WEIGHTS: dict[str, float] = {
     "vin_consistency": 30.0,
     "identity_consistency": 20.0,
     "document_validity": 20.0,
@@ -15,8 +20,52 @@ SCORE_WEIGHTS: dict[str, float] = {
     "driving_license": 5.0,
 }
 
+# Cache des configs chargees
+_loaded_configs: dict[str, dict[str, float]] = {}
 
-def compute_score(cross_check_results: list[CrossCheckResult]) -> float:
+
+def _load_scoring_config() -> dict:
+    """Charge la config scoring depuis le YAML."""
+    config_path = Path(__file__).parent.parent.parent / "config" / "scoring.yaml"
+    if config_path.exists():
+        try:
+            import yaml
+            with open(config_path) as f:
+                return yaml.safe_load(f)
+        except ImportError:
+            pass  # PyYAML pas installe — utiliser les defauts
+        except Exception:
+            pass
+    return {}
+
+
+def get_weights(dossier_type: str | None = None) -> dict[str, float]:
+    """
+    Retourne les ponderations de scoring.
+
+    Args:
+        dossier_type: "VN" ou "VO" pour un override specifique.
+                      None pour les ponderations par defaut.
+    """
+    if not _loaded_configs:
+        raw = _load_scoring_config()
+        _loaded_configs["default"] = raw.get("default", _DEFAULT_WEIGHTS)
+        _loaded_configs["VN"] = raw.get("vn_override", _loaded_configs["default"])
+        _loaded_configs["VO"] = raw.get("vo_override", _loaded_configs["default"])
+
+    if dossier_type and dossier_type.upper() in _loaded_configs:
+        return _loaded_configs[dossier_type.upper()]
+    return _loaded_configs.get("default", _DEFAULT_WEIGHTS)
+
+
+# Expose pour compatibilite
+SCORE_WEIGHTS = _DEFAULT_WEIGHTS
+
+
+def compute_score(
+    cross_check_results: list[CrossCheckResult],
+    dossier_type: str | None = None,
+) -> float:
     """
     Calcule le score global (0–100) à partir des résultats de croisements.
 
@@ -26,7 +75,8 @@ def compute_score(cross_check_results: list[CrossCheckResult]) -> float:
     - FAIL → contribution nulle
     - SKIPPED → ignoré (poids redistribué)
     """
-    category_scores: dict[str, list[float]] = {k: [] for k in SCORE_WEIGHTS}
+    weights = get_weights(dossier_type)
+    category_scores: dict[str, list[float]] = {k: [] for k in weights}
 
     for result in cross_check_results:
         category = _map_rule_to_category(result.rule_name)
@@ -43,7 +93,7 @@ def compute_score(cross_check_results: list[CrossCheckResult]) -> float:
     total_score = 0.0
     total_weight = 0.0
 
-    for category, weight in SCORE_WEIGHTS.items():
+    for category, weight in weights.items():
         scores = category_scores.get(category, [])
         if not scores:
             continue  # Pas de données pour cette catégorie

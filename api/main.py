@@ -8,7 +8,7 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from api.routers import decisions, documents, dossiers, webhooks
+from api.routers import batch, decisions, documents, dossiers, webhooks
 
 app = FastAPI(
     title="SaaS Carte Grise — API",
@@ -36,6 +36,7 @@ app.include_router(dossiers.router, prefix="/dossiers", tags=["dossiers"])
 app.include_router(documents.router, prefix="/documents", tags=["documents"])
 app.include_router(decisions.router, prefix="/decisions", tags=["decisions"])
 app.include_router(webhooks.router, prefix="/webhooks", tags=["webhooks"])
+app.include_router(batch.router, prefix="/dossiers", tags=["batch"])
 
 
 @app.get("/health")

@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>whitepaper_carte_grise_pro.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<h1 id="carte-grise-pro--whitepaper-technique--business">Carte Grise Pro — Whitepaper Technique &amp; Business</h1>
+<p><strong>Plateforme B2B d'automatisation des demandes d'immatriculation</strong>
+<em>Version 1.0 — Mars 2026</em></p>
+<hr>
+<h2 id="1-executive-summary">1. Executive Summary</h2>
+<p>Carte Grise Pro est une plateforme SaaS B2B qui automatise de bout en bout les demandes de carte grise (certificat d'immatriculation) pour les professionnels de l'automobile : garages, concessionnaires, revendeurs motos et voitures.</p>
+<p>Le marche francais compte plus de <strong>40 000 garages et revendeurs</strong> qui traitent chacun entre 50 et 500 demandes de carte grise par an. Chaque dossier mobilise en moyenne <strong>30 a 45 minutes</strong> de travail administratif manuel : collecte de documents, verification de conformite, remplissage de formulaires, soumission SIV, suivi.</p>
+<p>Carte Grise Pro reduit ce temps a <strong>moins de 5 minutes</strong> par dossier grace a un moteur d'automatisation qui enchaine OCR, extraction structuree, 38 regles de validation, 21 croisements inter-documents, scoring de confiance, estimation des taxes et generation de Cerfa pre-remplis.</p>
+<p><strong>Deux offres complementaires</strong> :</p>
+<ul>
+<li><strong>Full Service</strong> — pour les pros non habilites SIV : on gere tout, de la verification a la soumission.</li>
+<li><strong>SaaS</strong> — pour les pros deja habilites SIV : on prepare un dossier pret a soumettre.</li>
+</ul>
+<hr>
+<h2 id="2-le-probleme">2. Le Probleme</h2>
+<h3 id="21-complexite-reglementaire">2.1 Complexite reglementaire</h3>
+<p>Une demande de carte grise implique :</p>
+<ul>
+<li><strong>31 types de documents</strong> differents selon le cas (vehicule neuf/occasion, acheteur particulier/societe/mineur/etranger)</li>
+<li><strong>21 regles de coherence croisee</strong> entre documents (identite, VIN, adresse, dates, signatures, statut SIV)</li>
+<li><strong>38 criteres de verrouillage</strong> qui peuvent bloquer un dossier</li>
+<li><strong>20 scenarios</strong> de cas d'usage distincts, chacun avec ses specificites documentaires</li>
+</ul>
+<h3 id="22-erreurs-et-rejets">2.2 Erreurs et rejets</h3>
+<p>Les rejets SIV representent entre <strong>15% et 25%</strong> des soumissions selon les sources professionnelles. Chaque rejet signifie :</p>
+<ul>
+<li>Temps perdu (20-40 min pour diagnostiquer + corriger + resoumettre)</li>
+<li>Client mecontent (delai supplementaire)</li>
+<li>Cout non recuperable pour le pro</li>
+</ul>
+<h3 id="23-risques-de-fraude">2.3 Risques de fraude</h3>
+<p>Le SIV traite plus de 10 millions d'operations par an. Les risques identitaires (faux documents, vehicules voles, gages non declares) necessitent une vigilance que le controle humain seul ne peut pas garantir a grande echelle.</p>
+<hr>
+<h2 id="3-architecture-de-la-solution">3. Architecture de la Solution</h2>
+<h3 id="31-vue-densemble">3.1 Vue d'ensemble</h3>
+<pre class="hljs"><code><div>Pro (Dashboard Web / API)
+        |
+        v
+   FastAPI REST API
+   /dossiers  /documents  /decisions  /webhooks
+        |
+        v (Redis queue)
+   Celery Pipeline Worker
+        |
+   +---------+---------+---------+---------+
+   | PHASE 0 | PHASE 1 | PHASE 2 | ARCHIV  |
+   | HistoVec| Pre-qual| KYC+SIV | Coffre  |
+   +---------+---------+---------+---------+
+        |
+        v
+   PostgreSQL + S3 (documents) + Redis (cache)
+</div></code></pre>
+<h3 id="32-les-4-phases-du-traitement">3.2 Les 4 phases du traitement</h3>
+<table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>Contenu</th>
+<th>Cout</th>
+<th>Qui paie</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Phase 0</strong></td>
+<td>Consultation HistoVec/CSA — detection gage, OTCI, vol, VEC/VEI</td>
+<td>Gratuit</td>
+<td>Absorbe</td>
+</tr>
+<tr>
+<td><strong>Phase 1</strong></td>
+<td>Completude + OCR + validation + croisements + diagnostic + estimation taxes</td>
+<td>~0.50 EUR</td>
+<td>Absorbe</td>
+</tr>
+<tr>
+<td><strong>GO/NO-GO</strong></td>
+<td>Le pro voit le diagnostic VERT/ORANGE/ROUGE et decide de lancer le traitement</td>
+<td>0 EUR</td>
+<td>—</td>
+</tr>
+<tr>
+<td><strong>Phase 2</strong></td>
+<td>KYC anti-fraude + soumission SIV (Full Service) ou livraison dossier (SaaS)</td>
+<td>1-3 EUR</td>
+<td>Honoraires pro</td>
+</tr>
+</tbody>
+</table>
+<h3 id="33-diagnostic-tri-couleur">3.3 Diagnostic tri-couleur</h3>
+<p>Le moteur produit un diagnostic en 3 niveaux :</p>
+<ul>
+<li><strong>VERT</strong> (score &gt;= 95) — Tous les controles passent. Le pro peut lancer le traitement en un clic.</li>
+<li><strong>ORANGE</strong> (score 60-94) — Des avertissements existent mais aucun blocage. Le pro peut continuer apres verification.</li>
+<li><strong>ROUGE</strong> (score &lt; 60 ou blocage) — Des corrections sont requises. Le systeme genere une liste precise des actions correctives.</li>
+</ul>
+<hr>
+<h2 id="4-moteur-de-regles">4. Moteur de Regles</h2>
+<h3 id="41-referentiel-documentaire-31-documents">4.1 Referentiel documentaire (31 documents)</h3>
+<p>Le systeme connait 31 types de documents, chacun avec ses regles de validite, ses champs a extraire et ses controles specifiques :</p>
+<table>
+<thead>
+<tr>
+<th>Categorie</th>
+<th>Documents</th>
+<th>Exemples</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Formulaires</td>
+<td>D-01 a D-06</td>
+<td>Cerfa 13749 (VN), 13750 (VO), 15776 (cession), 13757 (mandat), DA</td>
+</tr>
+<tr>
+<td>Identite acheteur</td>
+<td>D-07 a D-10</td>
+<td>CNI, passeport, titre de sejour, permis de conduire</td>
+</tr>
+<tr>
+<td>Justificatif domicile</td>
+<td>D-11 a D-15</td>
+<td>Facture energie, avis imposition, quittance loyer, pack hebergement</td>
+</tr>
+<tr>
+<td>Vehicule</td>
+<td>D-16 a D-22</td>
+<td>COC, CG barree, CT, assurance, code cession, recepisse DA, HistoVec</td>
+</tr>
+<tr>
+<td>Personne morale</td>
+<td>D-23 a D-25</td>
+<td>Kbis, CNI representant legal, statuts/PV AG</td>
+</tr>
+<tr>
+<td>Cas speciaux</td>
+<td>D-26 a D-31</td>
+<td>Livret famille, autorisation parentale, tutelle, deces, mainlevee gage, attestation pro</td>
+</tr>
+</tbody>
+</table>
+<h3 id="42-regles-de-coherence-croisee-21-regles-c-xx">4.2 Regles de coherence croisee (21 regles C-XX)</h3>
+<p>Chaque regle compare des donnees extraites de documents differents :</p>
+<p><strong>Identite (C-01 a C-05)</strong> — Fuzzy matching des noms entre CNI, Cerfa, permis, assurance, domicile. Seuils : &gt;= 97% auto, 85-96% warning, &lt; 85% blocage.</p>
+<p><strong>Vehicule (C-06 a C-10)</strong> — VIN identique sur tous les documents. CNIT vs base UTAC. Puissance fiscale +-1CV warning / +-3CV blocage. CO2 WLTP obligatoire post-2021.</p>
+<p><strong>Chaine de propriete VO (C-11 a C-14)</strong> — Vendeur DA = titulaire CG. Chronologie dates CG/DA/cession. Signatures co-titulaires. CT valide a la saisie SIV.</p>
+<p><strong>Permis et age (C-15, C-16)</strong> — Categorie permis vs type vehicule. Age vs categorie autorisee (&lt; 14 : rien, 14-15 : AM, 16-17 : A1, &gt;= 18 : B).</p>
+<p><strong>Statut SIV (C-17 a C-21)</strong> — Gage, OTCI, VEC/VEI, vol signale, doublon VIN interne.</p>
+<h3 id="43-criteres-de-verrouillage-38-regles-v-xx">4.3 Criteres de verrouillage (38 regles V-XX)</h3>
+<table>
+<thead>
+<tr>
+<th>Categorie</th>
+<th>Regles</th>
+<th>Exemples</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Documents manquants</td>
+<td>V-01 a V-10, V-36</td>
+<td>CNI absente, permis absent, COC absent, DA absente</td>
+</tr>
+<tr>
+<td>Validite temporelle</td>
+<td>V-11 a V-19</td>
+<td>CNI expiree, permis expire, CT &gt; 6 mois, Kbis &gt; 3 mois</td>
+</tr>
+<tr>
+<td>Qualite documentaire</td>
+<td>V-20 a V-23</td>
+<td>Score OCR &lt; 40%, scan tronque, langue etrangere, rature Cerfa</td>
+</tr>
+<tr>
+<td>Coherence</td>
+<td>V-24 a V-28</td>
+<td>VIN incoherent, identite incoherente, chaine propriete brisee</td>
+</tr>
+<tr>
+<td>Statut SIV</td>
+<td>V-29 a V-32</td>
+<td>Gage actif, OTCI, VEC/VEI, vol signale</td>
+</tr>
+<tr>
+<td>Controles specifiques</td>
+<td>V-33 a V-38</td>
+<td>CG non barree, signature manquante, CT defavorable, KYC echec</td>
+</tr>
+</tbody>
+</table>
+<h3 id="44-scoring">4.4 Scoring</h3>
+<p>Le score global (0-100) est calcule a partir de 6 categories ponderees :</p>
+<table>
+<thead>
+<tr>
+<th>Categorie</th>
+<th>Poids</th>
+<th>Sources</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Coherence VIN</td>
+<td>30%</td>
+<td>C-06, C-07</td>
+</tr>
+<tr>
+<td>Coherence identite</td>
+<td>20%</td>
+<td>C-01 a C-05</td>
+</tr>
+<tr>
+<td>Validite documents</td>
+<td>20%</td>
+<td>Dates, signatures, completude</td>
+</tr>
+<tr>
+<td>Coherence vehicule</td>
+<td>15%</td>
+<td>C-08 a C-10, marque, energie</td>
+</tr>
+<tr>
+<td>Validite adresse</td>
+<td>10%</td>
+<td>C-04, C-05</td>
+</tr>
+<tr>
+<td>Permis / age</td>
+<td>5%</td>
+<td>C-15, C-16</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="5-pipeline-technique">5. Pipeline Technique</h2>
+<h3 id="51-ocr-et-extraction-structuree">5.1 OCR et extraction structuree</h3>
+<ol>
+<li><strong>Upload</strong> — Le pro uploade un document (PDF, JPG, PNG). Le systeme calcule le SHA-256 et stocke le fichier.</li>
+<li><strong>Classification automatique</strong> — Un classifieur par mots-cles ponderes identifie le type parmi 17 categories avec un score de confiance. Si confiance &lt; 60%, le pro est invite a preciser.</li>
+<li><strong>OCR</strong> — Google Document AI extrait le texte brut avec scores de confiance par bloc.</li>
+<li><strong>Extraction structuree</strong> — Des regex metier specialisees par type de document extraient les champs structures (VIN, dates, noms, montants, etc.).</li>
+<li><strong>Fallback LLM</strong> — Pour les documents complexes ou mal structures, un LLM (Claude) extrait les donnees en mode conversationnel.</li>
+</ol>
+<h3 id="52-estimation-des-taxes">5.2 Estimation des taxes</h3>
+<p>Le calculateur estime les 5 composantes de la taxe d'immatriculation :</p>
+<table>
+<thead>
+<tr>
+<th>Composante</th>
+<th>Calcul</th>
+<th>Exemple (7 CV, Paris, 130 g/km CO2)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Y1 — Taxe regionale</td>
+<td>Puissance CV x tarif departement</td>
+<td>7 x 46.15 = 323.05 EUR</td>
+</tr>
+<tr>
+<td>Y3 — Malus CO2 (WLTP)</td>
+<td>Bareme progressif 2026</td>
+<td>170 EUR</td>
+</tr>
+<tr>
+<td>Y4 — Taxe de gestion</td>
+<td>11 EUR fixe (0 si electrique)</td>
+<td>11 EUR</td>
+</tr>
+<tr>
+<td>Y5 — Redevance acheminement</td>
+<td>2.76 EUR fixe</td>
+<td>2.76 EUR</td>
+</tr>
+<tr>
+<td>Y6 — Malus au poids</td>
+<td>10 EUR/kg &gt; 1800 kg</td>
+<td>0 EUR</td>
+</tr>
+<tr>
+<td><strong>Total estime</strong></td>
+<td></td>
+<td><strong>506.81 EUR</strong></td>
+</tr>
+</tbody>
+</table>
+<p><em>Note : montant final confirme par le SIV a la soumission. L'estimation est indicative et non contractuelle.</em></p>
+<h3 id="53-3-niveaux-dauthentification-identite">5.3 3 niveaux d'authentification identite</h3>
+<table>
+<thead>
+<tr>
+<th>Niveau</th>
+<th>Qui</th>
+<th>Quand</th>
+<th>Methode</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>NIV.1</td>
+<td>Le pro</td>
+<td>A la vente (en personne)</td>
+<td>Verification physique CNI originale + attestation dans le portail</td>
+</tr>
+<tr>
+<td>NIV.2</td>
+<td>Le systeme</td>
+<td>Automatique, 100% des dossiers</td>
+<td>OCR + croisements + KYC anti-fraude (Ariadnext / IDnow)</td>
+</tr>
+<tr>
+<td>NIV.3</td>
+<td>L'operateur</td>
+<td>Uniquement si KYC = SUSPECT (~10%)</td>
+<td>Controle visuel document vs photo, ~10 min</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="6-modele-economique">6. Modele Economique</h2>
+<h3 id="61-offre-full-service">6.1 Offre Full Service</h3>
+<p><strong>Cible</strong> : Pros non habilites SIV (la majorite des petits garages).</p>
+<table>
+<thead>
+<tr>
+<th>Element</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cout plateforme par dossier</td>
+<td>2 - 5 EUR</td>
+</tr>
+<tr>
+<td>Prix au pro (honoraires)</td>
+<td>30 - 60 EUR</td>
+</tr>
+<tr>
+<td>Marge brute</td>
+<td>25 - 58 EUR</td>
+</tr>
+<tr>
+<td>Cas complexes (import, deces, tutelle)</td>
+<td>60 - 150 EUR</td>
+</tr>
+<tr>
+<td>Paiement</td>
+<td>Pre-autorisation CB au GO ; debit sur CPI genere</td>
+</tr>
+<tr>
+<td>Alternative</td>
+<td>Facture mensuelle + prelevement SEPA pour les pros a volume</td>
+</tr>
+</tbody>
+</table>
+<h3 id="62-offre-saas">6.2 Offre SaaS</h3>
+<p><strong>Cible</strong> : Pros deja habilites SIV (concessionnaires, mandataires).</p>
+<table>
+<thead>
+<tr>
+<th>Element</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cout plateforme par dossier</td>
+<td>0.70 - 2.50 EUR</td>
+</tr>
+<tr>
+<td>Prix au pro</td>
+<td>10 - 25 EUR/dossier OU 50 - 150 EUR/mois + tarif reduit</td>
+</tr>
+<tr>
+<td>Marge brute</td>
+<td>7.50 - 24.30 EUR</td>
+</tr>
+<tr>
+<td>Livrable</td>
+<td>Dossier complet + donnees extraites + KYC + estimation taxes + checklist</td>
+</tr>
+<tr>
+<td>Pas d'operateur</td>
+<td>Le pro soumet lui-meme dans son SIV</td>
+</tr>
+</tbody>
+</table>
+<h3 id="63-projection">6.3 Projection</h3>
+<table>
+<thead>
+<tr>
+<th>Hypothese</th>
+<th>An 1</th>
+<th>An 2</th>
+<th>An 3</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Pros actifs</td>
+<td>50</td>
+<td>200</td>
+<td>500</td>
+</tr>
+<tr>
+<td>Dossiers / pro / mois</td>
+<td>10</td>
+<td>15</td>
+<td>20</td>
+</tr>
+<tr>
+<td>Dossiers / mois</td>
+<td>500</td>
+<td>3 000</td>
+<td>10 000</td>
+</tr>
+<tr>
+<td>CA mensuel moyen (mix 60% FS / 40% SaaS)</td>
+<td>15 000 EUR</td>
+<td>90 000 EUR</td>
+<td>300 000 EUR</td>
+</tr>
+<tr>
+<td>Marge brute</td>
+<td>~80%</td>
+<td>~85%</td>
+<td>~88%</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="7-les-20-scenarios-couverts">7. Les 20 Scenarios Couverts</h2>
+<h3 id="cas-acheteur">Cas acheteur</h3>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Scenario</th>
+<th>Niveau</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>S-01</td>
+<td>Acheteur societe (personne morale)</td>
+<td>Semi-auto</td>
+</tr>
+<tr>
+<td>S-02</td>
+<td>Co-titulaires maries / pacses</td>
+<td>Semi-auto</td>
+</tr>
+<tr>
+<td>S-03</td>
+<td>Co-titulaires non maries</td>
+<td>Semi-auto</td>
+</tr>
+<tr>
+<td>S-04</td>
+<td>Acheteur mineur</td>
+<td>Escalade humaine</td>
+</tr>
+<tr>
+<td>S-05</td>
+<td>Acheteur etranger resident</td>
+<td>Semi-auto</td>
+</tr>
+<tr>
+<td>S-06</td>
+<td>Acheteur heberge (pack 4 docs)</td>
+<td>Semi-auto</td>
+</tr>
+<tr>
+<td>S-07</td>
+<td>Acheteur sous tutelle / curatelle</td>
+<td>Escalade humaine</td>
+</tr>
+</tbody>
+</table>
+<h3 id="cas-vehicule-vo">Cas vehicule (VO)</h3>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Scenario</th>
+<th>Niveau</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>S-08</td>
+<td>CG avec adresse non mise a jour</td>
+<td>Semi-auto</td>
+</tr>
+<tr>
+<td>S-09</td>
+<td>CG perdue</td>
+<td>Escalade humaine</td>
+</tr>
+<tr>
+<td>S-10</td>
+<td>CG au nom d'un defunt</td>
+<td>Escalade humaine</td>
+</tr>
+<tr>
+<td>S-11</td>
+<td>Vehicule gage</td>
+<td>Escalade humaine</td>
+</tr>
+<tr>
+<td>S-12</td>
+<td>Vehicule sous OTCI</td>
+<td>Escalade humaine</td>
+</tr>
+<tr>
+<td>S-13</td>
+<td>Vehicule VEC / VEI</td>
+<td>Escalade humaine</td>
+</tr>
+<tr>
+<td>S-14</td>
+<td>Vehicule ancien FNI</td>
+<td>Semi-auto</td>
+</tr>
+<tr>
+<td>S-15</td>
+<td>Erreur sur ancienne CG</td>
+<td>Escalade humaine</td>
+</tr>
+<tr>
+<td>S-16</td>
+<td>Double cession (sans CG intermediaire)</td>
+<td>Escalade humaine</td>
+</tr>
+</tbody>
+</table>
+<h3 id="cas-vn-speciaux">Cas VN speciaux</h3>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Scenario</th>
+<th>Niveau</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>S-17</td>
+<td>VN importe UE (quitus fiscal)</td>
+<td>Escalade humaine</td>
+</tr>
+<tr>
+<td>S-18</td>
+<td>VN importe hors UE (846A douane)</td>
+<td>Escalade humaine</td>
+</tr>
+<tr>
+<td>S-19</td>
+<td>Moto transformee (RTI)</td>
+<td>Escalade humaine</td>
+</tr>
+<tr>
+<td>S-20</td>
+<td>VN demo / vehicule de direction</td>
+<td>Semi-auto</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="8-stack-technique">8. Stack Technique</h2>
+<table>
+<thead>
+<tr>
+<th>Composant</th>
+<th>Technologie</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>API</td>
+<td>FastAPI (Python 3.11+, async)</td>
+</tr>
+<tr>
+<td>Workers</td>
+<td>Celery + Redis</td>
+</tr>
+<tr>
+<td>BDD</td>
+<td>PostgreSQL (Neon, managed)</td>
+</tr>
+<tr>
+<td>Stockage documents</td>
+<td>AWS S3 (eu-west-3, SSE-AES256)</td>
+</tr>
+<tr>
+<td>OCR</td>
+<td>Google Document AI (EU)</td>
+</tr>
+<tr>
+<td>LLM fallback</td>
+<td>Anthropic Claude</td>
+</tr>
+<tr>
+<td>KYC</td>
+<td>Ariadnext / IDnow</td>
+</tr>
+<tr>
+<td>Dashboard</td>
+<td>Streamlit</td>
+</tr>
+<tr>
+<td>CI/CD</td>
+<td>GitHub Actions</td>
+</tr>
+<tr>
+<td>Monitoring</td>
+<td>Sentry + Grafana</td>
+</tr>
+<tr>
+<td>Infrastructure</td>
+<td>Docker Compose (dev) / AWS ECS (prod)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="conformite">Conformite</h3>
+<ul>
+<li><strong>RGPD</strong> — Donnees hebergees en France (AWS eu-west-3). Chiffrement au repos et en transit. Purge automatique apres delai legal. Registre des traitements.</li>
+<li><strong>Archivage 5 ans</strong> — Coffre-fort numerique obligatoire depuis 2026.</li>
+<li><strong>Habilitation SIV</strong> — Demande en cours de preparation aupres de l'ANTS.</li>
+</ul>
+<hr>
+<h2 id="9-metriques-du-projet">9. Metriques du Projet</h2>
+<table>
+<thead>
+<tr>
+<th>Metrique</th>
+<th>Valeur</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Fichiers Python (moteur)</td>
+<td>~50 modules</td>
+</tr>
+<tr>
+<td>Lignes de code (moteur + API)</td>
+<td>~6 600</td>
+</tr>
+<tr>
+<td>Tests unitaires</td>
+<td>130 (100% pass)</td>
+</tr>
+<tr>
+<td>Regles de validation (V-XX)</td>
+<td>38</td>
+</tr>
+<tr>
+<td>Regles de croisement (C-XX)</td>
+<td>21</td>
+</tr>
+<tr>
+<td>Types de documents geres</td>
+<td>31</td>
+</tr>
+<tr>
+<td>Scenarios couverts (S-XX)</td>
+<td>20</td>
+</tr>
+<tr>
+<td>Endpoints API</td>
+<td>12</td>
+</tr>
+<tr>
+<td>Templates email</td>
+<td>7</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="10-roadmap">10. Roadmap</h2>
+<h3 id="phase-actuelle-q1-2026--moteur--api">Phase actuelle (Q1 2026) — Moteur + API</h3>
+<ul>
+<li><input type="checkbox" id="checkbox0" checked="true"><label for="checkbox0">38 regles de validation implementees et testees</label></li>
+<li><input type="checkbox" id="checkbox1" checked="true"><label for="checkbox1">21 regles de croisement implementees et testees</label></li>
+<li><input type="checkbox" id="checkbox2" checked="true"><label for="checkbox2">Pipeline Phase 0 (HistoVec) et Phase 1 (pre-qualification)</label></li>
+<li><input type="checkbox" id="checkbox3" checked="true"><label for="checkbox3">API REST complete (dossiers, documents, decisions)</label></li>
+<li><input type="checkbox" id="checkbox4" checked="true"><label for="checkbox4">Classification et extraction OCR</label></li>
+<li><input type="checkbox" id="checkbox5" checked="true"><label for="checkbox5">Estimation des taxes (Y1-Y6)</label></li>
+<li><input type="checkbox" id="checkbox6" checked="true"><label for="checkbox6">Generation Cerfa pre-remplis</label></li>
+<li><input type="checkbox" id="checkbox7" checked="true"><label for="checkbox7">130 tests unitaires</label></li>
+</ul>
+<h3 id="q2-2026--portail-pro--ocr-reel">Q2 2026 — Portail Pro + OCR reel</h3>
+<ul>
+<li><input type="checkbox" id="checkbox8"><label for="checkbox8">Cablage Google Document AI (OCR production)</label></li>
+<li><input type="checkbox" id="checkbox9"><label for="checkbox9">Dashboard Streamlit operationnel</label></li>
+<li><input type="checkbox" id="checkbox10"><label for="checkbox10">Authentification JWT + RBAC</label></li>
+<li><input type="checkbox" id="checkbox11"><label for="checkbox11">Integration Stripe (pre-autorisation, debit, facturation)</label></li>
+<li><input type="checkbox" id="checkbox12"><label for="checkbox12">Alembic migrations + deploiement staging</label></li>
+</ul>
+<h3 id="q3-2026--kyc--habilitation-siv">Q3 2026 — KYC + Habilitation SIV</h3>
+<ul>
+<li><input type="checkbox" id="checkbox13"><label for="checkbox13">Integration KYC (Ariadnext ou IDnow)</label></li>
+<li><input type="checkbox" id="checkbox14"><label for="checkbox14">Obtention habilitation SIV</label></li>
+<li><input type="checkbox" id="checkbox15"><label for="checkbox15">Acces au formulaire SIV reel</label></li>
+<li><input type="checkbox" id="checkbox16"><label for="checkbox16">Developpement extension navigateur</label></li>
+<li><input type="checkbox" id="checkbox17"><label for="checkbox17">Beta avec 5-10 garages pilotes</label></li>
+</ul>
+<h3 id="q4-2026--lancement-commercial">Q4 2026 — Lancement commercial</h3>
+<ul>
+<li><input type="checkbox" id="checkbox18"><label for="checkbox18">Extension navigateur validee (Full Service)</label></li>
+<li><input type="checkbox" id="checkbox19"><label for="checkbox19">Livraison dossier SaaS validee</label></li>
+<li><input type="checkbox" id="checkbox20"><label for="checkbox20">Coffre-fort numerique 5 ans</label></li>
+<li><input type="checkbox" id="checkbox21"><label for="checkbox21">Lancement commercial (objectif : 50 pros actifs)</label></li>
+</ul>
+<hr>
+<p><em>Carte Grise Pro — Automatiser l'administratif pour que les pros se concentrent sur leur metier.</em></p>
+
+</body>
+</html>

@@ -124,6 +124,58 @@ async def go_dossier(
     return {"status": "ok", "message": "Traitement lancé", "dossier_id": str(dossier_id)}
 
 
+@router.get("/{dossier_id}/siv-payload")
+async def get_siv_payload(
+    dossier_id: UUID,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Retourne les donnees formatees pour le formulaire SIV.
+
+    Ce payload sert a :
+    - L'extension navigateur (pre-remplissage automatique des champs SIV)
+    - Le recapitulatif copier-coller (fallback si extension KO)
+    - La livraison dossier SaaS (donnees structurees pour le pro)
+
+    Les champs sont dans l'ordre du formulaire web SIV.
+    """
+    dossier = await db.get(DossierDB, dossier_id)
+    if not dossier:
+        raise HTTPException(status_code=404, detail="Dossier non trouve")
+
+    if dossier.status not in ("ACCEPTE", "PROCESSING", "SUBMITTED"):
+        raise HTTPException(
+            status_code=422,
+            detail=f"SIV payload non disponible — dossier en statut {dossier.status}",
+        )
+
+    # Construire le payload SIV depuis les donnees extraites
+    # TODO: enrichir avec les champs reels du formulaire SIV (apres habilitation)
+    payload = {
+        "operation": "premiere_immatriculation" if "NEUF" in dossier.type else "changement_titulaire",
+        "demandeur": {
+            "nom": dossier.client_nom or "",
+            "prenom": dossier.client_prenom or "",
+            "is_personne_morale": dossier.is_personne_morale,
+        },
+        "vehicule": {
+            "vin": dossier.vin or "",
+            "immatriculation": dossier.immatriculation or "",
+        },
+        "taxes_estimees": dossier.tax_estimate,
+        "diagnostic": dossier.diagnostic,
+        "score": dossier.score,
+        "_meta": {
+            "dossier_id": str(dossier.id),
+            "reference": dossier.reference,
+            "generated_at": datetime.utcnow().isoformat(),
+            "note": "Payload SIV — structure exacte a finaliser apres acces au formulaire SIV reel",
+        },
+    }
+
+    return payload
+
+
 @router.delete("/{dossier_id}")
 async def cancel_dossier(
     dossier_id: UUID,

@@ -56,10 +56,25 @@ class DossierDB(Base, TimestampMixin):
     siv_response: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     cpi_generated: Mapped[bool] = mapped_column(Boolean, default=False)
 
-    # Paiement
+    # Contexte acheteur
+    is_personne_morale: Mapped[bool] = mapped_column(Boolean, default=False)
+    is_mineur: Mapped[bool] = mapped_column(Boolean, default=False)
+    is_etranger: Mapped[bool] = mapped_column(Boolean, default=False)
+
+    # Paiement honoraires (argent du porteur de projet)
     payment_preauth_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
     payment_captured: Mapped[bool] = mapped_column(Boolean, default=False)
     montant_honoraires: Mapped[float | None] = mapped_column(Float, nullable=True)
+
+    # Paiement taxes SIV (argent de l'Etat — mecanisme a confirmer apres reponse ANTS)
+    tax_payment_method: Mapped[str | None] = mapped_column(String(30), nullable=True)
+    tax_payment_status: Mapped[str | None] = mapped_column(String(20), nullable=True)
+
+    # Relances
+    relance_nb: Mapped[int] = mapped_column(default=0)
+    relance_derniere: Mapped[datetime | None] = mapped_column(nullable=True)
+    relance_prochaine: Mapped[datetime | None] = mapped_column(nullable=True)
+    relance_escalade: Mapped[bool] = mapped_column(Boolean, default=False)
 
     # Agent override
     agent_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
