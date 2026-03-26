@@ -153,6 +153,61 @@ BLOCKING_RULES: dict[str, BlockingRule] = {
         code="co2_wltp_missing_post2021",
         message="CO2 WLTP absent pour véhicule ≥ 2021 — requis par le SIV pour le calcul du malus",
     ),
+    # ─── Qualité documentaire ────────────────────────────────────────────────
+    "document_illisible": BlockingRule(
+        code="document_illisible",
+        message="Document illisible — score OCR insuffisant",
+    ),
+    "scan_tronque": BlockingRule(
+        code="scan_tronque",
+        message="Scan tronqué — bords coupés, document incomplet",
+    ),
+    "langue_etrangere": BlockingRule(
+        code="langue_etrangere",
+        message="Document en langue étrangère — traduction assermentée requise",
+    ),
+    "cerfa_rature": BlockingRule(
+        code="cerfa_rature",
+        message="Rature détectée sur le Cerfa — document refusé",
+    ),
+    # ─── Cohérence méta (agrégation C-rules) ─────────────────────────────────
+    "vin_incoherent": BlockingRule(
+        code="vin_incoherent",
+        message="VIN incohérent entre les documents du dossier (V-24)",
+        is_fraud_related=True,
+    ),
+    "identite_incoherente": BlockingRule(
+        code="identite_incoherente",
+        message="Identité incohérente entre les documents du dossier (V-25)",
+        is_fraud_related=True,
+    ),
+    "chaine_propriete_brisee": BlockingRule(
+        code="chaine_propriete_brisee",
+        message="Chaîne de propriété brisée (V-26)",
+        is_fraud_related=True,
+    ),
+    "permis_vehicule_mismatch": BlockingRule(
+        code="permis_vehicule_mismatch",
+        message="Catégorie de permis incompatible avec le véhicule (V-27)",
+    ),
+    "age_incompatible": BlockingRule(
+        code="age_incompatible",
+        message="Âge de l'acheteur incompatible avec la catégorie du véhicule (V-28)",
+    ),
+    # ─── KYC Phase 2 ─────────────────────────────────────────────────────────
+    "kyc_rejected": BlockingRule(
+        code="kyc_rejected",
+        message="KYC anti-fraude rejeté (V-37) — document d'identité considéré frauduleux",
+        is_fraud_related=True,
+    ),
+    "titre_sejour_expired": BlockingRule(
+        code="titre_sejour_expired",
+        message="Titre de séjour expiré (V-13)",
+    ),
+    "kbis_expired": BlockingRule(
+        code="kbis_expired",
+        message="Kbis trop ancien (> 3 mois) (V-15)",
+    ),
 }
 
 

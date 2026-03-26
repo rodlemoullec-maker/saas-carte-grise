@@ -100,5 +100,8 @@ def _map_rule_to_category(rule_name: str) -> str | None:
         "puissance_fiscale_coc_cerfa": "vehicle_coherence",
         "co2_wltp_source": "vehicle_coherence",
         "co2_wltp_nedc_gap": "vehicle_coherence",
+        # Permis / Age
+        "permis_categorie_vehicule": "driving_license",
+        "age_categorie_vehicule": "driving_license",
     }
     return mapping.get(rule_name)

@@ -223,6 +223,76 @@ class CTDateValidator(BaseValidator):
         return result
 
 
+class TitreSejourValidator(BaseValidator):
+    """
+    Vérifie la validité du titre de séjour (V-13).
+
+    - Expiré → BLOCKING
+    - Récépissé de renouvellement → WARNING (accepté mais risqué)
+    - Expire dans < 30 jours → WARNING
+    """
+
+    def validate(self, date_expiration: date, is_recepisse: bool = False,
+                 reference_date: date | None = None) -> ValidationResult:
+        result = ValidationResult(valid=True)
+        ref = reference_date or date.today()
+
+        if is_recepisse:
+            result.add_error(
+                code="TITRE_SEJOUR_RECEPISSE",
+                message="Récépissé de renouvellement de titre de séjour — accepté mais risqué",
+                level=ValidationLevel.WARNING, field="titre_sejour",
+                correction_action="Préférer le titre de séjour définitif. Vérifier la durée du récépissé (3-6 mois)."
+            )
+
+        if date_expiration < ref:
+            delta = (ref - date_expiration).days
+            result.add_error(
+                code="TITRE_SEJOUR_EXPIRED",
+                message=f"Titre de séjour expiré depuis {delta} jour(s)",
+                level=ValidationLevel.BLOCKING, field="date_expiration",
+                correction_action="Fournir un titre de séjour valide ou un récépissé de renouvellement"
+            )
+        elif (date_expiration - ref).days < 30:
+            result.add_error(
+                code="TITRE_SEJOUR_EXPIRING",
+                message=f"Titre de séjour expire dans {(date_expiration - ref).days} jour(s)",
+                level=ValidationLevel.WARNING, field="date_expiration",
+                correction_action="Anticiper le renouvellement — risque d'expiration avant saisie SIV"
+            )
+
+        return result
+
+
+class KbisValidator(BaseValidator):
+    """
+    Vérifie la fraîcheur du Kbis / avis SIRENE (V-15).
+
+    Règle : Kbis < 3 mois (92 jours) à la date de la demande.
+    """
+
+    def validate(self, date_kbis: date, reference_date: date | None = None) -> ValidationResult:
+        result = ValidationResult(valid=True)
+        ref = reference_date or date.today()
+        age_days = (ref - date_kbis).days
+
+        if age_days > 92:
+            result.add_error(
+                code="KBIS_TOO_OLD",
+                message=f"Kbis trop ancien ({age_days} jours — max 92 jours / 3 mois)",
+                level=ValidationLevel.BLOCKING, field="date_kbis",
+                correction_action="Fournir un Kbis de moins de 3 mois (téléchargeable sur infogreffe.fr)"
+            )
+        elif age_days > 75:
+            result.add_error(
+                code="KBIS_EXPIRING_SOON",
+                message=f"Kbis proche de l'expiration ({age_days} jours — expire dans {92 - age_days} jours)",
+                level=ValidationLevel.WARNING, field="date_kbis",
+            )
+
+        return result
+
+
 class CodeCessionValidator(BaseValidator):
     """
     Vérifie la validité du code de cession ANTS (règle V-18).
