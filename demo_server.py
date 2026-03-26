@@ -136,6 +136,10 @@ def extract_data(doc_type: str, text: str) -> dict:
         if m: data["nom"] = m.group(1).strip()
         m = re.search(r"[Pp]r[eé]noms?\s*[:\s]*([A-Za-zÀ-ÿ\- ]{2,60})", text)
         if m: data["prenoms"] = m.group(1).strip()
+        m = re.search(r"[Ll]ieu\s*(?:de\s*naissance)?\s*[:\s]*([A-Za-zÀ-ÿ\- ]{2,40})", text)
+        if m: data["lieu_naissance"] = m.group(1).strip()
+        m = re.search(r"[Nn]ationalit[eé]\s*[:\s]*([A-Za-zÀ-ÿ\- ]{2,30})", text)
+        if m: data["nationalite"] = m.group(1).strip()
         m = re.search(r"(?:n[eé]e?\s*le|[Dd]ate\s*de\s*naissance)\s*[:\s]*(\d{2}[./]\d{2}[./]\d{4})", text)
         if m: data["date_naissance"] = m.group(1)
         m = re.search(r"(?:expir|valid)\S*\s*[:\s]*(\d{2}[./]\d{2}[./]\d{4})", text, re.IGNORECASE)
@@ -611,7 +615,13 @@ def generate_cerfa(dossier_id: str):
         if doc["type"] in ("CNI", "PASSEPORT"):
             d["nom"] = ext.get("nom") or d["nom"]
             d["prenoms"] = ext.get("prenoms") or d.get("prenoms", d["prenom"])
-            d["date_naissance"] = ext.get("date_naissance") or ""
+            d["date_naissance"] = ext.get("date_naissance") or d.get("date_naissance", "")
+            d["lieu_naissance"] = ext.get("lieu_naissance") or d.get("lieu_naissance", "")
+            d["nationalite"] = ext.get("nationalite") or d.get("nationalite", "")
+        elif doc["type"] == "PERMIS":
+            d["nom"] = ext.get("nom") or d["nom"]
+            d["prenoms"] = ext.get("prenom") or d.get("prenoms", d["prenom"])
+            d["date_naissance"] = ext.get("date_naissance") or d.get("date_naissance", "")
         elif doc["type"] == "COC":
             d["marque"] = ext.get("marque") or ""
             d["modele"] = ext.get("modele") or ""
@@ -631,194 +641,114 @@ def generate_cerfa(dossier_id: str):
         elif doc["type"] == "CG_BARREE":
             d["immat"] = ext.get("immatriculation") or d["immat"]
 
-    # ─── Generer un Cerfa propre from scratch ────────────────────────────
-    is_vn = dossier["type"] == "VN"
-    cerfa_num = "13749*06" if is_vn else "13750*07"
+    # ─── Overlay sur le vrai Cerfa officiel ─────────────────────────────
+    from pypdf import PdfReader, PdfWriter
+    import io
     is_pm = dossier.get("is_personne_morale", False)
     sexe = dossier.get("client_sexe") or ""
     has_co_tit = bool(dossier.get("co_titulaire_nom"))
 
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_auto_page_break(auto=False)
+    H = 841.89  # A4 height in points
+    ov = FPDF(unit="pt", format=(595.276, H))
+    ov.add_page()
+    ov.set_text_color(0, 0, 0)
+    ov.set_font("Helvetica", "", 9)
 
-    # ─── Helpers ──────────────────────────────────────────────────────
-    def title(y, text):
-        pdf.set_xy(10, y)
-        pdf.set_font("Helvetica", "B", 9)
-        pdf.set_fill_color(200, 210, 230)
-        pdf.cell(190, 6, f"  {text}", fill=True, border=1)
+    OFF = 6  # offset vertical pour centrer le texte dans les zones blanches
 
-    def label(x, y, text, w=45):
-        pdf.set_xy(x, y)
-        pdf.set_font("Helvetica", "", 7)
-        pdf.set_text_color(100, 100, 100)
-        pdf.cell(w, 4, text)
-        pdf.set_text_color(0, 0, 0)
+    def w(x, y, text, size=9, bold=True):
+        """Ecrit du texte. x,y = coordonnees PDF (origine bas-gauche)."""
+        if not text: return
+        ov.set_font("Helvetica", "B" if bold else "", size)
+        ov.set_xy(x, H - y - OFF)
+        ov.cell(200, 8, str(text))
 
-    def value(x, y, text, w=100, h=6, border=1):
-        pdf.set_xy(x, y)
-        pdf.set_font("Helvetica", "B", 10)
-        pdf.cell(w, h, str(text or ""), border=border)
+    def wc(x, y, text, sp=9.5):
+        """Ecrit caractere par caractere (cases individuelles)."""
+        if not text: return
+        ov.set_font("Helvetica", "B", 9)
+        for i, c in enumerate(str(text)):
+            ov.set_xy(x + i * sp, H - y - OFF)
+            ov.cell(sp, 8, c, align="C")
 
-    def checkbox(x, y, checked=False):
-        pdf.rect(x, y, 4, 4)
-        if checked:
-            pdf.set_font("Helvetica", "B", 8)
-            pdf.set_xy(x + 0.3, y - 0.5)
-            pdf.cell(4, 4, "X")
-
-    def boxed_chars(x, y, text, count=10, box_w=5.5):
-        for i in range(count):
-            pdf.rect(x + i * box_w, y, box_w, 6)
-            if i < len(str(text or "")):
-                pdf.set_font("Courier", "B", 10)
-                pdf.set_xy(x + i * box_w + 0.8, y)
-                pdf.cell(box_w - 1, 6, str(text)[i])
-
-    # ─── EN-TETE ──────────────────────────────────────────────────────
-    pdf.set_fill_color(0, 0, 100)
-    pdf.rect(0, 0, 210, 18, "F")
-    pdf.set_text_color(255, 255, 255)
-    pdf.set_font("Helvetica", "B", 11)
-    pdf.set_xy(10, 3)
-    pdf.cell(140, 6, "DEMANDE DE CERTIFICAT D'IMMATRICULATION")
-    pdf.set_font("Helvetica", "", 8)
-    pdf.set_xy(10, 9)
-    sub = "VEHICULE NEUF" if is_vn else "VEHICULE D'OCCASION"
-    pdf.cell(140, 5, f"{sub} - Articles R. 322-1 et suivants du code de la route")
-    pdf.set_xy(155, 3)
-    pdf.set_font("Helvetica", "B", 9)
-    pdf.cell(45, 6, f"CERFA {cerfa_num}", align="R")
-    pdf.set_text_color(0, 0, 0)
+    def wx(x, y):
+        """Place un X (checkbox)."""
+        ov.set_font("Helvetica", "B", 11)
+        ov.set_xy(x + 1, H - y - 3)
+        ov.cell(6, 6, "X")
 
     # ─── VEHICULE ─────────────────────────────────────────────────────
-    y = 22
-    title(y, "VEHICULE")
-    y += 8
-
-    label(10, y, "Marque (D.1)"); value(55, y, d.get("marque", ""), w=60)
-    label(120, y, "CNIT (D.2.1)"); value(150, y, d.get("cnit", ""), w=50)
-    y += 8
-    label(10, y, "VIN (E)"); value(55, y, d.get("vin", ""), w=145)
-    y += 8
-    label(10, y, "Denomination (D.3)"); value(55, y, (d.get("modele") or "")[:40], w=145)
-    y += 8
-    label(10, y, "Energie (P.3)"); value(55, y, d.get("energie", ""), w=40)
-    label(100, y, "Puissance (P.6)"); value(140, y, f"{d.get('puissance_cv', '')} CV" if d.get("puissance_cv") else "", w=25)
-    label(168, y, "Places (S.1)"); value(192, y, d.get("places", ""), w=8)
-    y += 8
-    if d.get("co2"):
-        label(10, y, "CO2 WLTP (V.7)"); value(55, y, f"{d['co2']} g/km", w=40)
-    if d.get("ptac"):
-        label(100, y, "PTAC (F.2)"); value(140, y, f"{d['ptac']} kg", w=30)
-    y += 10
+    # Zones blanches = ~12pt sous chaque label
+    w(370, 645, d.get("marque", ""))                      # D.1 Marque (label y=650)
+    w(200, 604, d.get("cnit", ""))                        # D.2.1 CNIT (label y=609)
+    w(410, 604, d.get("vin", ""))                         # E VIN
+    w(210, 518, d.get("energie", ""))                     # P.3 Energie (label y=536, write in box below)
+    w(310, 518, d.get("puissance_cv", ""))                # P.6 Puissance
+    w(380, 494, str(d.get("co2", "")))                    # V.7 CO2 (label y=504)
+    w(420, 484, (d.get("modele") or "")[:35], size=8)     # D.3 Denomination
 
     # ─── DEMANDEUR ────────────────────────────────────────────────────
-    title(y, "DEMANDEUR")
-    y += 8
-
-    pdf.set_font("Helvetica", "", 8)
-    pdf.set_xy(10, y)
-    pdf.cell(30, 5, "Personne physique")
-    checkbox(42, y + 0.5, not is_pm)
-    pdf.set_xy(50, y)
-    pdf.cell(30, 5, "Personne morale")
-    checkbox(82, y + 0.5, is_pm)
-
-    if not is_pm:
-        pdf.set_xy(95, y)
-        pdf.cell(15, 5, "Sexe :")
-        pdf.cell(5, 5, "M")
-        checkbox(116, y + 0.5, sexe.upper() == "M")
-        pdf.cell(8, 5, "")
-        pdf.cell(5, 5, "F")
-        checkbox(132, y + 0.5, sexe.upper() == "F")
+    if is_pm:
+        wx(247, 357)                                      # Personne morale (label y=355)
+    else:
+        wx(247, 367)                                      # Personne physique (label y=365)
+        if sexe.upper() == "M": wx(332, 367)
+        elif sexe.upper() == "F": wx(360, 367)
 
     if has_co_tit:
-        pdf.set_xy(145, y)
-        pdf.set_font("Helvetica", "", 7)
-        pdf.cell(40, 5, "Nb titulaires (C.4.1) : 2")
-    y += 8
+        w(558, 366, "2", size=10)
 
-    # Titulaire
-    title(y, "TITULAIRE")
-    y += 8
-    nom_complet = f"{d.get('nom', '')} {d.get('prenoms', d.get('prenom', ''))}".strip()
-    label(10, y, "Nom et prenom"); value(55, y, nom_complet, w=145)
-    y += 8
+    # ─── TITULAIRE ────────────────────────────────────────────────────
+    # Nom dans la zone entre "NOM DE NAISSANCE et PRENOM" (y=332) et "SIRET" (y=310)
+    nom = f"{d.get('nom', '')} {d.get('prenoms', d.get('prenom', ''))}".strip().upper()
+    w(72, 325, nom, size=10)                              # Nom titulaire (entre label 332 et SIRET 310)
 
-    label(10, y, "Ne(e) le")
-    ddn = d.get("date_naissance", "")
-    if ddn:
-        digits = ddn.replace("/", "").replace(".", "")
-        boxed_chars(55, y, digits, count=8, box_w=6)
-    y += 10
+    # Ne(e) le (label y=298) — zone ecriture y=293
+    ddn = (d.get("date_naissance") or "").replace("/", "").replace(".", "")
+    wc(72, 293, ddn, sp=9.5)                              # Date chiffre par case
 
-    # Co-titulaire
+    lieu = d.get("lieu_naissance") or ""
+    w(170, 293, lieu.upper(), size=9)                      # Lieu naissance (apres "a" x=160)
+
+    dept = ""
+    if lieu.upper() == "PARIS":
+        dept = "75"
+    elif d.get("cp"):
+        dept = d["cp"][:2]
+    wc(355, 293, dept, sp=9.5)                             # Departement (x=336 label)
+
+    pays = d.get("nationalite") or "France"
+    if pays.lower() in ("francaise", "francais"):
+        pays = "FRANCE"
+    w(440, 293, pays.upper(), size=9)                      # Pays (x=420 label)
+
     if has_co_tit:
-        title(y, "CO-TITULAIRE")
-        y += 8
-        co = f"{dossier.get('co_titulaire_nom', '')} {dossier.get('co_titulaire_prenom', '')}".strip()
-        label(10, y, "Nom et prenom"); value(55, y, co, w=145)
-        y += 10
+        co = f"{dossier.get('co_titulaire_nom','')} {dossier.get('co_titulaire_prenom','')}".strip()
+        w(77, 265, co.upper(), size=10)                      # Co-titulaire (label y=271)
 
     # ─── DOMICILE ─────────────────────────────────────────────────────
-    title(y, "DOMICILE")
-    y += 8
-    label(10, y, "Adresse"); value(55, y, d.get("adresse", ""), w=145)
-    y += 8
-    label(10, y, "Code postal")
-    cp = d.get("cp", "")
-    if cp:
-        boxed_chars(55, y, cp, count=5, box_w=6)
-    label(95, y, "Commune"); value(120, y, d.get("ville", ""), w=80)
-    y += 12
+    # "N. de la voie" label y=162, "Domicile" label y=181
+    # Zone adresse = y~172 (entre Domicile 181 et N.voie 162)
+    w(35, 172, d.get("adresse", ""), size=9)
+    # Code postal label y=142, zone = y~148
+    wc(35, 148, d.get("cp", ""), sp=9.5)
+    w(120, 148, d.get("ville", ""), size=9)
 
-    # ─── TAXES ESTIMEES ───────────────────────────────────────────────
-    tax = dossier.get("tax_estimate")
-    if tax:
-        title(y, "ESTIMATION DES TAXES (indicatif - montant final = SIV)")
-        y += 8
-        pdf.set_font("Helvetica", "", 8)
-        for k, lbl in [("y1_taxe_regionale", "Y1 Taxe regionale"), ("y3_malus_co2", "Y3 Malus CO2"),
-                        ("y4_taxe_gestion", "Y4 Gestion"), ("y5_redevance", "Y5 Redevance"),
-                        ("y6_malus_poids", "Y6 Malus poids")]:
-            v = tax.get(k, 0)
-            if v:
-                pdf.set_xy(15, y); pdf.cell(60, 5, lbl)
-                pdf.set_font("Courier", "B", 9)
-                pdf.cell(30, 5, f"{v:.2f} EUR", align="R")
-                pdf.set_font("Helvetica", "", 8)
-                y += 5
-        pdf.set_xy(15, y)
-        pdf.set_font("Helvetica", "B", 9)
-        pdf.cell(60, 6, "TOTAL ESTIME")
-        pdf.set_font("Courier", "B", 10)
-        pdf.cell(30, 6, f"{tax.get('total', 0):.2f} EUR", align="R")
-        y += 10
-
-    # ─── SIGNATURE ────────────────────────────────────────────────────
-    title(y, "SIGNATURE")
-    y += 8
-    pdf.set_font("Helvetica", "", 8)
-    pdf.set_xy(10, y)
-    pdf.cell(50, 5, "Fait a : ........................")
-    pdf.cell(50, 5, "Le : ........................")
-    y += 8
-    pdf.set_xy(10, y)
-    pdf.cell(50, 5, "Signature du titulaire :")
-    pdf.rect(10, y + 6, 60, 20)
-    y += 30
-
-    # ─── PIED DE PAGE ─────────────────────────────────────────────────
-    pdf.set_font("Helvetica", "I", 6)
-    pdf.set_text_color(120, 120, 120)
-    pdf.set_xy(10, 280)
-    pdf.cell(190, 4, f"Document pre-rempli par Carte Grise Pro - {dossier['reference']} - A imprimer et signer", align="C")
-    pdf.set_text_color(0, 0, 0)
-
-    pdf_bytes = bytes(pdf.output())
+    # Fusionner avec le Cerfa officiel
+    ov_bytes = bytes(ov.output())
+    tpl = Path("./data/cerfa_templates/cerfa_13749.pdf")
+    if tpl.exists():
+        orig = PdfReader(str(tpl))
+        ov_pdf = PdfReader(io.BytesIO(ov_bytes))
+        writer = PdfWriter()
+        pg = orig.pages[0]
+        pg.merge_page(ov_pdf.pages[0])
+        writer.add_page(pg)
+        out = io.BytesIO()
+        writer.write(out)
+        pdf_bytes = out.getvalue()
+    else:
+        pdf_bytes = ov_bytes
 
     return Response(
         content=pdf_bytes,
