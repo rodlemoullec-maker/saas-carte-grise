@@ -136,7 +136,10 @@ function NewDossier({ onCreated }: { onCreated: (id: string) => void }) {
   const [immat, setImmat] = useState('')
   const [nom, setNom] = useState('')
   const [prenom, setPrenom] = useState('')
+  const [sexe, setSexe] = useState('M')
   const [pm, setPm] = useState(false)
+  const [coNom, setCoNom] = useState('')
+  const [coPrenom, setCoPrenom] = useState('')
   const [loading, setLoading] = useState(false)
 
   const submit = async () => {
@@ -147,7 +150,10 @@ function NewDossier({ onCreated }: { onCreated: (id: string) => void }) {
       body: JSON.stringify({
         type, vin: vin || null, immatriculation: immat || null,
         client_nom: nom || null, client_prenom: prenom || null,
+        client_sexe: pm ? null : sexe,
         is_personne_morale: pm,
+        co_titulaire_nom: coNom || null,
+        co_titulaire_prenom: coPrenom || null,
       }),
     })
     const data = await res.json()
@@ -196,10 +202,34 @@ function NewDossier({ onCreated }: { onCreated: (id: string) => void }) {
           </div>
         </div>
 
+        {!pm && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Sexe</label>
+            <div className="flex gap-4">
+              {['M', 'F'].map(s => (
+                <button key={s} onClick={() => setSexe(s)}
+                  className={`px-6 py-2 rounded-lg border-2 font-medium ${sexe === s ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 text-gray-400'}`}>
+                  {s === 'M' ? 'Homme' : 'Femme'}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         <label className="flex items-center gap-2 text-sm text-gray-600">
           <input type="checkbox" checked={pm} onChange={e => setPm(e.target.checked)} className="rounded" />
           Personne morale (societe)
         </label>
+
+        <div className="border-t pt-4 mt-2">
+          <label className="block text-sm font-medium text-gray-700 mb-2">Co-titulaire (optionnel)</label>
+          <div className="grid grid-cols-2 gap-4">
+            <input value={coNom} onChange={e => setCoNom(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-4 py-2" placeholder="Nom" />
+            <input value={coPrenom} onChange={e => setCoPrenom(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-4 py-2" placeholder="Prenom" />
+          </div>
+        </div>
       </div>
 
       <button onClick={submit} disabled={loading}

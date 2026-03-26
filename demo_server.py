@@ -468,7 +468,10 @@ class DossierCreate(BaseModel):
     immatriculation: str | None = None
     client_nom: str | None = None
     client_prenom: str | None = None
+    client_sexe: str | None = None  # M ou F
     is_personne_morale: bool = False
+    co_titulaire_nom: str | None = None
+    co_titulaire_prenom: str | None = None
 
 
 # ─── Routes ───────────────────────────────────────────────────────────────────
@@ -490,7 +493,10 @@ def create_dossier(req: DossierCreate):
         "immatriculation": req.immatriculation,
         "client_nom": req.client_nom,
         "client_prenom": req.client_prenom,
+        "client_sexe": req.client_sexe,
         "is_personne_morale": req.is_personne_morale,
+        "co_titulaire_nom": req.co_titulaire_nom,
+        "co_titulaire_prenom": req.co_titulaire_prenom,
         "status": "PENDING",
         "diagnostic": None,
         "blocages": [],
@@ -639,9 +645,18 @@ def generate_cerfa(dossier_id: str):
     def put(pdf_x, pdf_y, text):
         """Place du texte aux coordonnees PDF (origine bas-gauche)."""
         if text:
-            fpdf_y = H - pdf_y - 8  # -8 pour aligner sur la baseline
+            fpdf_y = H - pdf_y - 8
             overlay.set_xy(pdf_x, fpdf_y)
             overlay.cell(200, 10, str(text))
+
+    def put_chars(pdf_x, pdf_y, text, spacing=11.3):
+        """Place chaque caractere dans sa propre case (petites cases individuelles)."""
+        if not text:
+            return
+        fpdf_y = H - pdf_y - 8
+        for i, ch in enumerate(str(text)):
+            overlay.set_xy(pdf_x + i * spacing, fpdf_y)
+            overlay.cell(spacing, 10, ch, align="C")
 
     # ─── VEHICULE (partie haute droite) ───────────────────────────────
     # Positions calibrees sur le Cerfa 13749*05 officiel
@@ -661,21 +676,61 @@ def generate_cerfa(dossier_id: str):
     put(415, 485, modele)                                        # D.3
     overlay.set_font("Helvetica", "B", 9)
 
-    # ─── DEMANDEUR / TITULAIRE (partie basse) ─────────────────────────
+    # ─── DEMANDEUR — cases a cocher ──────────────────────────────────
+    overlay.set_font("Helvetica", "B", 11)
+    is_pm = dossier.get("is_personne_morale", False)
+    sexe = dossier.get("client_sexe") or ""
+    has_co_tit = bool(dossier.get("co_titulaire_nom"))
+    nb_titulaires = 2 if has_co_tit else 1
+
+    # Personne physique / morale
+    if is_pm:
+        put(248, 356, "X")                                       # Case "Personne morale"
+    else:
+        put(248, 366, "X")                                       # Case "Personne physique"
+        if sexe.upper() == "M":
+            put(334, 366, "X")                                   # Case Sexe "M"
+        elif sexe.upper() == "F":
+            put(363, 366, "X")                                   # Case Sexe "F"
+
+    # Multi-propriete : nombre de titulaires (C.4.1) — seulement si co-titulaire
+    if has_co_tit and nb_titulaires > 1:
+        overlay.set_font("Helvetica", "B", 11)
+        put(565, 364, str(nb_titulaires))
+
+    # ─── TITULAIRE ────────────────────────────────────────────────────
     overlay.set_font("Helvetica", "B", 10)
 
-    # Nom + prenom — ligne titulaire (y=332.6 label, valeur en dessous ~320)
     nom_complet = f"{d.get('nom', '')} {d.get('prenoms', d.get('prenom', ''))}".strip()
     put(72, 320, nom_complet)
 
-    # Ne(e) le (y=298.4)
-    put(72, 296, d.get("date_naissance", ""))
+    # Ne(e) le — chaque chiffre dans sa case (y=298.4)
+    # Format JJ/MM/AAAA → 8 chiffres dans 8 cases
+    ddn = d.get("date_naissance", "")  # ex: "15/05/1990"
+    if ddn:
+        digits = ddn.replace("/", "").replace(".", "")  # "15051990"
+        overlay.set_font("Courier", "B", 9)
+        put_chars(74, 296, digits, spacing=9.5)
+        overlay.set_font("Helvetica", "B", 10)
 
-    # Domicile — adresse (y=162.5)
+    # ─── CO-TITULAIRE ────────────────────────────────────────────────
+    co_nom = dossier.get("co_titulaire_nom") or ""
+    co_prenom = dossier.get("co_titulaire_prenom") or ""
+    if co_nom:
+        co_complet = f"{co_nom} {co_prenom}".strip()
+        put(77, 268, co_complet)
+
+    # ─── DOMICILE ─────────────────────────────────────────────────────
+    overlay.set_font("Helvetica", "B", 10)
     put(32, 168, d.get("adresse", ""))
 
-    # Code postal (y=142.7) + commune
-    put(32, 148, d.get("cp", ""))
+    # Code postal — chaque chiffre dans sa case
+    cp = d.get("cp", "")
+    if cp:
+        overlay.set_font("Courier", "B", 9)
+        put_chars(34, 148, cp, spacing=9.5)
+        overlay.set_font("Helvetica", "B", 10)
+
     put(110, 148, d.get("ville", ""))
 
     # Generer l'overlay en memoire
