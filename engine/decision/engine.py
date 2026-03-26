@@ -1,91 +1,100 @@
 """
-Moteur de décision principal.
+Moteur de decision principal.
 
-Orchestre : règles bloquantes → scoring → statut final.
+Logique binaire — pas de score pondere.
+Un dossier est soit conforme (VERT), soit avec warnings (ORANGE), soit bloque (ROUGE).
+
+ROUGE  = au moins 1 verrouillage V-XX declenche
+ORANGE = zero verrouillage, au moins 1 warning
+VERT   = zero verrouillage, zero warning
 """
 from __future__ import annotations
 
 from engine.decision.rules import BLOCKING_RULES, get_triggered_blocking_rules
-from engine.decision.scoring import compute_score
-from engine.models.decision import Decision, DecisionStatus
-
-
-# Seuils de décision
-THRESHOLD_ACCEPT = 95.0
-THRESHOLD_CORRECTION = 60.0
+from engine.models.decision import (
+    CrossCheckResult,
+    CrossCheckStatus,
+    Decision,
+    DecisionStatus,
+    Diagnostic,
+)
 
 
 class DecisionEngine:
 
     def decide(
         self,
-        cross_check_results: list,
-        validation_errors: list,
+        cross_check_results: list[CrossCheckResult],
+        validation_errors: list | None = None,
         extra_blocking_rules: list[str] | None = None,
     ) -> Decision:
         """
-        Point d'entrée principal du moteur de décision.
+        Point d'entree du moteur de decision.
 
-        Étapes :
-        1. Vérification des règles bloquantes (court-circuit)
-        2. Calcul du score global
-        3. Détermination du statut final
+        1. Collecter tous les blocages (V-XX) depuis cross-checks + validations
+        2. Collecter tous les warnings
+        3. Detecter la fraude
+        4. Produire le diagnostic VERT / ORANGE / ROUGE
         """
-        all_blocking = list(extra_blocking_rules or [])
-        all_blocking += get_triggered_blocking_rules(cross_check_results)
+        validation_errors = validation_errors or []
 
-        # Règles bloquantes issues des validations individuelles
+        # ─── Collecter les blocages ───────────────────────────────────────
+        blocages = list(extra_blocking_rules or [])
+        blocages += get_triggered_blocking_rules(cross_check_results)
+
         for error in validation_errors:
             if hasattr(error, "code") and error.code in BLOCKING_RULES:
-                all_blocking.append(error.code)
+                blocages.append(error.code)
 
-        all_blocking = list(set(all_blocking))
+        blocages = list(set(blocages))
 
-        # Fraude détectée ?
+        # ─── Collecter les warnings ───────────────────────────────────────
+        warnings = []
+        for r in cross_check_results:
+            if r.status == CrossCheckStatus.WARNING and r.detail:
+                warnings.append(r.detail)
+
+        # ─── Fraude ───────────────────────────────────────────────────────
         fraud_indicators = [
-            r for r in all_blocking
-            if r in BLOCKING_RULES and BLOCKING_RULES[r].is_fraud_related
+            code for code in blocages
+            if code in BLOCKING_RULES and BLOCKING_RULES[code].is_fraud_related
         ]
 
         if fraud_indicators:
             return Decision(
+                diagnostic=Diagnostic.ROUGE,
                 status=DecisionStatus.FRAUDE,
-                score=0.0,
+                blocages=blocages,
+                warnings=warnings,
                 cross_check_results=cross_check_results,
-                blocking_rules_triggered=all_blocking,
                 fraud_indicators=fraud_indicators,
                 requires_human_review=True,
             )
 
-        # Règle bloquante non-fraude
-        if all_blocking:
+        # ─── Diagnostic binaire ───────────────────────────────────────────
+        if blocages:
             return Decision(
-                status=DecisionStatus.REJET,
-                score=0.0,
-                cross_check_results=cross_check_results,
-                blocking_rules_triggered=all_blocking,
-                requires_human_review=False,
-            )
-
-        # Calcul du score
-        score = compute_score(cross_check_results)
-
-        if score >= THRESHOLD_ACCEPT:
-            return Decision(
-                status=DecisionStatus.ACCEPTE,
-                score=score,
+                diagnostic=Diagnostic.ROUGE,
+                status=DecisionStatus.CORRECTION,
+                blocages=blocages,
+                warnings=warnings,
                 cross_check_results=cross_check_results,
             )
-        elif score >= THRESHOLD_CORRECTION:
+
+        if warnings:
             return Decision(
+                diagnostic=Diagnostic.ORANGE,
                 status=DecisionStatus.REVUE_AGENT,
-                score=score,
+                blocages=[],
+                warnings=warnings,
                 cross_check_results=cross_check_results,
                 requires_human_review=True,
             )
-        else:
-            return Decision(
-                status=DecisionStatus.REJET,
-                score=score,
-                cross_check_results=cross_check_results,
-            )
+
+        return Decision(
+            diagnostic=Diagnostic.VERT,
+            status=DecisionStatus.ACCEPTE,
+            blocages=[],
+            warnings=[],
+            cross_check_results=cross_check_results,
+        )

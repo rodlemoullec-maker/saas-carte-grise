@@ -17,7 +17,8 @@ from engine.models.documents import (
     PermisCategorie,
 )
 from engine.pipeline.phase0 import Phase0Pipeline, Phase0Verdict
-from engine.pipeline.phase1 import Diagnostic, ExtractedDocuments, Phase1Pipeline
+from engine.models.decision import Diagnostic
+from engine.pipeline.phase1 import ExtractedDocuments, Phase1Pipeline
 from engine.validators.completeness import FlowType
 
 
@@ -133,27 +134,26 @@ class TestPhase1Pipeline:
             attestation_identite_pro=True,
         )
 
-    def test_complete_vn_dossier_vert(self):
+    def test_complete_vn_dossier_vert_or_orange(self):
         docs = self._make_docs_vn()
         result = Phase1Pipeline().run(docs, reference_date=date(2026, 3, 26))
-        # Un dossier complet et cohérent devrait être VERT ou ORANGE (warnings OCR possibles)
+        # Dossier complet — VERT ou ORANGE (warnings VIN check digit possibles)
         assert result.diagnostic in (Diagnostic.VERT, Diagnostic.ORANGE)
-        assert result.score > 0
-        assert len(result.completeness_errors) == 0
+        assert len(result.blocages) == 0
 
     def test_missing_cni_gives_rouge(self):
         docs = self._make_docs_vn()
         docs.identite = None
         result = Phase1Pipeline().run(docs, reference_date=date(2026, 3, 26))
         assert result.diagnostic == Diagnostic.ROUGE
-        assert any(e["code"] == "V-01" for e in result.completeness_errors)
+        assert any(e["code"] == "V-01" for e in result.blocages)
 
     def test_missing_assurance_gives_rouge(self):
         docs = self._make_docs_vn()
         docs.assurance = None
         result = Phase1Pipeline().run(docs, reference_date=date(2026, 3, 26))
         assert result.diagnostic == Diagnostic.ROUGE
-        assert any(e["code"] == "V-09" for e in result.completeness_errors)
+        assert any(e["code"] == "V-09" for e in result.blocages)
 
     def test_tax_estimate_present(self):
         docs = self._make_docs_vn()

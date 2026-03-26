@@ -40,9 +40,7 @@ async def get_decision(
         "reference": dossier.reference,
         "status": dossier.status,
         "diagnostic": dossier.diagnostic,
-        "score": dossier.score,
-        "blocking_rules": dossier.blocking_rules,
-        "validation_errors": dossier.validation_errors,
+        "blocages": dossier.blocages,
         "validation_warnings": dossier.validation_warnings,
         "cross_check_results": dossier.cross_check_results,
         "tax_estimate": dossier.tax_estimate,
@@ -114,9 +112,7 @@ async def retry_pipeline(
 
     dossier.status = "PROCESSING"
     dossier.diagnostic = None
-    dossier.score = None
-    dossier.blocking_rules = None
-    dossier.validation_errors = None
+    dossier.blocages = None
     dossier.validation_warnings = None
     dossier.cross_check_results = None
     await db.flush()

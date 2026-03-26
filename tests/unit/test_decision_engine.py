@@ -1,7 +1,7 @@
-"""Tests unitaires — DecisionEngine."""
+"""Tests unitaires — DecisionEngine (logique binaire, pas de score)."""
 from __future__ import annotations
 from engine.decision.engine import DecisionEngine
-from engine.models.decision import CrossCheckResult, CrossCheckStatus, DecisionStatus
+from engine.models.decision import CrossCheckResult, CrossCheckStatus, DecisionStatus, Diagnostic
 
 
 class TestDecisionEngine:
@@ -18,30 +18,49 @@ class TestDecisionEngine:
             for rule, status in statuses.items()
         ]
 
-    def test_blocking_rule_forces_fraude(self):
+    def test_fraud_rule_gives_fraude(self):
         results = self._make_results({"vin_coc_facture": CrossCheckStatus.FAIL})
         decision = self.engine.decide(results, [], extra_blocking_rules=["vin_coc_facture_mismatch"])
         assert decision.status == DecisionStatus.FRAUDE
+        assert decision.diagnostic == Diagnostic.ROUGE
 
-    def test_non_fraud_blocking_rule_forces_rejet(self):
+    def test_non_fraud_blocking_gives_correction(self):
         results = self._make_results({"vin_coc_facture": CrossCheckStatus.PASS})
         decision = self.engine.decide(results, [], extra_blocking_rules=["ct_too_old"])
-        assert decision.status == DecisionStatus.REJET
+        assert decision.status == DecisionStatus.CORRECTION
+        assert decision.diagnostic == Diagnostic.ROUGE
+        assert "ct_too_old" in decision.blocages
 
-    def test_all_pass_gives_accepte(self):
+    def test_all_pass_gives_vert(self):
         results = self._make_results({
             "vin_coc_facture": CrossCheckStatus.PASS,
             "vin_coc_assurance": CrossCheckStatus.PASS,
             "marque_coc_facture": CrossCheckStatus.PASS,
-            "energie_coc_facture": CrossCheckStatus.PASS,
             "name_cni_facture_nom": CrossCheckStatus.PASS,
             "name_cni_permis_nom": CrossCheckStatus.PASS,
             "ddn_cni_permis": CrossCheckStatus.PASS,
-            "name_cni_assurance_nom": CrossCheckStatus.PASS,
-            "name_cni_domicile_nom": CrossCheckStatus.PASS,
-            "facture_date_vs_today": CrossCheckStatus.PASS,
-            "assurance_active_today": CrossCheckStatus.PASS,
         })
         decision = self.engine.decide(results, [])
         assert decision.status == DecisionStatus.ACCEPTE
-        assert decision.score >= 95.0
+        assert decision.diagnostic == Diagnostic.VERT
+        assert len(decision.blocages) == 0
+        assert len(decision.warnings) == 0
+
+    def test_warning_gives_orange(self):
+        results = [
+            CrossCheckResult(
+                rule_name="ct_validity_at_saisie_siv",
+                status=CrossCheckStatus.WARNING,
+                source_a="CT", source_b="SYSTEM", field="date_ct",
+                detail="CT expire dans 15 jours",
+            ),
+        ]
+        decision = self.engine.decide(results, [])
+        assert decision.diagnostic == Diagnostic.ORANGE
+        assert decision.status == DecisionStatus.REVUE_AGENT
+        assert len(decision.warnings) > 0
+
+    def test_no_results_gives_vert(self):
+        decision = self.engine.decide([], [])
+        assert decision.diagnostic == Diagnostic.VERT
+        assert decision.status == DecisionStatus.ACCEPTE

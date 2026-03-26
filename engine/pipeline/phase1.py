@@ -1,25 +1,30 @@
 """
-Pipeline Phase 1 — Pré-qualification complète du dossier.
+Pipeline Phase 1 — Pre-qualification complete du dossier.
 
-Enchaîne toutes les étapes de vérification automatique :
-  1. Complétude documentaire (V-01 → V-10, V-36)
-  2. Qualité / lisibilité (V-20, V-21, V-22)
-  3. Extraction OCR par document
-  4. Validation individuelle par type (dates, VIN, SIRET, etc.)
-  5. Cross-checks inter-documents (C-01 → C-21)
-  6. Méta-validateurs de cohérence (V-24 → V-28)
-  7. Scoring global
-  8. Décision + diagnostic VERT / ORANGE / ROUGE
-  9. Estimation indicative des taxes
+Logique binaire — pas de score pondere.
+Un dossier est conforme ou il ne l'est pas.
 
-Entrée  : Dossier avec documents uploadés
-Sortie  : Phase1Result (diagnostic, score, issues, estimation taxes)
+Etapes :
+  1. Completude documentaire (V-01 → V-10, V-36)
+  2. Qualite / lisibilite (V-20, V-21, V-22)
+  3. Validation individuelle par type (dates, VIN, SIRET, etc.)
+  4. Cross-checks inter-documents (C-01 → C-21)
+  5. Meta-validateurs de coherence (V-24 → V-28)
+  6. Decision : VERT / ORANGE / ROUGE
+  7. Estimation indicative des taxes
+
+Diagnostic :
+  ROUGE  = au moins 1 verrouillage V-XX declenche
+  ORANGE = zero verrouillage, au moins 1 warning
+  VERT   = zero verrouillage, zero warning
+
+Entree  : Dossier avec documents uploades
+Sortie  : Phase1Result (diagnostic, blocages, warnings, estimation taxes)
 """
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import date
-from enum import Enum
 from typing import Any
 
 from engine.cross_checks.address_checks import (
@@ -41,8 +46,7 @@ from engine.cross_checks.vo_checks import (
     SignaturesCotitulaireCheck,
 )
 from engine.decision.engine import DecisionEngine
-from engine.decision.scoring import compute_score
-from engine.models.decision import CrossCheckResult, CrossCheckStatus, Decision, DecisionStatus
+from engine.models.decision import CrossCheckResult, CrossCheckStatus, Decision, DecisionStatus, Diagnostic
 from engine.models.documents import (
     DocumentType,
     ExtractedAssurance,
@@ -85,22 +89,22 @@ from engine.validators.documents import (
 from engine.validators.quality import DocumentQualityMetadata, DocumentQualityValidator
 
 
-class Diagnostic(str, Enum):
-    VERT = "VERT"       # Tous les checks passent — prêt pour GO/NO-GO
-    ORANGE = "ORANGE"   # Warnings — le pro peut continuer mais doit vérifier
-    ROUGE = "ROUGE"     # Blocages — corrections requises avant de continuer
-
-
 @dataclass
 class Phase1Result:
+    """
+    Resultat du pipeline Phase 1.
+
+    Le pro voit :
+    - diagnostic : VERT / ORANGE / ROUGE
+    - blocages : liste des V-XX declenches (actions correctives)
+    - warnings : liste des avertissements non bloquants
+    - tax_estimate : estimation indicative des taxes
+    """
     diagnostic: Diagnostic
-    score: float
     decision: Decision
+    blocages: list[dict[str, Any]] = field(default_factory=list)
+    warnings: list[dict[str, Any]] = field(default_factory=list)
     cross_check_results: list[CrossCheckResult] = field(default_factory=list)
-    validation_errors: list[dict[str, Any]] = field(default_factory=list)
-    validation_warnings: list[dict[str, Any]] = field(default_factory=list)
-    completeness_errors: list[dict[str, Any]] = field(default_factory=list)
-    quality_errors: list[dict[str, Any]] = field(default_factory=list)
     tax_estimate: dict[str, Any] | None = None
 
 
@@ -222,43 +226,37 @@ class Phase1Pipeline:
                     "level": "WARNING", "field": w.field,
                 })
 
-        # ──── ETAPE 6 : Scoring global ───────────────────────────────────
-        score = compute_score(all_cross_checks)
+        # ──── ETAPE 6 : Decision ─────────────────────────────────────────
 
-        # ──── ETAPE 7 : Décision ─────────────────────────────────────────
-        decision = DecisionEngine().decide(all_cross_checks, [])
+        # Fusionner tous les blocages en une seule liste
+        all_blocages = completeness_errors + quality_errors + [
+            e for e in all_errors if e.get("level") == "BLOCKING"
+        ]
 
-        # ──── ETAPE 8 : Estimation taxes ─────────────────────────────────
+        # Passer les blocages supplementaires au moteur de decision
+        extra_blocking = [e["code"] for e in all_blocages if e.get("code")]
+        decision = DecisionEngine().decide(all_cross_checks, [], extra_blocking)
+
+        # Le diagnostic vient directement du moteur de decision
+        # Mais on l'enrichit avec les blocages issus des validations individuelles
+        if all_blocages and decision.diagnostic != Diagnostic.ROUGE:
+            # Des blocages validation pas detectes par les cross-checks
+            decision.diagnostic = Diagnostic.ROUGE
+            decision.status = DecisionStatus.CORRECTION
+
+        if not all_blocages and all_warnings and decision.diagnostic == Diagnostic.VERT:
+            decision.diagnostic = Diagnostic.ORANGE
+            decision.status = DecisionStatus.REVUE_AGENT
+
+        # ──── ETAPE 7 : Estimation taxes ─────────────────────────────────
         tax_estimate = self._estimate_taxes(docs)
 
-        # ──── ETAPE 9 : Diagnostic ───────────────────────────────────────
-        has_blocking = (
-            completeness_result.is_blocking
-            or any(e["level"] == "BLOCKING" for e in all_errors)
-            or any(e["level"] == "BLOCKING" for e in quality_errors)
-            or decision.status in (DecisionStatus.REJET, DecisionStatus.FRAUDE)
-        )
-        has_warnings = (
-            len(all_warnings) > 0
-            or decision.status == DecisionStatus.REVUE_AGENT
-        )
-
-        if has_blocking:
-            diagnostic = Diagnostic.ROUGE
-        elif has_warnings:
-            diagnostic = Diagnostic.ORANGE
-        else:
-            diagnostic = Diagnostic.VERT
-
         return Phase1Result(
-            diagnostic=diagnostic,
-            score=score,
+            diagnostic=decision.diagnostic,
             decision=decision,
+            blocages=all_blocages,
+            warnings=all_warnings,
             cross_check_results=all_cross_checks,
-            validation_errors=all_errors,
-            validation_warnings=all_warnings,
-            completeness_errors=completeness_errors,
-            quality_errors=quality_errors,
             tax_estimate=tax_estimate,
         )
 

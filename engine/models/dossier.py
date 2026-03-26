@@ -41,7 +41,7 @@ class Dossier(BaseModel):
     id: uuid.UUID = Field(default_factory=uuid.uuid4)
     type: DossierType
     status: DossierStatus = DossierStatus.PENDING
-    score: float | None = None
+    diagnostic: str | None = None  # VERT / ORANGE / ROUGE
 
     professionnel_id: uuid.UUID
     agent_id: uuid.UUID | None = None

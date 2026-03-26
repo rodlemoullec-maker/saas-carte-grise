@@ -38,10 +38,9 @@ class DossierDB(Base, TimestampMixin):
         UUID(as_uuid=True), ForeignKey("professionnels.id"), index=True,
     )
 
-    # Phase 1 — Diagnostic
-    diagnostic: Mapped[str | None] = mapped_column(String(10), nullable=True)  # VERT/ORANGE/ROUGE
-    score: Mapped[float | None] = mapped_column(Float, nullable=True)
-    blocking_rules: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    # Phase 1 — Diagnostic (VERT / ORANGE / ROUGE — pas de score)
+    diagnostic: Mapped[str | None] = mapped_column(String(10), nullable=True)
+    blocages: Mapped[dict | None] = mapped_column(JSONB, nullable=True)   # Liste V-XX declenches
     cross_check_results: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     validation_errors: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     validation_warnings: Mapped[dict | None] = mapped_column(JSONB, nullable=True)

@@ -1,4 +1,4 @@
-"""Schémas Pydantic pour les endpoints dossiers."""
+"""Schemas Pydantic pour les endpoints dossiers."""
 from __future__ import annotations
 
 from datetime import datetime
@@ -19,6 +19,7 @@ class DossierCreateRequest(BaseModel):
     client_prenom: str | None = None
     client_email: str | None = None
     client_telephone: str | None = None
+    is_personne_morale: bool = False
 
 
 class DossierResponse(BaseModel):
@@ -26,8 +27,7 @@ class DossierResponse(BaseModel):
     reference: str
     type: str
     status: str
-    diagnostic: str | None = None
-    score: float | None = None
+    diagnostic: str | None = None     # VERT / ORANGE / ROUGE
     vin: str | None = None
     immatriculation: str | None = None
     client_nom: str | None = None
@@ -37,8 +37,7 @@ class DossierResponse(BaseModel):
 
 
 class DossierDetailResponse(DossierResponse):
-    blocking_rules: list[str] | None = None
-    validation_errors: list[dict] | None = None
-    validation_warnings: list[dict] | None = None
+    blocages: list[dict] | None = None     # V-XX declenches
+    warnings: list[dict] | None = None
     cross_check_results: list[dict] | None = None
     documents: list[dict] | None = None

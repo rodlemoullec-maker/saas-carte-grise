@@ -177,7 +177,6 @@ async def batch_status(
             "type": d.type,
             "status": d.status,
             "diagnostic": d.diagnostic,
-            "score": d.score,
             "client_nom": d.client_nom,
             "vin": d.vin,
             "created_at": d.created_at.isoformat() if d.created_at else None,

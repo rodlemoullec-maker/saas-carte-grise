@@ -201,7 +201,6 @@ def _to_response(d: DossierDB) -> DossierResponse:
         type=d.type,
         status=d.status,
         diagnostic=d.diagnostic,
-        score=d.score,
         vin=d.vin,
         immatriculation=d.immatriculation,
         client_nom=d.client_nom,
