@@ -1,5 +1,5 @@
 """
-Serveur demo v2 — moteur adapte au projet reel.
+Serveur demo v2 - moteur adapte au projet reel.
 
 Logique :
 - Le pro uploade les docs qu'il a (pas de liste rigide obligatoire)
@@ -7,7 +7,7 @@ Logique :
 - Diagnostic : VERT si tout est coherent, ORANGE si warnings, ROUGE si incoherence detectee
 - Pas d'exigence assurance vehicule
 - Pas d'exigence Cerfa (le pro le fournit mais ce n'est pas un pre-requis diagnostic)
-- Le Cerfa n'est pas genere — il est fourni par le pro
+- Le Cerfa n'est pas genere - il est fourni par le pro
 
 Usage : python demo_server.py → http://localhost:8000
 """
@@ -30,7 +30,7 @@ from pydantic import BaseModel
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="Carte Grise Pro — Demo v2", version="0.3.0")
+app = FastAPI(title="Carte Grise Pro - Demo v2", version="0.3.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -116,7 +116,7 @@ def extract_data(doc_type: str, text: str) -> dict:
     """Extrait les champs cles selon le type."""
     data: dict[str, Any] = {}
 
-    # VIN (universel — cherche sur tous les docs)
+    # VIN (universel - cherche sur tous les docs)
     m = re.search(r"(?:VIN|chassis|[Ee])\s*[:\s]*([A-HJ-NPR-Z0-9]{17})", text)
     if m:
         data["vin"] = m.group(1)
@@ -201,7 +201,7 @@ def extract_data(doc_type: str, text: str) -> dict:
     return data
 
 
-# ─── Diagnostic v2 — base sur ce qui est fourni ──────────────────────────────
+# ─── Diagnostic v2 - base sur ce qui est fourni ──────────────────────────────
 
 def run_diagnostic(dossier: dict) -> dict:
     """
@@ -253,9 +253,9 @@ def run_diagnostic(dossier: dict) -> dict:
 
     for code, label in required.items():
         if code in types_present:
-            infos.append({"code": f"{code}_OK", "message": f"{label} — present"})
+            infos.append({"code": f"{code}_OK", "message": f"{label} - present"})
         else:
-            blocages.append({"code": f"{code}_MANQUANT", "message": f"{label} — manquant", "correction": f"Uploader le document : {label}"})
+            blocages.append({"code": f"{code}_MANQUANT", "message": f"{label} - manquant", "correction": f"Uploader le document : {label}"})
 
     # ─── 2. Coherence VIN ─────────────────────────────────────────────────
     vins_found: dict[str, str] = {}
@@ -332,7 +332,7 @@ def run_diagnostic(dossier: dict) -> dict:
         for d in by_type.get("CG_BARREE", []):
             ext = d.get("extracted_data", {})
             if ext.get("barre_diagonale"):
-                infos.append({"code": "CG_BARREE_OK", "message": "CG barree en diagonale — OK"})
+                infos.append({"code": "CG_BARREE_OK", "message": "CG barree en diagonale - OK"})
             else:
                 blocages.append({"code": "CG_NON_BARREE", "message": "CG non barree en diagonale", "correction": "Barrer la CG + noter 'vendu le' + date + heure + signer"})
             if ext.get("date_vente"):
@@ -422,7 +422,7 @@ def _estimate_taxes(puissance_cv=None, co2_wltp=None, ptac_kg=None,
         y1 = tarif * puissance_cv
         notes.append(f"Dept {dept} : {tarif} EUR/CV x {puissance_cv} CV")
     elif is_elec:
-        notes.append("Vehicule electrique — exoneration taxe regionale")
+        notes.append("Vehicule electrique - exoneration taxe regionale")
 
     # Y3
     y3 = 0.0
@@ -432,7 +432,7 @@ def _estimate_taxes(puissance_cv=None, co2_wltp=None, ptac_kg=None,
                 y3 = montant
                 break
         if co2_wltp < 118:
-            notes.append(f"CO2 {co2_wltp} g/km — pas de malus")
+            notes.append(f"CO2 {co2_wltp} g/km - pas de malus")
 
     # Y4
     y4 = 0.0 if is_elec else 11.0
@@ -444,10 +444,10 @@ def _estimate_taxes(puissance_cv=None, co2_wltp=None, ptac_kg=None,
     y6 = 0.0
     if ptac_kg and ptac_kg > 1800 and not is_elec:
         y6 = (ptac_kg - 1800) * 10
-        notes.append(f"PTAC {ptac_kg} kg — malus poids {y6} EUR")
+        notes.append(f"PTAC {ptac_kg} kg - malus poids {y6} EUR")
 
     total = y1 + y3 + y4 + y5 + y6
-    notes.append("Estimation INDICATIVE — montant final = SIV")
+    notes.append("Estimation INDICATIVE - montant final = SIV")
 
     return {
         "y1_taxe_regionale": round(y1, 2),
@@ -631,132 +631,194 @@ def generate_cerfa(dossier_id: str):
         elif doc["type"] == "CG_BARREE":
             d["immat"] = ext.get("immatriculation") or d["immat"]
 
-    # ─── Overlay sur le vrai Cerfa officiel ─────────────────────────────
-    # Coordonnees en points PDF (origine = bas-gauche du PDF)
-    # fpdf utilise origine haut-gauche, donc on convertit : fpdf_y = 841.89 - pdf_y
-
-    overlay = FPDF(unit="pt", format=(595.276, 841.89))
-    overlay.add_page()
-    overlay.set_text_color(0, 0, 0)
-    overlay.set_font("Helvetica", "B", 9)
-
-    H = 841.89  # hauteur page
-
-    def put(pdf_x, pdf_y, text):
-        """Place du texte aux coordonnees PDF (origine bas-gauche)."""
-        if text:
-            fpdf_y = H - pdf_y - 8
-            overlay.set_xy(pdf_x, fpdf_y)
-            overlay.cell(200, 10, str(text))
-
-    def put_chars(pdf_x, pdf_y, text, spacing=11.3):
-        """Place chaque caractere dans sa propre case (petites cases individuelles)."""
-        if not text:
-            return
-        fpdf_y = H - pdf_y - 8
-        for i, ch in enumerate(str(text)):
-            overlay.set_xy(pdf_x + i * spacing, fpdf_y)
-            overlay.cell(spacing, 10, ch, align="C")
-
-    # ─── VEHICULE (partie haute droite) ───────────────────────────────
-    # Positions calibrees sur le Cerfa 13749*05 officiel
-    put(400, 647, d.get("marque", ""))                           # D.1 Marque
-    put(195, 607, d.get("cnit", ""))                             # D.2.1 CNIT
-    put(420, 607, d.get("vin", ""))                              # E - VIN
-    put(215, 525, d.get("energie", ""))                          # P.3 Energie (dans la case, sous le label)
-    put(320, 525, d.get("puissance_cv", ""))                     # P.6 Puissance (dans la case)
-    if d.get("places"):
-        put(435, 533, str(d["places"]))                          # S.1 Places
-    if d.get("co2"):
-        put(375, 502, str(d["co2"]))                             # V.7 CO2
-
-    # D.3 Denomination commerciale — coupe proprement a 40 chars
-    modele = (d.get("modele") or "")[:40]
-    overlay.set_font("Helvetica", "B", 8)
-    put(415, 485, modele)                                        # D.3
-    overlay.set_font("Helvetica", "B", 9)
-
-    # ─── DEMANDEUR — cases a cocher ──────────────────────────────────
-    overlay.set_font("Helvetica", "B", 11)
+    # ─── Generer un Cerfa propre from scratch ────────────────────────────
+    is_vn = dossier["type"] == "VN"
+    cerfa_num = "13749*06" if is_vn else "13750*07"
     is_pm = dossier.get("is_personne_morale", False)
     sexe = dossier.get("client_sexe") or ""
     has_co_tit = bool(dossier.get("co_titulaire_nom"))
-    nb_titulaires = 2 if has_co_tit else 1
 
-    # Personne physique / morale
-    if is_pm:
-        put(248, 356, "X")                                       # Case "Personne morale"
-    else:
-        put(248, 366, "X")                                       # Case "Personne physique"
-        if sexe.upper() == "M":
-            put(334, 366, "X")                                   # Case Sexe "M"
-        elif sexe.upper() == "F":
-            put(363, 366, "X")                                   # Case Sexe "F"
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_auto_page_break(auto=False)
 
-    # Multi-propriete : nombre de titulaires (C.4.1) — seulement si co-titulaire
-    if has_co_tit and nb_titulaires > 1:
-        overlay.set_font("Helvetica", "B", 11)
-        put(565, 364, str(nb_titulaires))
+    # ─── Helpers ──────────────────────────────────────────────────────
+    def title(y, text):
+        pdf.set_xy(10, y)
+        pdf.set_font("Helvetica", "B", 9)
+        pdf.set_fill_color(200, 210, 230)
+        pdf.cell(190, 6, f"  {text}", fill=True, border=1)
 
-    # ─── TITULAIRE ────────────────────────────────────────────────────
-    overlay.set_font("Helvetica", "B", 10)
+    def label(x, y, text, w=45):
+        pdf.set_xy(x, y)
+        pdf.set_font("Helvetica", "", 7)
+        pdf.set_text_color(100, 100, 100)
+        pdf.cell(w, 4, text)
+        pdf.set_text_color(0, 0, 0)
 
+    def value(x, y, text, w=100, h=6, border=1):
+        pdf.set_xy(x, y)
+        pdf.set_font("Helvetica", "B", 10)
+        pdf.cell(w, h, str(text or ""), border=border)
+
+    def checkbox(x, y, checked=False):
+        pdf.rect(x, y, 4, 4)
+        if checked:
+            pdf.set_font("Helvetica", "B", 8)
+            pdf.set_xy(x + 0.3, y - 0.5)
+            pdf.cell(4, 4, "X")
+
+    def boxed_chars(x, y, text, count=10, box_w=5.5):
+        for i in range(count):
+            pdf.rect(x + i * box_w, y, box_w, 6)
+            if i < len(str(text or "")):
+                pdf.set_font("Courier", "B", 10)
+                pdf.set_xy(x + i * box_w + 0.8, y)
+                pdf.cell(box_w - 1, 6, str(text)[i])
+
+    # ─── EN-TETE ──────────────────────────────────────────────────────
+    pdf.set_fill_color(0, 0, 100)
+    pdf.rect(0, 0, 210, 18, "F")
+    pdf.set_text_color(255, 255, 255)
+    pdf.set_font("Helvetica", "B", 11)
+    pdf.set_xy(10, 3)
+    pdf.cell(140, 6, "DEMANDE DE CERTIFICAT D'IMMATRICULATION")
+    pdf.set_font("Helvetica", "", 8)
+    pdf.set_xy(10, 9)
+    sub = "VEHICULE NEUF" if is_vn else "VEHICULE D'OCCASION"
+    pdf.cell(140, 5, f"{sub} - Articles R. 322-1 et suivants du code de la route")
+    pdf.set_xy(155, 3)
+    pdf.set_font("Helvetica", "B", 9)
+    pdf.cell(45, 6, f"CERFA {cerfa_num}", align="R")
+    pdf.set_text_color(0, 0, 0)
+
+    # ─── VEHICULE ─────────────────────────────────────────────────────
+    y = 22
+    title(y, "VEHICULE")
+    y += 8
+
+    label(10, y, "Marque (D.1)"); value(55, y, d.get("marque", ""), w=60)
+    label(120, y, "CNIT (D.2.1)"); value(150, y, d.get("cnit", ""), w=50)
+    y += 8
+    label(10, y, "VIN (E)"); value(55, y, d.get("vin", ""), w=145)
+    y += 8
+    label(10, y, "Denomination (D.3)"); value(55, y, (d.get("modele") or "")[:40], w=145)
+    y += 8
+    label(10, y, "Energie (P.3)"); value(55, y, d.get("energie", ""), w=40)
+    label(100, y, "Puissance (P.6)"); value(140, y, f"{d.get('puissance_cv', '')} CV" if d.get("puissance_cv") else "", w=25)
+    label(168, y, "Places (S.1)"); value(192, y, d.get("places", ""), w=8)
+    y += 8
+    if d.get("co2"):
+        label(10, y, "CO2 WLTP (V.7)"); value(55, y, f"{d['co2']} g/km", w=40)
+    if d.get("ptac"):
+        label(100, y, "PTAC (F.2)"); value(140, y, f"{d['ptac']} kg", w=30)
+    y += 10
+
+    # ─── DEMANDEUR ────────────────────────────────────────────────────
+    title(y, "DEMANDEUR")
+    y += 8
+
+    pdf.set_font("Helvetica", "", 8)
+    pdf.set_xy(10, y)
+    pdf.cell(30, 5, "Personne physique")
+    checkbox(42, y + 0.5, not is_pm)
+    pdf.set_xy(50, y)
+    pdf.cell(30, 5, "Personne morale")
+    checkbox(82, y + 0.5, is_pm)
+
+    if not is_pm:
+        pdf.set_xy(95, y)
+        pdf.cell(15, 5, "Sexe :")
+        pdf.cell(5, 5, "M")
+        checkbox(116, y + 0.5, sexe.upper() == "M")
+        pdf.cell(8, 5, "")
+        pdf.cell(5, 5, "F")
+        checkbox(132, y + 0.5, sexe.upper() == "F")
+
+    if has_co_tit:
+        pdf.set_xy(145, y)
+        pdf.set_font("Helvetica", "", 7)
+        pdf.cell(40, 5, "Nb titulaires (C.4.1) : 2")
+    y += 8
+
+    # Titulaire
+    title(y, "TITULAIRE")
+    y += 8
     nom_complet = f"{d.get('nom', '')} {d.get('prenoms', d.get('prenom', ''))}".strip()
-    put(72, 320, nom_complet)
+    label(10, y, "Nom et prenom"); value(55, y, nom_complet, w=145)
+    y += 8
 
-    # Ne(e) le — chaque chiffre dans sa case (y=298.4)
-    # Format JJ/MM/AAAA → 8 chiffres dans 8 cases
-    ddn = d.get("date_naissance", "")  # ex: "15/05/1990"
+    label(10, y, "Ne(e) le")
+    ddn = d.get("date_naissance", "")
     if ddn:
-        digits = ddn.replace("/", "").replace(".", "")  # "15051990"
-        overlay.set_font("Courier", "B", 9)
-        put_chars(74, 296, digits, spacing=9.5)
-        overlay.set_font("Helvetica", "B", 10)
+        digits = ddn.replace("/", "").replace(".", "")
+        boxed_chars(55, y, digits, count=8, box_w=6)
+    y += 10
 
-    # ─── CO-TITULAIRE ────────────────────────────────────────────────
-    co_nom = dossier.get("co_titulaire_nom") or ""
-    co_prenom = dossier.get("co_titulaire_prenom") or ""
-    if co_nom:
-        co_complet = f"{co_nom} {co_prenom}".strip()
-        put(77, 268, co_complet)
+    # Co-titulaire
+    if has_co_tit:
+        title(y, "CO-TITULAIRE")
+        y += 8
+        co = f"{dossier.get('co_titulaire_nom', '')} {dossier.get('co_titulaire_prenom', '')}".strip()
+        label(10, y, "Nom et prenom"); value(55, y, co, w=145)
+        y += 10
 
     # ─── DOMICILE ─────────────────────────────────────────────────────
-    overlay.set_font("Helvetica", "B", 10)
-    put(32, 168, d.get("adresse", ""))
-
-    # Code postal — chaque chiffre dans sa case
+    title(y, "DOMICILE")
+    y += 8
+    label(10, y, "Adresse"); value(55, y, d.get("adresse", ""), w=145)
+    y += 8
+    label(10, y, "Code postal")
     cp = d.get("cp", "")
     if cp:
-        overlay.set_font("Courier", "B", 9)
-        put_chars(34, 148, cp, spacing=9.5)
-        overlay.set_font("Helvetica", "B", 10)
+        boxed_chars(55, y, cp, count=5, box_w=6)
+    label(95, y, "Commune"); value(120, y, d.get("ville", ""), w=80)
+    y += 12
 
-    put(110, 148, d.get("ville", ""))
+    # ─── TAXES ESTIMEES ───────────────────────────────────────────────
+    tax = dossier.get("tax_estimate")
+    if tax:
+        title(y, "ESTIMATION DES TAXES (indicatif - montant final = SIV)")
+        y += 8
+        pdf.set_font("Helvetica", "", 8)
+        for k, lbl in [("y1_taxe_regionale", "Y1 Taxe regionale"), ("y3_malus_co2", "Y3 Malus CO2"),
+                        ("y4_taxe_gestion", "Y4 Gestion"), ("y5_redevance", "Y5 Redevance"),
+                        ("y6_malus_poids", "Y6 Malus poids")]:
+            v = tax.get(k, 0)
+            if v:
+                pdf.set_xy(15, y); pdf.cell(60, 5, lbl)
+                pdf.set_font("Courier", "B", 9)
+                pdf.cell(30, 5, f"{v:.2f} EUR", align="R")
+                pdf.set_font("Helvetica", "", 8)
+                y += 5
+        pdf.set_xy(15, y)
+        pdf.set_font("Helvetica", "B", 9)
+        pdf.cell(60, 6, "TOTAL ESTIME")
+        pdf.set_font("Courier", "B", 10)
+        pdf.cell(30, 6, f"{tax.get('total', 0):.2f} EUR", align="R")
+        y += 10
 
-    # Generer l'overlay en memoire
-    overlay_bytes = bytes(overlay.output())
+    # ─── SIGNATURE ────────────────────────────────────────────────────
+    title(y, "SIGNATURE")
+    y += 8
+    pdf.set_font("Helvetica", "", 8)
+    pdf.set_xy(10, y)
+    pdf.cell(50, 5, "Fait a : ........................")
+    pdf.cell(50, 5, "Le : ........................")
+    y += 8
+    pdf.set_xy(10, y)
+    pdf.cell(50, 5, "Signature du titulaire :")
+    pdf.rect(10, y + 6, 60, 20)
+    y += 30
 
-    # Fusionner overlay + Cerfa officiel
-    template_path = Path("./data/cerfa_templates/cerfa_13749.pdf")
-    if template_path.exists():
-        # Lire le Cerfa officiel
-        original = PdfReader(str(template_path))
-        overlay_pdf = PdfReader(io.BytesIO(overlay_bytes))
+    # ─── PIED DE PAGE ─────────────────────────────────────────────────
+    pdf.set_font("Helvetica", "I", 6)
+    pdf.set_text_color(120, 120, 120)
+    pdf.set_xy(10, 280)
+    pdf.cell(190, 4, f"Document pre-rempli par Carte Grise Pro - {dossier['reference']} - A imprimer et signer", align="C")
+    pdf.set_text_color(0, 0, 0)
 
-        writer = PdfWriter()
-        original_page = original.pages[0]
-        overlay_page = overlay_pdf.pages[0]
-
-        # Superposer
-        original_page.merge_page(overlay_page)
-        writer.add_page(original_page)
-
-        output = io.BytesIO()
-        writer.write(output)
-        pdf_bytes = output.getvalue()
-    else:
-        # Fallback : overlay seul si template absent
-        pdf_bytes = overlay_bytes
+    pdf_bytes = bytes(pdf.output())
 
     return Response(
         content=pdf_bytes,
