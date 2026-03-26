@@ -41,6 +41,13 @@ dependencies = [
     # Dashboard
     "streamlit>=1.35.0",
 
+    # Storage
+    "aiofiles>=23.2.0",
+    "boto3>=1.34.0",
+
+    # PDF (Cerfa generation)
+    "pdfrw>=0.4",
+
     # Utilitaires
     "python-dotenv>=1.0.0",
     "python-dateutil>=2.9.0",
