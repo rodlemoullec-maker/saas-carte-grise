@@ -258,8 +258,16 @@ class CerfaFiller:
         page.click("[role='button']")
         time.sleep(0.5)
         demarche = data.get("demarche", "Certificat")
+        page.click("[role='button']")
+        time.sleep(0.5)
         page.click(f"li:has-text('{demarche}')")
-        time.sleep(1)
+        time.sleep(0.5)
+        # Le listbox custom ne met pas a jour le champ hidden — forcer via JS
+        page.evaluate(f"""
+            var inp = document.querySelector('input[name="Groupe_de_boutons_radio"]');
+            if (inp) inp.value = '{demarche}';
+        """)
+        time.sleep(0.5)
 
         v = data.get("vehicule", {})
         self._fill(page, "#valeurNumeroImma", v.get("immatriculation"))
