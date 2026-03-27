@@ -1,0 +1,25 @@
+CERTIFICAT DE CONFORMITE
+CERTIFICATE OF CONFORMITY - COC
+
+Constructeur: BMW AG
+Soussigne: BMW AG
+Reception par type le: 20/06/2019
+sous le n. (K): e1*2018/858*00456
+
+D.1 Marque: BMW
+D.2 Type Variante Version: BW AG X83 PE21 AL
+D.2.1 CNIT: MBM66200Z123
+D.3 Denomination commerciale: X3 XDRIVE 20D
+E VIN: WVWZZZ3CZWE987654
+
+F.2 PTAC Masse en charge maximale: 2440 kg
+G Masse en service: 1850 kg
+J Genre national: VP
+P.1 Cylindree: 1995 cm3
+P.2 Puissance nette maximale: 140 kW
+P.3 Carburant: Diesel
+P.6 Puissance administrative: 8 CV
+S.1 Places assises: 5
+
+V.7 CO2 WLTP: 155 g/km
+V.9 Classe environnementale: EURO 6D

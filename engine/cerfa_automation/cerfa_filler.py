@@ -123,15 +123,14 @@ class CerfaFiller:
         self._fill(page, "#identification_vehicule_soussigne", v.get("soussigne"))
         self._fill(page, "#identification_vehicule_reception", v.get("date_reception"))
         self._fill(page, "#identification_vehicule_numero_K", v.get("numero_k"))
-        # Remplir les champs vehicule AVANT de cocher COC present
-        # Car cocher COC peut masquer certains champs
+        # COC = Non pour que les champs vehicule soient visibles et remplissables
+        # (COC = Oui masque les champs car le site attend un COC electronique)
+        page.click("#identification_vehicule_presence_coc_2")
+        time.sleep(0.5)
         self._fill(page, "#identification_vehicule_marque_D_1", v.get("marque"))
         self._fill(page, "#identification_vehicule_type_D_2", v.get("type_variante_version"))
         self._fill(page, "#identification_vehicule_code_national_D_2_1", v.get("cnit"))
         self._fill(page, "#identification_vehicule_id_vehicule_E", v.get("numero_identification"))
-        # Cocher COC present apres remplissage
-        page.click("#identification_vehicule_presence_coc_1")
-        time.sleep(0.5)
         # Couleur
         nuance = v.get("couleur_nuance", "")
         if nuance == "fonce":
