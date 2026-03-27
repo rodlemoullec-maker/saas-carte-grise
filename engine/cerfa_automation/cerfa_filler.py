@@ -131,9 +131,18 @@ class CerfaFiller:
                     download.save_as(output_path)
                     logger.info(f"PDF sauve : {output_path}")
 
-                pdf_bytes = Path(download.path()).read_bytes()
-                logger.info(f"PDF genere : {len(pdf_bytes)} bytes")
-                return pdf_bytes
+                raw_pdf = Path(download.path()).read_bytes()
+
+                # Post-traitement : cocher la case Certificat sur le PDF VO
+                if dossier_type == "VO":
+                    raw_pdf = self._check_certificat_box(raw_pdf)
+
+                if output_path:
+                    Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+                    Path(output_path).write_bytes(raw_pdf)
+
+                logger.info(f"PDF genere : {len(raw_pdf)} bytes")
+                return raw_pdf
 
             except Exception as e:
                 logger.error(f"Erreur CerfaFiller : {e}")
@@ -345,6 +354,37 @@ class CerfaFiller:
             page.check("#mutlipropriete_1")  # Oui
         else:
             page.check("#mutlipropriete_2")  # Non
+
+    def _check_certificat_box(self, pdf_bytes: bytes) -> bytes:
+        """Overlay un X dans la case Certificat du PDF 13750 telecharge."""
+        from fpdf import FPDF
+        from pypdf import PdfReader, PdfWriter
+        import io
+
+        H = 841.89
+        # Case Certificat : texte a x=163.2, y=760.1 — la checkbox est a ~x=150, y=760
+        ov = FPDF(unit="pt", format=(595.276, H))
+        ov.add_page()
+        ov.set_font("Helvetica", "B", 10)
+        ov.set_xy(151, H - 764)
+        ov.cell(10, 10, "X")
+
+        ov_bytes = bytes(ov.output())
+        original = PdfReader(io.BytesIO(pdf_bytes))
+        overlay = PdfReader(io.BytesIO(ov_bytes))
+        writer = PdfWriter()
+
+        page = original.pages[0]
+        page.merge_page(overlay.pages[0])
+        writer.add_page(page)
+
+        # Copier les autres pages si il y en a
+        for i in range(1, len(original.pages)):
+            writer.add_page(original.pages[i])
+
+        output = io.BytesIO()
+        writer.write(output)
+        return output.getvalue()
 
     def _fill(self, page, selector: str, value: str | None):
         if not value:
