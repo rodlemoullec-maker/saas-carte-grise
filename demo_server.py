@@ -134,6 +134,23 @@ def _ocr_tesseract(file_bytes: bytes, mime_type: str) -> str:
     return text.strip()
 
 
+def _ocr_google_docai(file_bytes: bytes, mime_type: str) -> str:
+    """Fallback OCR via Google Document AI (payant, pour docs que Tesseract ne gere pas)."""
+    from integrations.ocr_providers.google_docai import GoogleDocAIProvider
+
+    creds = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS", "")
+    if not creds:
+        for f_cred in Path(".").glob("**/gen-lang-client*.json"):
+            creds = str(f_cred)
+            break
+    if not creds:
+        return ""
+
+    ocr = GoogleDocAIProvider(credentials_path=creds)
+    result = ocr.process_sync(file_bytes, mime_type)
+    return result.full_text
+
+
 def classify_document(text: str) -> tuple[str, float, list[str]]:
     """Classifie un document. Retourne (type, confidence, keywords_matches)."""
     text_norm = text.lower()
@@ -695,16 +712,26 @@ async def upload_document(dossier_id: str, file: UploadFile, source: str = "vend
     with open(doc_path / f"{doc_id}_{file.filename}", "wb") as f:
         f.write(file_bytes)
 
-    # OCR : Tesseract pour PDF/images, decode UTF-8 pour texte
+    # OCR : Tesseract d'abord, Google Document AI en fallback si echec
     raw_text = ""
     mime = file.content_type or ""
     if mime in ("application/pdf", "image/jpeg", "image/png", "image/tiff", "image/webp"):
+        # 1. Tesseract (gratuit, local)
         try:
             raw_text = _ocr_tesseract(file_bytes, mime)
             logger.info(f"OCR Tesseract: {len(raw_text)} chars")
         except Exception as e:
-            logger.warning(f"OCR Tesseract echoue: {e} — fallback UTF-8")
-            raw_text = file_bytes.decode("utf-8", errors="ignore")
+            logger.warning(f"OCR Tesseract echoue: {e}")
+
+        # 2. Si Tesseract n'a rien donne (<50 chars) → Google Document AI
+        if len(raw_text.strip()) < 50:
+            try:
+                raw_text_google = _ocr_google_docai(file_bytes, mime)
+                if len(raw_text_google.strip()) > len(raw_text.strip()):
+                    raw_text = raw_text_google
+                    logger.info(f"OCR Google DocAI (fallback): {len(raw_text)} chars")
+            except Exception as e:
+                logger.warning(f"OCR Google DocAI echoue: {e}")
     else:
         try:
             raw_text = file_bytes.decode("utf-8", errors="ignore")
