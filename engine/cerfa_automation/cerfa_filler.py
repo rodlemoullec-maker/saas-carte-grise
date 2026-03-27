@@ -128,9 +128,13 @@ class CerfaFiller:
         self._fill(page, "#identification_vehicule_numero_K", v.get("numero_k"))
 
         # COC = Non → affiche TOUS les champs vehicule (30 champs)
-        # COC = Oui → n'affiche que D.1, D.2, D.2.1, E
-        page.click("#identification_vehicule_presence_coc_2")  # Non
-        time.sleep(1)  # Attendre que les champs apparaissent
+        # Forcer le clic sur le label du radio button (plus fiable)
+        label = page.query_selector("label[for='identification_vehicule_presence_coc_2']")
+        if label:
+            label.click()
+        else:
+            page.locator("#identification_vehicule_presence_coc_2").click(force=True)
+        time.sleep(2)  # Attendre le rendu des champs
 
         # Champs obligatoires
         self._fill(page, "#identification_vehicule_marque_D_1", v.get("marque"))
@@ -289,9 +293,9 @@ class CerfaFiller:
         if not value:
             return
         try:
-            page.fill(selector, str(value), timeout=3000)
+            page.fill(selector, str(value), timeout=5000)
         except Exception:
-            pass  # Champ non visible ou absent — on continue
+            pass  # Champ non visible ou absent
 
     @staticmethod
     def build_data_from_dossier(dossier: dict) -> dict:
