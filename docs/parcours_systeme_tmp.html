@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>parcours_systeme.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<h1 id="parcours-systeme-carte-grise--vendeur-pro--client">Parcours Systeme Carte Grise — Vendeur Pro &amp; Client</h1>
+<h2 id="vue-densemble">Vue d'ensemble</h2>
+<p>Le systeme automatise la demande de carte grise en collectant les documents du vendeur (pro) et du client (acheteur) via deux espaces separes, puis genere le Cerfa officiel pre-rempli.</p>
+<pre class="hljs"><code><div>VENDEUR (Pro)                    CLIENT (Acheteur)
+    |                                 |
+    v                                 v
+Espace Vendeur                  Espace Client
+(docs vehicule)                 (docs identite)
+    |                                 |
+    +────────────┬────────────────────+
+                 |
+                 v
+         MOTEUR CARTE GRISE
+    (OCR → Classification → Extraction
+     → Diagnostic → Generation Cerfa)
+                 |
+                 v
+          ESPACE ADMIN
+    (tous les docs + Cerfa + alertes)
+</div></code></pre>
+<hr>
+<h2 id="1-parcours-vendeur-pro">1. Parcours Vendeur (Pro)</h2>
+<p>Le vendeur est le commercant moto/auto qui vend le vehicule au client.</p>
+<h3 id="etape-1--creation-du-dossier">Etape 1 : Creation du dossier</h3>
+<p>Le vendeur cree un nouveau dossier dans son espace admin :</p>
+<ul>
+<li>Type : <strong>VN</strong> (vehicule neuf) ou <strong>VO</strong> (vehicule occasion)</li>
+<li>VIN ou immatriculation du vehicule</li>
+<li>Nom et prenom du client</li>
+<li>Sexe du client (M/F)</li>
+<li>Personne morale (oui/non)</li>
+<li>Co-titulaire (optionnel)</li>
+</ul>
+<h3 id="etape-2--depot-des-documents-vehicule">Etape 2 : Depot des documents vehicule</h3>
+<p>Le vendeur depose ses documents dans l'<strong>espace vendeur</strong> :</p>
+<p><strong>Pour un VN (vehicule neuf) :</strong></p>
+<table>
+<thead>
+<tr>
+<th>Document</th>
+<th>Obligatoire</th>
+<th>Info extraite</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>COC (Certificat de Conformite)</td>
+<td>Oui</td>
+<td>Marque, D.2 type, CNIT, VIN, energie, puissance, CO2, places, masses, classe env</td>
+</tr>
+<tr>
+<td>Facture de vente</td>
+<td>Oui</td>
+<td>VIN, prix TTC, SIRET vendeur, date vente, couleur</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Pour un VO (vehicule occasion) :</strong></p>
+<table>
+<thead>
+<tr>
+<th>Document</th>
+<th>Obligatoire</th>
+<th>Info extraite</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Carte grise (CG)</td>
+<td>Oui</td>
+<td>Immat, VIN, marque, D.2 type, CNIT, titulaire, adresse, toutes les cases techniques (25 champs)</td>
+</tr>
+<tr>
+<td>COC (si disponible)</td>
+<td>Recommande</td>
+<td>Complete les infos techniques manquantes de la CG</td>
+</tr>
+</tbody>
+</table>
+<h3 id="etape-3--suivi">Etape 3 : Suivi</h3>
+<p>Le vendeur voit dans son espace admin :</p>
+<ul>
+<li>Le diagnostic du dossier (VERT / ORANGE / ROUGE)</li>
+<li>Les documents manquants cote client</li>
+<li>Le Cerfa genere une fois le dossier complet</li>
+</ul>
+<hr>
+<h2 id="2-parcours-client-acheteur">2. Parcours Client (Acheteur)</h2>
+<p>Le client est la personne qui achete le vehicule.</p>
+<h3 id="etape-1--depot-des-documents-identite">Etape 1 : Depot des documents identite</h3>
+<p>Le client depose ses documents dans l'<strong>espace client</strong> :</p>
+<p><strong>Personne physique :</strong></p>
+<table>
+<thead>
+<tr>
+<th>Document</th>
+<th>Obligatoire</th>
+<th>Info extraite</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CNI ou Passeport (recto + verso)</td>
+<td>Oui</td>
+<td>Nom, prenom, date naissance, lieu naissance, adresse, date expiration, n. document</td>
+</tr>
+<tr>
+<td>Permis de conduire (recto + verso)</td>
+<td>Oui</td>
+<td>Nom, prenom, categories, date obtention</td>
+</tr>
+<tr>
+<td>Justificatif de domicile</td>
+<td>Oui</td>
+<td>Nom, adresse, code postal, ville</td>
+</tr>
+<tr>
+<td>Attestation de formation moto</td>
+<td>Si moto 125cc/L5e</td>
+<td>Collecte sans verification — message admin</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Personne morale :</strong></p>
+<table>
+<thead>
+<tr>
+<th>Document</th>
+<th>Obligatoire</th>
+<th>Info extraite</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Kbis</td>
+<td>Oui</td>
+<td>SIREN, raison sociale, representant legal</td>
+</tr>
+<tr>
+<td>CNI du representant legal</td>
+<td>Oui</td>
+<td>Identite du gerant</td>
+</tr>
+<tr>
+<td>Justificatif de domicile siege</td>
+<td>Oui</td>
+<td>Adresse siege social</td>
+</tr>
+<tr>
+<td>Permis</td>
+<td>Non requis</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h3 id="etape-2--fusion-rectoverso">Etape 2 : Fusion recto/verso</h3>
+<p>Si le client uploade le recto et le verso d'un meme document (ex: CNI recto.jpg + CNI verso.jpg), le systeme :</p>
+<ol>
+<li>Detecte que les deux fichiers sont du meme type (CNI)</li>
+<li>Fusionne le texte OCR des deux faces</li>
+<li>Re-extrait les donnees du texte fusionne</li>
+<li>Garde un seul document fusionne (pas de doublon)</li>
+</ol>
+<h3 id="etape-3--anti-doublon">Etape 3 : Anti-doublon</h3>
+<p>Si le client re-uploade un document deja present :</p>
+<ul>
+<li>L'ancien est remplace par le nouveau</li>
+<li>Les donnees sont re-extraites</li>
+<li>Pas de doublon dans le dossier</li>
+</ul>
+<hr>
+<h2 id="3-traitement-automatique">3. Traitement Automatique</h2>
+<h3 id="31-ocr-reconnaissance-de-texte">3.1 OCR (Reconnaissance de texte)</h3>
+<p>Le systeme utilise deux niveaux d'OCR :</p>
+<ol>
+<li><strong>Tesseract</strong> (gratuit, local) — traite les PDF avec texte et les scans propres</li>
+<li><strong>Google Document AI</strong> (payant, en fallback) — active automatiquement si Tesseract extrait moins de 50 caracteres (photos sombres, documents de mauvaise qualite)</li>
+</ol>
+<h3 id="32-classification">3.2 Classification</h3>
+<p>Le systeme identifie automatiquement le type de document parmi 9 types :</p>
+<ul>
+<li>CNI / Passeport</li>
+<li>Permis de conduire</li>
+<li>COC (Certificat de Conformite)</li>
+<li>Facture</li>
+<li>Justificatif de domicile</li>
+<li>Carte grise</li>
+<li>Kbis</li>
+<li>Attestation de formation moto</li>
+</ul>
+<h3 id="33-extraction">3.3 Extraction</h3>
+<p>Pour chaque type de document, le systeme extrait les champs specifiques via des regex adaptees au format OCR :</p>
+<ul>
+<li>CNI : nom, prenom, date naissance, lieu, adresse, expiration, MRZ</li>
+<li>COC : 15+ champs techniques vehicule</li>
+<li>CG : 25 champs (toutes les cases A a Y)</li>
+</ul>
+<h3 id="34-diagnostic">3.4 Diagnostic</h3>
+<p>Le systeme produit un diagnostic binaire :</p>
+<ul>
+<li><strong>VERT</strong> : tous les documents presents, pas d'incoherence → pret pour Cerfa</li>
+<li><strong>ORANGE</strong> : documents presents mais avertissements → le pro decide</li>
+<li><strong>ROUGE</strong> : document manquant ou incoherence → corrections requises</li>
+</ul>
+<p>Verifications effectuees :</p>
+<ul>
+<li>VIN coherent entre tous les documents</li>
+<li>Nom coherent CNI ↔ domicile</li>
+<li>CNI non expiree</li>
+<li>CG barree correctement (VO)</li>
+<li>Kbis present si personne morale</li>
+<li>Permis present (sauf personne morale)</li>
+</ul>
+<hr>
+<h2 id="4-generation-du-cerfa">4. Generation du Cerfa</h2>
+<h3 id="41-processus">4.1 Processus</h3>
+<p>Quand le diagnostic est VERT ou ORANGE :</p>
+<ol>
+<li>Le systeme construit les donnees a partir de tous les documents extraits</li>
+<li><strong>Playwright</strong> ouvre le formulaire officiel sur service-public.gouv.fr</li>
+<li>Remplit automatiquement tous les champs (vehicule, titulaire, adresse)</li>
+<li>Le site genere le Cerfa PDF officiel</li>
+<li>Le systeme telecharge le PDF et le stocke dans le dossier</li>
+</ol>
+<h3 id="42-cerfa-vn-13749">4.2 Cerfa VN (13749)</h3>
+<p>4 etapes sur le site :</p>
+<ol>
+<li>Identification du vehicule (D.1 a V.9, couleur)</li>
+<li>Certificat de vente (skip — le pro remplit a la main)</li>
+<li>Demandeur / titulaire (nom, naissance, adresse, sexe/PM)</li>
+<li>Telecharger le PDF</li>
+</ol>
+<h3 id="43-cerfa-vo-13750">4.3 Cerfa VO (13750)</h3>
+<p>4 etapes sur le site :</p>
+<ol>
+<li>Vehicule (immat, dates, marque, D.2, VIN, genre) + case Certificat cochee</li>
+<li>Titulaire (personne physique/morale, nom, naissance, adresse)</li>
+<li>Loueur/locataire (skip)</li>
+<li>Telecharger le PDF</li>
+</ol>
+<h3 id="44-personne-morale">4.4 Personne morale</h3>
+<p>Si Kbis detecte :</p>
+<ul>
+<li>Case &quot;Personne morale&quot; cochee sur le formulaire</li>
+<li>SIREN + raison sociale remplis (au lieu de nom/prenom)</li>
+<li>Permis non exige</li>
+</ul>
+<hr>
+<h2 id="5-espace-admin">5. Espace Admin</h2>
+<p>Apres generation du Cerfa, l'espace admin affiche :</p>
+<h3 id="51-vue-dossier">5.1 Vue dossier</h3>
+<ul>
+<li>Reference du dossier</li>
+<li>Type (VN/VO)</li>
+<li>Diagnostic (VERT/ORANGE/ROUGE)</li>
+<li>Statut (PENDING → DIAGNOSTIC → CERFA_GENERE)</li>
+</ul>
+<h3 id="52-documents">5.2 Documents</h3>
+<ul>
+<li><strong>Docs vendeur</strong> : COC, CG, facture — avec nombre de champs extraits</li>
+<li><strong>Docs client</strong> : CNI, permis, domicile, Kbis, attestation — avec nombre de champs extraits</li>
+<li>Pas de doublon (fusion recto/verso, remplacement si re-upload)</li>
+</ul>
+<h3 id="53-cerfa">5.3 Cerfa</h3>
+<ul>
+<li>Cerfa PDF genere, telechargeable depuis l'espace admin</li>
+<li>Date de generation</li>
+</ul>
+<h3 id="54-messages-admin">5.4 Messages admin</h3>
+<ul>
+<li><strong>VERIFICATION_MANUELLE</strong> : si attestation de formation detectee, message pour verifier la coherence avec le permis (categorie, date obtention B, n. permis)</li>
+<li>Priorite HAUTE</li>
+</ul>
+<h3 id="55-estimation-taxes">5.5 Estimation taxes</h3>
+<ul>
+<li>Y1 taxe regionale</li>
+<li>Y3 malus CO2</li>
+<li>Y4 taxe de gestion</li>
+<li>Y5 redevance acheminement</li>
+<li>Y6 malus au poids</li>
+<li>Total estime (indicatif — montant final = SIV)</li>
+</ul>
+<hr>
+<h2 id="6-cas-particuliers">6. Cas Particuliers</h2>
+<h3 id="61-moto-avec-attestation-formation">6.1 Moto avec attestation formation</h3>
+<p>Pour les motos 125cc (categorie L5e) avec permis B + formation 7h :</p>
+<ul>
+<li>Le client depose le <strong>permis auto (B)</strong> + l'<strong>attestation de suivi de formation</strong></li>
+<li>Le systeme collecte les deux sans croisement automatique</li>
+<li>Apres generation du Cerfa, un <strong>message admin</strong> demande de verifier manuellement la coherence</li>
+</ul>
+<h3 id="62-personne-morale">6.2 Personne morale</h3>
+<ul>
+<li>Detection automatique si Kbis depose</li>
+<li>Diagnostic ROUGE si Kbis absent pour une PM</li>
+<li>Permis non requis</li>
+<li>SIREN + raison sociale remplis sur le Cerfa</li>
+</ul>
+<h3 id="63-co-titulaire">6.3 Co-titulaire</h3>
+<ul>
+<li>Renseigne par le vendeur a la creation du dossier</li>
+<li>Affiche sur le Cerfa si present</li>
+<li>Multi-propriete cochee automatiquement</li>
+</ul>
+<hr>
+<h2 id="7-stack-technique">7. Stack Technique</h2>
+<table>
+<thead>
+<tr>
+<th>Composant</th>
+<th>Technologie</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Backend</td>
+<td>Python / FastAPI</td>
+</tr>
+<tr>
+<td>Frontend</td>
+<td>React / Vite / TailwindCSS</td>
+</tr>
+<tr>
+<td>OCR local</td>
+<td>Tesseract 5.5.2 (fra)</td>
+</tr>
+<tr>
+<td>OCR cloud (fallback)</td>
+<td>Google Document AI</td>
+</tr>
+<tr>
+<td>Generation Cerfa</td>
+<td>Playwright (service-public.gouv.fr)</td>
+</tr>
+<tr>
+<td>Stockage</td>
+<td>In-memory (demo) → PostgreSQL + S3 (prod)</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="8-endpoints-api">8. Endpoints API</h2>
+<table>
+<thead>
+<tr>
+<th>Methode</th>
+<th>Endpoint</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>POST</td>
+<td>/api/dossiers</td>
+<td>Creer un dossier</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/api/dossiers</td>
+<td>Lister les dossiers</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/api/dossiers/{id}</td>
+<td>Detail dossier</td>
+</tr>
+<tr>
+<td>POST</td>
+<td>/api/dossiers/{id}/upload?source=vendeur</td>
+<td>Upload doc vendeur</td>
+</tr>
+<tr>
+<td>POST</td>
+<td>/api/dossiers/{id}/upload?source=client</td>
+<td>Upload doc client</td>
+</tr>
+<tr>
+<td>POST</td>
+<td>/api/dossiers/{id}/run-pipeline</td>
+<td>Lancer le diagnostic</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/api/dossiers/{id}/cerfa</td>
+<td>Generer + telecharger le Cerfa</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/api/dossiers/{id}/admin</td>
+<td>Vue admin complete</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/api/dossiers/{id}/admin/cerfa</td>
+<td>Telecharger le Cerfa stocke</td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td>/api/dossiers/{id}</td>
+<td>Supprimer un dossier</td>
+</tr>
+</tbody>
+</table>
+
+</body>
+</html>

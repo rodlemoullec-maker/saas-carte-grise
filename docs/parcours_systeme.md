@@ -50,8 +50,7 @@ Le vendeur depose ses documents dans l'**espace vendeur** :
 **Pour un VO (vehicule occasion) :**
 | Document | Obligatoire | Info extraite |
 |----------|------------|---------------|
-| Carte grise (CG) | Oui | Immat, VIN, marque, D.2 type, CNIT, titulaire, adresse, toutes les cases techniques (25 champs) |
-| COC (si disponible) | Recommande | Complete les infos techniques manquantes de la CG |
+| COC (si disponible) | Recommande | Complete les infos techniques pour le Cerfa |
 
 ### Etape 3 : Suivi
 Le vendeur voit dans son espace admin :
@@ -74,7 +73,13 @@ Le client depose ses documents dans l'**espace client** :
 | CNI ou Passeport (recto + verso) | Oui | Nom, prenom, date naissance, lieu naissance, adresse, date expiration, n. document |
 | Permis de conduire (recto + verso) | Oui | Nom, prenom, categories, date obtention |
 | Justificatif de domicile | Oui | Nom, adresse, code postal, ville |
+| Carte grise barree (VO uniquement) | Oui (VO) | Immat, VIN, marque, titulaire, toutes cases techniques (25 champs) |
 | Attestation de formation moto | Si moto 125cc/L5e | Collecte sans verification — message admin |
+| Attestation d'assurance | Optionnel | Collecte sans verification — message admin pour verification |
+
+**Note :** si l'attestation d'assurance n'est pas fournie par le client, un message est envoye a l'admin sur son espace pour suivi.
+
+**Pas de signature requise** : le Cerfa est genere pre-rempli sans signature. La signature est faite par le client et le vendeur apres impression.
 
 **Personne morale :**
 | Document | Obligatoire | Info extraite |
@@ -82,6 +87,8 @@ Le client depose ses documents dans l'**espace client** :
 | Kbis | Oui | SIREN, raison sociale, representant legal |
 | CNI du representant legal | Oui | Identite du gerant |
 | Justificatif de domicile siege | Oui | Adresse siege social |
+| Carte grise barree (VO uniquement) | Oui (VO) | Immat, VIN, marque, titulaire, cases techniques |
+| Attestation d'assurance | Optionnel | Collecte sans verification — message admin |
 | Permis | Non requis | — |
 
 ### Etape 2 : Fusion recto/verso

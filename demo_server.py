@@ -87,6 +87,12 @@ DOC_TYPES = {
         ("tribunal de commerce", 0.7), ("commerce et des societes", 0.6),
         ("raison sociale", 0.5), ("siren", 0.4),
     ],
+    "ASSURANCE": [
+        ("attestation d'assurance", 1.0), ("assurance automobile", 0.8),
+        ("carte verte", 0.8), ("responsabilite civile", 0.6),
+        ("compagnie d'assurance", 0.5), ("police", 0.3),
+        ("date d'effet", 0.4), ("memo vehicule assure", 0.7),
+    ],
     "ATTESTATION_FORMATION": [
         ("attestation de suivi de formation", 1.0),
         ("attestation de formation", 0.9),
@@ -485,7 +491,7 @@ def run_diagnostic(dossier: dict) -> dict:
         "DOMICILE": "Justificatif de domicile",
     }
     required_vn = {"COC": "Certificat de conformite (COC)", "FACTURE": "Facture vehicule neuf"}
-    required_vo = {"CG_BARREE": "Carte grise barree"}
+    required_vo = {"CG_BARREE": "Carte grise barree"}  # CG fournie par le CLIENT
     # Pas d'assurance dans les pieces a deposer
     # Le Cerfa est le LIVRABLE du systeme, pas une piece a fournir
 
@@ -931,19 +937,39 @@ def generate_cerfa(dossier_id: str):
     dossier["status"] = "CERFA_GENERE"
 
     # Messages admin : verification manuelle si attestation formation presente
+    # Messages admin apres generation Cerfa
+    dossier["messages_admin"] = []  # Reset messages
+
+    # Attestation formation → verification manuelle
     has_attestation = any(d["type"] == "ATTESTATION_FORMATION" for d in dossier["documents"])
     has_permis = any(d["type"] == "PERMIS" for d in dossier["documents"])
     if has_attestation:
-        msg = {
+        dossier["messages_admin"].append({
             "type": "VERIFICATION_MANUELLE",
             "priority": "HAUTE",
-            "message": "Attestation de suivi de formation detectee — verifier la coherence avec le permis de conduire (categorie, date obtention B, n. permis)",
+            "message": "Attestation de suivi de formation detectee - verifier la coherence avec le permis (categorie, date obtention B, n. permis)",
             "documents_concernes": ["ATTESTATION_FORMATION", "PERMIS"],
-            "permis_present": has_permis,
             "created_at": datetime.utcnow().isoformat(),
-        }
-        dossier["messages_admin"].append(msg)
-        logger.info(f"Message admin: verification attestation formation")
+        })
+
+    # Attestation assurance → si fournie, message verification (pas de coherence auto)
+    has_assurance = any(d["type"] == "ASSURANCE" for d in dossier["documents"])
+    if has_assurance:
+        dossier["messages_admin"].append({
+            "type": "VERIFICATION_MANUELLE",
+            "priority": "NORMALE",
+            "message": "Attestation d'assurance fournie - verifier la validite et la coherence avec le vehicule",
+            "documents_concernes": ["ASSURANCE"],
+            "created_at": datetime.utcnow().isoformat(),
+        })
+    else:
+        dossier["messages_admin"].append({
+            "type": "DOCUMENT_MANQUANT",
+            "priority": "INFO",
+            "message": "Attestation d'assurance non fournie par le client - a suivre",
+            "documents_concernes": ["ASSURANCE"],
+            "created_at": datetime.utcnow().isoformat(),
+        })
 
     return Response(
         content=pdf_bytes,

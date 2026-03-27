@@ -324,23 +324,37 @@ function DossierView({ dossierId, onBack }: { dossierId: string; onBack: () => v
           </label>
         </div>
         {/* Client */}
-        <div className="border-2 border-dashed rounded-lg p-6 text-center border-green-200 bg-green-50/30">
-          <div className="font-medium text-green-700 mb-2">Espace Client (Acheteur)</div>
-          <p className="text-xs text-green-500 mb-3">
-            {dossier.is_personne_morale
-              ? 'Kbis, CNI representant legal, justificatif domicile siege'
-              : 'CNI, permis, justificatif domicile'}
-          </p>
-          {dossier.is_personne_morale && (
-            <div className="mb-3 p-2 bg-orange-50 border border-orange-200 rounded text-xs text-orange-700">
-              Personne morale : le Kbis est obligatoire
-            </div>
-          )}
-          <input type="file" multiple onChange={e => e.target.files && uploadFiles(e.target.files, 'client')}
-            className="hidden" id="file-client" />
-          <label htmlFor="file-client" className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm cursor-pointer">
-            {uploading ? 'Upload...' : dossier.is_personne_morale ? 'Deposer Kbis + docs' : 'Deposer les docs identite'}
-          </label>
+        <div className="border-2 border-dashed rounded-lg p-6 border-green-200 bg-green-50/30">
+          <div className="font-medium text-green-700 mb-2 text-center">Espace Client (Acheteur)</div>
+          <div className="text-xs text-gray-600 mb-3 text-left">
+            <div className="font-medium mb-1">Documents a deposer :</div>
+            {dossier.is_personne_morale ? (
+              <ul className="space-y-0.5">
+                <li>&#9744; Kbis <span className="text-red-500 font-bold">*</span></li>
+                <li>&#9744; CNI representant legal <span className="text-red-500 font-bold">*</span></li>
+                <li>&#9744; Justificatif domicile siege <span className="text-red-500 font-bold">*</span></li>
+                {dossier.type === 'VO' && <li>&#9744; Carte grise barree <span className="text-red-500 font-bold">*</span></li>}
+                <li>&#9744; Attestation d'assurance <span className="text-gray-400">(optionnel)</span></li>
+              </ul>
+            ) : (
+              <ul className="space-y-0.5">
+                <li>&#9744; CNI ou Passeport (recto + verso) <span className="text-red-500 font-bold">*</span></li>
+                <li>&#9744; Permis de conduire (recto + verso) <span className="text-red-500 font-bold">*</span></li>
+                <li>&#9744; Justificatif de domicile <span className="text-red-500 font-bold">*</span></li>
+                {dossier.type === 'VO' && <li>&#9744; Carte grise barree <span className="text-red-500 font-bold">*</span></li>}
+                <li>&#9744; Attestation de formation moto <span className="text-gray-400">(si 125cc/L5e)</span></li>
+                <li>&#9744; Attestation d'assurance <span className="text-gray-400">(optionnel)</span></li>
+              </ul>
+            )}
+            <div className="mt-1 text-gray-400 text-xs"><span className="text-red-500">*</span> obligatoire</div>
+          </div>
+          <div className="text-center">
+            <input type="file" multiple onChange={e => e.target.files && uploadFiles(e.target.files, 'client')}
+              className="hidden" id="file-client" />
+            <label htmlFor="file-client" className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm cursor-pointer">
+              {uploading ? 'Upload...' : 'Deposer les documents'}
+            </label>
+          </div>
         </div>
       </div>
 
