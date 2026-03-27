@@ -97,6 +97,13 @@ class CerfaFiller:
 
                 # ═══ PAGE FINALE : TELECHARGER ═══
                 time.sleep(2)
+                # Forcer la case Certificat (le listbox custom ne propage pas la valeur)
+                page.evaluate("""
+                    var li = document.querySelector('.listbox-input');
+                    if (li) li.value = 'Certificat';
+                    var gr = document.querySelector('input[name="Groupe_de_boutons_radio"]');
+                    if (gr) gr.value = 'Certificat';
+                """)
                 page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
                 time.sleep(2)
                 page.screenshot(path="cerfa_final_page.png")
@@ -261,13 +268,7 @@ class CerfaFiller:
         page.click("[role='button']")
         time.sleep(0.5)
         page.click(f"li:has-text('{demarche}')")
-        time.sleep(0.5)
-        # Le listbox custom ne met pas a jour le champ hidden — forcer via JS
-        page.evaluate(f"""
-            var inp = document.querySelector('input[name="Groupe_de_boutons_radio"]');
-            if (inp) inp.value = '{demarche}';
-        """)
-        time.sleep(0.5)
+        time.sleep(1)
 
         v = data.get("vehicule", {})
         self._fill(page, "#valeurNumeroImma", v.get("immatriculation"))
