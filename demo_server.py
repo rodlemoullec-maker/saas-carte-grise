@@ -90,6 +90,50 @@ DOC_TYPES = {
 }
 
 
+def _ocr_tesseract(file_bytes: bytes, mime_type: str) -> str:
+    """Extrait le texte d'un PDF ou image via Tesseract OCR (local, gratuit)."""
+    import pytesseract
+    from PIL import Image
+    import io
+
+    images = []
+
+    if mime_type == "application/pdf":
+        # D'abord essayer PyPDF (PDF avec texte integre)
+        try:
+            from pypdf import PdfReader
+            reader = PdfReader(io.BytesIO(file_bytes))
+            text = ""
+            for page in reader.pages:
+                t = page.extract_text()
+                if t:
+                    text += t + "\n"
+            if len(text.strip()) > 50:
+                return text  # PDF avec texte — pas besoin d'OCR
+        except Exception:
+            pass
+
+        # PDF scan → convertir en images
+        try:
+            from pdf2image import convert_from_bytes
+            images = convert_from_bytes(file_bytes, dpi=300)
+        except Exception:
+            # pdf2image necessite poppler — fallback
+            logger.warning("pdf2image echoue (poppler manquant?) — texte vide")
+            return ""
+    else:
+        # Image directe (JPG, PNG, TIFF)
+        images = [Image.open(io.BytesIO(file_bytes))]
+
+    # OCR Tesseract sur chaque image
+    text = ""
+    for img in images:
+        t = pytesseract.image_to_string(img, lang="fra")
+        text += t + "\n"
+
+    return text.strip()
+
+
 def classify_document(text: str) -> tuple[str, float, list[str]]:
     """Classifie un document. Retourne (type, confidence, keywords_matches)."""
     text_norm = text.lower()
@@ -651,12 +695,21 @@ async def upload_document(dossier_id: str, file: UploadFile, source: str = "vend
     with open(doc_path / f"{doc_id}_{file.filename}", "wb") as f:
         f.write(file_bytes)
 
-    # Decode text
+    # OCR : Tesseract pour PDF/images, decode UTF-8 pour texte
     raw_text = ""
-    try:
-        raw_text = file_bytes.decode("utf-8", errors="ignore")
-    except Exception:
-        pass
+    mime = file.content_type or ""
+    if mime in ("application/pdf", "image/jpeg", "image/png", "image/tiff", "image/webp"):
+        try:
+            raw_text = _ocr_tesseract(file_bytes, mime)
+            logger.info(f"OCR Tesseract: {len(raw_text)} chars")
+        except Exception as e:
+            logger.warning(f"OCR Tesseract echoue: {e} — fallback UTF-8")
+            raw_text = file_bytes.decode("utf-8", errors="ignore")
+    else:
+        try:
+            raw_text = file_bytes.decode("utf-8", errors="ignore")
+        except Exception:
+            pass
 
     # Classify + extract
     doc_type, confidence, keywords = classify_document(raw_text)
