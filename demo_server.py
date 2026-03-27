@@ -183,7 +183,7 @@ def extract_data(doc_type: str, text: str) -> dict:
         if m: data["soussigne"] = m.group(1).strip()
         m = re.search(r"[Rr]eception\s*(?:par\s*type)?\s*(?:le)?\s*[:\s]*(\d{2}/\d{2}/\d{4})", text)
         if m: data["date_reception"] = m.group(1)
-        m = re.search(r"(?:n[.\s]*\(K\)|sous\s*le\s*n)\s*[:\s]*(.{5,30})", text)
+        m = re.search(r"(?:n[.\s]*\(K\)|sous\s*le\s*n[.\s]*)\s*[:\s]*(e\d\*[\d/\*]+\w+)", text)
         if m: data["numero_k"] = m.group(1).strip()
         m = re.search(r"(?:J\.?1|[Gg]enre\s*national)\s*[:\s]*([A-Z]{2,10})", text)
         if m: data["genre_national"] = m.group(1).strip()
