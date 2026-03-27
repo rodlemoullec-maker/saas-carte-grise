@@ -266,6 +266,16 @@ def extract_data(doc_type: str, text: str) -> dict:
         m = re.search(r"(?:J\.?1\s*)?[Gg]enre\s*national\s*[:\s]*([A-Z]{2,10})", text)
         if m: data["genre_national"] = m.group(1).strip()
 
+    elif doc_type == "KBIS":
+        m = re.search(r"(?:SIREN|RCS)\s*[:\s]*(\d{9})", text)
+        if m: data["siren"] = m.group(1)
+        m = re.search(r"SIRET\s*[:\s]*(\d{14})", text)
+        if m: data["siret"] = m.group(1)
+        m = re.search(r"(?:[Rr]aison\s*sociale|[Dd]enomination)\s*[:\s]*(.{2,80})", text)
+        if m: data["raison_sociale"] = m.group(1).strip()
+        m = re.search(r"(?:[Gg]erant|[Pp]resident|[Dd]irigeant|[Rr]epresentant)\s*[:\s]*([A-Za-zÀ-ÿ\- ]{2,60})", text)
+        if m: data["representant"] = m.group(1).strip()
+
     return data
 
 

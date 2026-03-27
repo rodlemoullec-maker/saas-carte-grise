@@ -240,6 +240,9 @@ class CerfaFiller:
 
         if is_pm:
             click_label_or_radio("demandeur_personne_2")
+            time.sleep(1)
+            self._fill(page, "#demandeur_titulaire_raison", t.get("raison_sociale"))
+            self._fill(page, "#demandeur_titulaire_siret", t.get("siren"))
         else:
             click_label_or_radio("demandeur_personne_1")
             time.sleep(1)
@@ -247,9 +250,9 @@ class CerfaFiller:
                 click_label_or_radio("demandeur_sexe_1")
             else:
                 click_label_or_radio("demandeur_sexe_2")
-        nom_prenom = f"{t.get('nom_naissance', '')} {t.get('prenom', '')}".strip()
-        self._fill(page, "#demandeur_titulaire_nom_naissance", nom_prenom)
-        self._fill(page, "#demandeur_titulaire_nom_usage", t.get("nom_usage"))
+            nom_prenom = f"{t.get('nom_naissance', '')} {t.get('prenom', '')}".strip()
+            self._fill(page, "#demandeur_titulaire_nom_naissance", nom_prenom)
+            self._fill(page, "#demandeur_titulaire_nom_usage", t.get("nom_usage"))
         self._fill(page, "#demandeur_titulaire_date_naissance", t.get("date_naissance"))
         self._fill(page, "#demandeur_titulaire_naissance_lieu", t.get("commune_naissance"))
         self._fill(page, "#demandeur_titulaire_naissance_dpt", t.get("departement_naissance"))
@@ -314,6 +317,10 @@ class CerfaFiller:
 
         if is_pm:
             page.check("#Personne_2")
+            time.sleep(1)
+            # Personne morale : SIREN + raison sociale (pas nom/prenom/naissance)
+            self._fill(page, "#N_SIREN", t.get("siren"))
+            self._fill(page, "#RaisonSocialeTitu", t.get("raison_sociale"))
         else:
             page.check("#Personne_1")
             time.sleep(0.5)
@@ -321,11 +328,10 @@ class CerfaFiller:
                 page.check("#Sexe_1")
             else:
                 page.check("#Sexe_2")
-
-        # Nom prenom
-        nom_prenom = f"{t.get('nom_naissance', '')} {t.get('prenom', '')}".strip()
-        self._fill(page, "#NomPrenomTitulaire", nom_prenom)
-        self._fill(page, "#Name", t.get("nom_usage"))
+            # Personne physique : nom + prenom
+            nom_prenom = f"{t.get('nom_naissance', '')} {t.get('prenom', '')}".strip()
+            self._fill(page, "#NomPrenomTitulaire", nom_prenom)
+            self._fill(page, "#Name", t.get("nom_usage"))
 
         # Naissance
         self._fill(page, "#Jour4_concat", t.get("date_naissance"))
@@ -509,6 +515,17 @@ class CerfaFiller:
                         else:
                             d["titulaire"]["adresse"]["libelle_voie"] = rest.upper()
 
+            elif dtype == "KBIS":
+                # Kbis = personne morale detectee automatiquement
+                d["titulaire"]["type"] = "morale"
+                d["titulaire"]["siren"] = ext.get("siren", "")
+                d["titulaire"]["raison_sociale"] = ext.get("raison_sociale") or ext.get("nom_vendeur", "")
+
+        # Detection auto personne morale si Kbis present
+        has_kbis = any(doc.get("type") == "KBIS" for doc in docs)
+        if has_kbis:
+            d["titulaire"]["type"] = "morale"
+
         # Departement depuis CP ou lieu naissance
         cp = d["titulaire"]["adresse"].get("code_postal", "")
         lieu = d["titulaire"].get("commune_naissance", "").upper()
@@ -516,9 +533,10 @@ class CerfaFiller:
                     "NICE": "06", "NANTES": "44", "BORDEAUX": "33", "LILLE": "59"}
         d["titulaire"]["departement_naissance"] = dept_map.get(lieu, cp[:2] if cp else "")
 
-        # Sexe et type
+        # Sexe et type (Kbis override si detecte)
         d["titulaire"]["sexe"] = dossier.get("client_sexe") or "M"
-        d["titulaire"]["type"] = "morale" if dossier.get("is_personne_morale") else "physique"
+        if not has_kbis:
+            d["titulaire"]["type"] = "morale" if dossier.get("is_personne_morale") else "physique"
 
         # Fallback nom/prenom depuis le dossier
         if not d["titulaire"].get("nom_naissance"):
