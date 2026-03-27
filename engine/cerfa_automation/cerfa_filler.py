@@ -62,27 +62,37 @@ class CerfaFiller:
                 except Exception:
                     pass
 
-                # ═══ PAGE 1 : VEHICULE ═══
-                self._fill_page1(page, data)
-                page.click("text=Suivant")
-                time.sleep(2)
-                logger.info("Page 1 (vehicule) OK")
+                if dossier_type == "VN":
+                    # ═══ 13749 VN : 4 etapes ═══
+                    self._fill_vn_page1(page, data)
+                    page.click("text=Suivant"); time.sleep(2)
+                    logger.info("VN P1 (vehicule) OK")
 
-                # ═══ PAGE 2 : TITULAIRE ═══
-                self._fill_page2(page, data)
-                page.click("text=Suivant")
-                time.sleep(2)
-                logger.info("Page 2 (titulaire) OK")
+                    self._fill_vn_page2(page, data)
+                    page.click("text=Suivant"); time.sleep(2)
+                    logger.info("VN P2 (vente) OK")
 
-                # ═══ PAGE 3 : LOUEUR/LOCATAIRE (skip) ═══
-                page.click("text=Suivant")
-                time.sleep(2)
-                logger.info("Page 3 (loueur) skip")
+                    self._fill_vn_page3(page, data)
+                    page.click("text=Suivant"); time.sleep(2)
+                    logger.info("VN P3 (titulaire) OK")
+                else:
+                    # ═══ 13750 VO : 4 etapes ═══
+                    self._fill_page1(page, data)
+                    page.click("text=Suivant"); time.sleep(2)
+                    logger.info("VO P1 (vehicule) OK")
 
-                # ═══ PAGE 4 : TELECHARGER ═══
-                # Le bouton est un <button type="submit" class="btn btn-primary">
+                    self._fill_page2(page, data)
+                    page.click("text=Suivant"); time.sleep(2)
+                    logger.info("VO P2 (titulaire) OK")
+
+                    page.click("text=Suivant"); time.sleep(2)
+                    logger.info("VO P3 (loueur) skip")
+
+                # ═══ PAGE FINALE : TELECHARGER ═══
+                page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+                time.sleep(1)
                 with page.expect_download(timeout=30000) as dl_info:
-                    page.click("button.btn-primary[type='submit']", timeout=10000)
+                    page.click("button:has-text('formulaire')", timeout=10000)
                 download = dl_info.value
 
                 if output_path:
@@ -103,6 +113,71 @@ class CerfaFiller:
                 raise
             finally:
                 browser.close()
+
+    # ─── VN (13749) specifique ──────────────────────────────────────
+
+    def _fill_vn_page1(self, page, data: dict):
+        """P1 VN: identification vehicule."""
+        page.check("#identification_vehicule_choix_1")  # Du constructeur
+        page.check("#identification_vehicule_presence_coc_1")  # COC present
+        time.sleep(0.5)
+        v = data.get("vehicule", {})
+        self._fill(page, "#identification_vehicule_marque_D_1", v.get("marque"))
+        self._fill(page, "#identification_vehicule_type_D_2", v.get("type_variante_version"))
+        self._fill(page, "#identification_vehicule_code_national_D_2_1", v.get("cnit"))
+        self._fill(page, "#identification_vehicule_id_vehicule_E", v.get("numero_identification"))
+        # Couleur
+        nuance = v.get("couleur_nuance", "")
+        if nuance == "fonce":
+            page.check("#identification_vehicule_nuance_2")
+        elif nuance == "clair":
+            page.check("#identification_vehicule_nuance_1")
+        couleur_map = {"noir":"1","marron":"2","rouge":"3","orange":"4","jaune":"5",
+                       "vert":"6","bleu":"7","beige":"8","gris":"9","blanc":"10"}
+        cid = couleur_map.get((v.get("couleur") or "").lower(), "")
+        if cid:
+            try: page.check(f"#identification_vehicule_couleur_{cid}")
+            except: pass
+
+    def _fill_vn_page2(self, page, data: dict):
+        """P2 VN: certificat de vente (optionnel)."""
+        v = data.get("vehicule", {})
+        self._fill(page, "#certificat_vente_soussignee", v.get("vendeur_nom"))
+        self._fill(page, "#certificat_vente_date", v.get("date_achat"))
+
+    def _fill_vn_page3(self, page, data: dict):
+        """P3 VN: titulaire + domicile."""
+        t = data.get("titulaire", {})
+        is_pm = t.get("type", "physique") == "morale"
+        if is_pm:
+            page.check("#demandeur_personne_2")
+        else:
+            page.check("#demandeur_personne_1")
+            time.sleep(0.5)
+            if t.get("sexe", "M") == "M":
+                page.check("#demandeur_sexe_1")
+            else:
+                page.check("#demandeur_sexe_2")
+        nom_prenom = f"{t.get('nom_naissance', '')} {t.get('prenom', '')}".strip()
+        self._fill(page, "#demandeur_titulaire_nom_naissance", nom_prenom)
+        self._fill(page, "#demandeur_titulaire_nom_usage", t.get("nom_usage"))
+        self._fill(page, "#demandeur_titulaire_date_naissance", t.get("date_naissance"))
+        self._fill(page, "#demandeur_titulaire_naissance_lieu", t.get("commune_naissance"))
+        self._fill(page, "#demandeur_titulaire_naissance_dpt", t.get("departement_naissance"))
+        self._fill(page, "#demandeur_titulaire_naissance_pays", t.get("pays_naissance"))
+        page.check("#demandeur_multi_propriete_2")  # Non par defaut
+        page.check("#demandeur_location_2")  # Non
+        a = t.get("adresse", {})
+        self._fill(page, "#demandeur_domicile_num_voie", a.get("numero_voie"))
+        self._fill(page, "#demandeur_domicile_extension", a.get("extension"))
+        self._fill(page, "#demandeur_domicile_type_voie", a.get("type_voie"))
+        self._fill(page, "#demandeur_domicile_nom_voie", a.get("libelle_voie"))
+        self._fill(page, "#demandeur_domicile_code_postale", a.get("code_postal"))
+        self._fill(page, "#demandeur_domicile_commune", a.get("commune"))
+        self._fill(page, "#demandeur_domicile_tel_portable", t.get("telephone"))
+        self._fill(page, "#demandeur_domicile_mail", t.get("email"))
+
+    # ─── VO (13750) specifique ──────────────────────────────────────
 
     def _fill_page1(self, page, data: dict):
         """Page 1 : demarche + vehicule."""
