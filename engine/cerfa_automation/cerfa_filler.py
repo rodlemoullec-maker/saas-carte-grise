@@ -365,8 +365,8 @@ class CerfaFiller:
         # Case Certificat : texte a x=163.2, y=760.1 — la checkbox est a ~x=150, y=760
         ov = FPDF(unit="pt", format=(595.276, H))
         ov.add_page()
-        ov.set_font("Helvetica", "B", 9)
-        ov.set_xy(154, H - 763)
+        ov.set_font("Helvetica", "B", 10)
+        ov.set_xy(148, H - 765)
         ov.cell(8, 8, "X")
 
         ov_bytes = bytes(ov.output())
