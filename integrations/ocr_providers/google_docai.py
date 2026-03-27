@@ -49,7 +49,10 @@ class GoogleDocAIProvider(BaseOCRProvider):
     def _process_sync(self, file_bytes: bytes, mime_type: str) -> OCRResult:
         from google.cloud import documentai_v1 as documentai
 
-        client = documentai.DocumentProcessorServiceClient()
+        opts = {}
+        if self.location == "eu":
+            opts = {"api_endpoint": "eu-documentai.googleapis.com"}
+        client = documentai.DocumentProcessorServiceClient(client_options=opts)
         resource_name = client.processor_path(
             self.project_id, self.location, self.processor_id
         )
