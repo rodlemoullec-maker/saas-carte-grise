@@ -9,4 +9,5 @@ Destinataire: DUPONT Jean Pierre
 75008 PARIS
 France
 
+Reference client: 1234567890
 Montant TTC: 89.50 EUR

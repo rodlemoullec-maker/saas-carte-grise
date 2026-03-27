@@ -2,14 +2,28 @@ CERTIFICAT DE CONFORMITE
 CERTIFICATE OF CONFORMITY - COC
 
 Constructeur: RENAULT SAS
+Soussigne: RENAULT SAS
+Reception par type le: 15/01/2025
+sous le n. (K): e2*2018/858*00123
+
 D.1 Marque: RENAULT
+D.2 Type Variante Version: BB1KZ1
+D.2.1 CNIT: FE123456A
 D.3 Denomination commerciale: CLIO V TCE 100
 E VIN: WBA3A5C50CF256789
-D.2.1 CNIT: FE123456A
+
+F.1 Masse en charge max tech admissible: 1760 kg
+F.2 PTAC Masse en charge maximale: 1600 kg
+G Masse en service: 1200 kg
+J Genre national: VP
+J.1 Carrosserie: CI
+P.1 Cylindree: 999 cm3
 P.2 Puissance nette maximale: 74 kW
 P.3 Carburant: Essence
 P.6 Puissance administrative: 5 CV
 S.1 Places assises: 5
-F.2 PTAC Masse en charge: 1600 kg
+
 V.7 CO2 WLTP: 119 g/km
+V.9 Classe environnementale: EURO 6
+
 Homologation CE e2*2018/858*00123

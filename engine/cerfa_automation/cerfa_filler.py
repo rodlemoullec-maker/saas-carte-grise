@@ -118,10 +118,13 @@ class CerfaFiller:
 
     def _fill_vn_page1(self, page, data: dict):
         """P1 VN: identification vehicule."""
-        page.check("#identification_vehicule_choix_1")  # Du constructeur
-        page.check("#identification_vehicule_presence_coc_1")  # COC present
-        time.sleep(0.5)
+        page.click("#identification_vehicule_choix_1")  # Du constructeur
         v = data.get("vehicule", {})
+        self._fill(page, "#identification_vehicule_soussigne", v.get("soussigne"))
+        self._fill(page, "#identification_vehicule_reception", v.get("date_reception"))
+        self._fill(page, "#identification_vehicule_numero_K", v.get("numero_k"))
+        page.click("#identification_vehicule_presence_coc_1")  # COC present = Oui
+        time.sleep(0.5)
         self._fill(page, "#identification_vehicule_marque_D_1", v.get("marque"))
         self._fill(page, "#identification_vehicule_type_D_2", v.get("type_variante_version"))
         self._fill(page, "#identification_vehicule_code_national_D_2_1", v.get("cnit"))
@@ -150,14 +153,14 @@ class CerfaFiller:
         t = data.get("titulaire", {})
         is_pm = t.get("type", "physique") == "morale"
         if is_pm:
-            page.check("#demandeur_personne_2")
+            page.click("#demandeur_personne_2")
         else:
-            page.check("#demandeur_personne_1")
+            page.click("#demandeur_personne_1")
             time.sleep(0.5)
             if t.get("sexe", "M") == "M":
-                page.check("#demandeur_sexe_1")
+                page.click("#demandeur_sexe_1")
             else:
-                page.check("#demandeur_sexe_2")
+                page.click("#demandeur_sexe_2")
         nom_prenom = f"{t.get('nom_naissance', '')} {t.get('prenom', '')}".strip()
         self._fill(page, "#demandeur_titulaire_nom_naissance", nom_prenom)
         self._fill(page, "#demandeur_titulaire_nom_usage", t.get("nom_usage"))
@@ -165,8 +168,8 @@ class CerfaFiller:
         self._fill(page, "#demandeur_titulaire_naissance_lieu", t.get("commune_naissance"))
         self._fill(page, "#demandeur_titulaire_naissance_dpt", t.get("departement_naissance"))
         self._fill(page, "#demandeur_titulaire_naissance_pays", t.get("pays_naissance"))
-        page.check("#demandeur_multi_propriete_2")  # Non par defaut
-        page.check("#demandeur_location_2")  # Non
+        page.click("#demandeur_multi_propriete_2")  # Non par defaut
+        page.click("#demandeur_location_2")  # Non
         a = t.get("adresse", {})
         self._fill(page, "#demandeur_domicile_num_voie", a.get("numero_voie"))
         self._fill(page, "#demandeur_domicile_extension", a.get("extension"))
@@ -268,9 +271,9 @@ class CerfaFiller:
         if not value:
             return
         try:
-            page.fill(selector, str(value))
-        except Exception as e:
-            logger.warning(f"Champ {selector} : {e}")
+            page.fill(selector, str(value), timeout=3000)
+        except Exception:
+            pass  # Champ non visible ou absent — on continue
 
     @staticmethod
     def build_data_from_dossier(dossier: dict) -> dict:
@@ -296,8 +299,14 @@ class CerfaFiller:
 
             if dtype == "COC":
                 d["vehicule"]["marque"] = ext.get("marque", "")
-                d["vehicule"]["denomination_commerciale"] = ext.get("modele", "")
+                d["vehicule"]["denomination_commerciale"] = ext.get("denomination") or ext.get("modele", "")
                 d["vehicule"]["numero_identification"] = ext.get("vin") or dossier.get("vin", "")
+                d["vehicule"]["type_variante_version"] = ext.get("type_variante_version", "")
+                d["vehicule"]["cnit"] = ext.get("cnit", "")
+                d["vehicule"]["genre_national"] = ext.get("genre_national", "VP")
+                d["vehicule"]["soussigne"] = ext.get("soussigne", "")
+                d["vehicule"]["date_reception"] = ext.get("date_reception", "")
+                d["vehicule"]["numero_k"] = ext.get("numero_k", "")
 
             elif dtype == "FACTURE":
                 d["vehicule"]["numero_identification"] = ext.get("vin") or d["vehicule"].get("numero_identification", "")
@@ -305,6 +314,13 @@ class CerfaFiller:
             elif dtype == "CG_BARREE":
                 d["vehicule"]["immatriculation"] = ext.get("immatriculation") or d["vehicule"]["immatriculation"]
                 d["vehicule"]["numero_identification"] = ext.get("vin") or d["vehicule"].get("numero_identification", "")
+                d["vehicule"]["marque"] = ext.get("marque") or d["vehicule"].get("marque", "")
+                d["vehicule"]["denomination_commerciale"] = ext.get("denomination") or d["vehicule"].get("denomination_commerciale", "")
+                d["vehicule"]["date_premiere_immatriculation"] = ext.get("date_premiere_immat", "")
+                d["vehicule"]["date_certificat"] = ext.get("date_certificat", "")
+                d["vehicule"]["numero_formule"] = ext.get("numero_formule", "")
+                d["vehicule"]["genre_national"] = ext.get("genre_national") or d["vehicule"].get("genre_national", "VP")
+                d["vehicule"]["date_achat"] = ext.get("date_vente", "")
 
             elif dtype in ("CNI", "PASSEPORT"):
                 d["titulaire"]["nom_naissance"] = ext.get("nom", "")

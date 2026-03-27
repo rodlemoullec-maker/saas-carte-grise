@@ -176,6 +176,19 @@ def extract_data(doc_type: str, text: str) -> dict:
         if m: data["ptac_kg"] = int(m.group(1))
         m = re.search(r"(?:S\.?1|[Pp]laces)\s*[:\s]*(\d+)", text)
         if m: data["places"] = int(m.group(1))
+        # Champs supplementaires COC
+        m = re.search(r"(?:D\.?2\s*)?[Tt]ype\s*[Vv]ariante\s*[Vv]ersion\s*[:\s]*([A-Z0-9]{2,20})", text)
+        if m: data["type_variante_version"] = m.group(1).strip()
+        m = re.search(r"[Ss]oussign[eé]\s*[:\s]*(.{2,50})", text)
+        if m: data["soussigne"] = m.group(1).strip()
+        m = re.search(r"[Rr]eception\s*(?:par\s*type)?\s*(?:le)?\s*[:\s]*(\d{2}/\d{2}/\d{4})", text)
+        if m: data["date_reception"] = m.group(1)
+        m = re.search(r"(?:n[.\s]*\(K\)|sous\s*le\s*n)\s*[:\s]*(.{5,30})", text)
+        if m: data["numero_k"] = m.group(1).strip()
+        m = re.search(r"(?:J\.?1|[Gg]enre\s*national)\s*[:\s]*([A-Z]{2,10})", text)
+        if m: data["genre_national"] = m.group(1).strip()
+        m = re.search(r"[Dd]enomination\s*commerciale\s*[:\s]*(.{2,50})", text)
+        if m: data["denomination"] = m.group(1).strip()
 
     elif doc_type == "FACTURE":
         m = re.search(r"[Aa]cheteur|[Cc]lient\s*[:\s]*([A-Za-zÀ-ÿ\-\s]{2,60})", text)
@@ -198,11 +211,23 @@ def extract_data(doc_type: str, text: str) -> dict:
         if m: data["adresse"] = m.group(1).strip().rstrip()
 
     elif doc_type == "CG_BARREE":
-        m = re.search(r"(?:C\.?1|[Tt]itulaire)\s*[:\s]*([A-Za-zÀ-ÿ\-\s]{2,60})", text)
+        m = re.search(r"(?:C\.?1|[Tt]itulaire)\s*[:\s]*([A-Za-zÀ-ÿ\- ]{2,60})", text)
         if m: data["titulaire"] = m.group(1).strip()
         m = re.search(r"[Vv]endu\s*le\s*[:\s]*(\d{2}[./]\d{2}[./]\d{4})", text)
         if m: data["date_vente"] = m.group(1)
         data["barre_diagonale"] = bool(re.search(r"barr[eé]|diagonale|vendu le", text, re.IGNORECASE))
+        m = re.search(r"(?:D\.?1\s*)?[Mm]arque\s*[:\s]*([A-Z][A-Za-z\-]{1,20})", text)
+        if m: data["marque"] = m.group(1).strip()
+        m = re.search(r"(?:D\.?3\s*)?[Dd]enomination\s*(?:commerciale)?\s*[:\s]*(.{2,40})", text)
+        if m: data["denomination"] = m.group(1).strip()
+        m = re.search(r"[Dd]ate\s*premiere\s*immatriculation\s*[:\s]*(\d{2}/\d{2}/\d{4})", text)
+        if m: data["date_premiere_immat"] = m.group(1)
+        m = re.search(r"[Dd]ate\s*certificat\s*[:\s]*(\d{2}/\d{2}/\d{4})", text)
+        if m: data["date_certificat"] = m.group(1)
+        m = re.search(r"[Ff]ormule\s*[:\s]*([A-Z0-9]{8,15})", text)
+        if m: data["numero_formule"] = m.group(1)
+        m = re.search(r"(?:J\.?1\s*)?[Gg]enre\s*national\s*[:\s]*([A-Z]{2,10})", text)
+        if m: data["genre_national"] = m.group(1).strip()
 
     return data
 
