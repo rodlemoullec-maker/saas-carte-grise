@@ -122,19 +122,17 @@ class CerfaFiller:
         time.sleep(0.5)
         v = data.get("vehicule", {})
 
-        # Remplir soussigne/reception/K (visibles dans tous les modes)
-        self._fill(page, "#identification_vehicule_soussigne", v.get("soussigne"))
-        self._fill(page, "#identification_vehicule_reception", v.get("date_reception"))
-        self._fill(page, "#identification_vehicule_numero_K", v.get("numero_k"))
-
-        # COC = Non → affiche TOUS les champs vehicule (30 champs)
-        # Forcer le clic sur le label du radio button (plus fiable)
+        # COC = Non EN PREMIER (avant tout remplissage)
+        # Sinon remplir soussigne/K change l'etat et les champs restent masques
         label = page.query_selector("label[for='identification_vehicule_presence_coc_2']")
         if label:
             label.click()
-        else:
-            page.locator("#identification_vehicule_presence_coc_2").click(force=True)
-        time.sleep(2)  # Attendre le rendu des champs
+        time.sleep(2)
+
+        # Maintenant remplir tous les champs (visibles apres COC=Non)
+        self._fill(page, "#identification_vehicule_soussigne", v.get("soussigne"))
+        self._fill(page, "#identification_vehicule_reception", v.get("date_reception"))
+        self._fill(page, "#identification_vehicule_numero_K", v.get("numero_k"))
 
         # Champs obligatoires
         self._fill(page, "#identification_vehicule_marque_D_1", v.get("marque"))
@@ -175,14 +173,18 @@ class CerfaFiller:
         t = data.get("titulaire", {})
         is_pm = t.get("type", "physique") == "morale"
         if is_pm:
-            page.click("#demandeur_personne_2")
+            lbl = page.query_selector("label[for='demandeur_personne_2']")
+            if lbl: lbl.click()
         else:
-            page.click("#demandeur_personne_1")
+            lbl = page.query_selector("label[for='demandeur_personne_1']")
+            if lbl: lbl.click()
             time.sleep(0.5)
             if t.get("sexe", "M") == "M":
-                page.click("#demandeur_sexe_1")
+                lbl = page.query_selector("label[for='demandeur_sexe_1']")
+                if lbl: lbl.click()
             else:
-                page.click("#demandeur_sexe_2")
+                lbl = page.query_selector("label[for='demandeur_sexe_2']")
+                if lbl: lbl.click()
         nom_prenom = f"{t.get('nom_naissance', '')} {t.get('prenom', '')}".strip()
         self._fill(page, "#demandeur_titulaire_nom_naissance", nom_prenom)
         self._fill(page, "#demandeur_titulaire_nom_usage", t.get("nom_usage"))
@@ -190,8 +192,10 @@ class CerfaFiller:
         self._fill(page, "#demandeur_titulaire_naissance_lieu", t.get("commune_naissance"))
         self._fill(page, "#demandeur_titulaire_naissance_dpt", t.get("departement_naissance"))
         self._fill(page, "#demandeur_titulaire_naissance_pays", t.get("pays_naissance"))
-        page.click("#demandeur_multi_propriete_2")  # Non par defaut
-        page.click("#demandeur_location_2")  # Non
+        lbl = page.query_selector("label[for='demandeur_multi_propriete_2']")
+        if lbl: lbl.click()
+        lbl = page.query_selector("label[for='demandeur_location_2']")
+        if lbl: lbl.click()
         a = t.get("adresse", {})
         self._fill(page, "#demandeur_domicile_num_voie", a.get("numero_voie"))
         self._fill(page, "#demandeur_domicile_extension", a.get("extension"))
