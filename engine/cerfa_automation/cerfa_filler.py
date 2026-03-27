@@ -65,16 +65,23 @@ class CerfaFiller:
                 if dossier_type == "VN":
                     # ═══ 13749 VN : 4 etapes ═══
                     self._fill_vn_page1(page, data)
-                    page.click("text=Suivant"); time.sleep(2)
-                    logger.info("VN P1 (vehicule) OK")
+                    page.click("text=Suivant"); time.sleep(3)
+                    logger.info("VN P1→P2 OK")
 
                     self._fill_vn_page2(page, data)
-                    page.click("text=Suivant"); time.sleep(2)
-                    logger.info("VN P2 (vente) OK")
+                    page.click("text=Suivant")
+                    page.wait_for_load_state("networkidle", timeout=10000)
+                    time.sleep(2)
+                    logger.info("VN P2→P3 OK")
 
+                    page.screenshot(path="cerfa_vn_p3_before_fill.png")
                     self._fill_vn_page3(page, data)
-                    page.click("text=Suivant"); time.sleep(2)
-                    logger.info("VN P3 (titulaire) OK")
+                    page.screenshot(path="cerfa_vn_p3_after_fill.png")
+                    page.click("text=Suivant")
+                    page.wait_for_load_state("networkidle", timeout=10000)
+                    time.sleep(2)
+                    page.screenshot(path="cerfa_vn_p4.png")
+                    logger.info("VN P3→P4 OK")
                 else:
                     # ═══ 13750 VO : 4 etapes ═══
                     self._fill_page1(page, data)
@@ -89,11 +96,28 @@ class CerfaFiller:
                     logger.info("VO P3 (loueur) skip")
 
                 # ═══ PAGE FINALE : TELECHARGER ═══
+                time.sleep(2)
                 page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
-                time.sleep(1)
-                with page.expect_download(timeout=30000) as dl_info:
-                    page.click("button:has-text('formulaire')", timeout=10000)
-                download = dl_info.value
+                time.sleep(2)
+                page.screenshot(path="cerfa_final_page.png")
+                # Chercher le bouton par plusieurs methodes
+                btn = page.query_selector("button[name='telecharger']") or \
+                      page.query_selector("button.btn-primary[type='submit']")
+                if not btn:
+                    # Chercher tous les boutons visibles contenant PDF ou formulaire
+                    for b in page.query_selector_all("button:visible"):
+                        txt = b.inner_text().lower()
+                        if "pdf" in txt or "formulaire" in txt or "charger" in txt:
+                            btn = b
+                            break
+                if btn:
+                    logger.info(f"Bouton trouve: {btn.inner_text().strip()[:50]}")
+                    with page.expect_download(timeout=30000) as dl_info:
+                        btn.click()
+                    download = dl_info.value
+                else:
+                    logger.error("Bouton telecharger non trouve!")
+                    raise RuntimeError("Bouton telecharger non trouve")
 
                 if output_path:
                     Path(output_path).parent.mkdir(parents=True, exist_ok=True)
@@ -147,7 +171,11 @@ class CerfaFiller:
         self._fill(page, "#identification_vehicule_puissance_admin_P_6", v.get("puissance_cv"))
         self._fill(page, "#identification_vehicule_co2_V_7", v.get("co2_wltp"))
         self._fill(page, "#identification_vehicule_places_assises_S_1", v.get("places"))
+        self._fill(page, "#identification_vehicule_masse_tech_F_1", v.get("masse_f1"))
         self._fill(page, "#identification_vehicule_masse_etat_F_2", v.get("ptac_kg"))
+        self._fill(page, "#identification_vehicule_masse_service_G", v.get("masse_g"))
+        self._fill(page, "#identification_vehicule_cylindree_P_1", v.get("cylindree_p1"))
+        self._fill(page, "#identification_vehicule_puissance_nette_P_2", v.get("puissance_nette_p2"))
         self._fill(page, "#identification_vehicule_classe_env_V_9", v.get("classe_env"))
         # Couleur
         nuance = v.get("couleur_nuance", "")
@@ -163,28 +191,37 @@ class CerfaFiller:
             except: pass
 
     def _fill_vn_page2(self, page, data: dict):
-        """P2 VN: certificat de vente (optionnel)."""
-        v = data.get("vehicule", {})
-        self._fill(page, "#certificat_vente_soussignee", v.get("vendeur_nom"))
-        self._fill(page, "#certificat_vente_date", v.get("date_achat"))
+        """P2 VN: certificat de vente — SKIP.
+        Remplir ces champs empeche le formulaire de passer a la page suivante
+        (bug du site service-public.gouv.fr). Le pro remplira vendeur/date a la main.
+        """
+        pass
 
     def _fill_vn_page3(self, page, data: dict):
         """P3 VN: titulaire + domicile."""
         t = data.get("titulaire", {})
         is_pm = t.get("type", "physique") == "morale"
+        def click_label_or_radio(field_id):
+            """Clic sur le label du radio, fallback sur le radio directement, fallback JS."""
+            lbl = page.query_selector(f"label[for='{field_id}']")
+            if lbl and lbl.is_visible():
+                lbl.click()
+                return
+            el = page.query_selector(f"#{field_id}")
+            if el and el.is_visible():
+                el.click(force=True)
+                return
+            page.evaluate(f"document.getElementById('{field_id}')?.click()")
+
         if is_pm:
-            lbl = page.query_selector("label[for='demandeur_personne_2']")
-            if lbl: lbl.click()
+            click_label_or_radio("demandeur_personne_2")
         else:
-            lbl = page.query_selector("label[for='demandeur_personne_1']")
-            if lbl: lbl.click()
-            time.sleep(0.5)
+            click_label_or_radio("demandeur_personne_1")
+            time.sleep(1)
             if t.get("sexe", "M") == "M":
-                lbl = page.query_selector("label[for='demandeur_sexe_1']")
-                if lbl: lbl.click()
+                click_label_or_radio("demandeur_sexe_1")
             else:
-                lbl = page.query_selector("label[for='demandeur_sexe_2']")
-                if lbl: lbl.click()
+                click_label_or_radio("demandeur_sexe_2")
         nom_prenom = f"{t.get('nom_naissance', '')} {t.get('prenom', '')}".strip()
         self._fill(page, "#demandeur_titulaire_nom_naissance", nom_prenom)
         self._fill(page, "#demandeur_titulaire_nom_usage", t.get("nom_usage"))
@@ -192,10 +229,8 @@ class CerfaFiller:
         self._fill(page, "#demandeur_titulaire_naissance_lieu", t.get("commune_naissance"))
         self._fill(page, "#demandeur_titulaire_naissance_dpt", t.get("departement_naissance"))
         self._fill(page, "#demandeur_titulaire_naissance_pays", t.get("pays_naissance"))
-        lbl = page.query_selector("label[for='demandeur_multi_propriete_2']")
-        if lbl: lbl.click()
-        lbl = page.query_selector("label[for='demandeur_location_2']")
-        if lbl: lbl.click()
+        click_label_or_radio("demandeur_multi_propriete_2")
+        click_label_or_radio("demandeur_location_2")
         a = t.get("adresse", {})
         self._fill(page, "#demandeur_domicile_num_voie", a.get("numero_voie"))
         self._fill(page, "#demandeur_domicile_extension", a.get("extension"))
@@ -339,9 +374,15 @@ class CerfaFiller:
                 d["vehicule"]["places"] = str(ext.get("places") or "")
                 d["vehicule"]["ptac_kg"] = str(ext.get("ptac_kg") or "")
                 d["vehicule"]["classe_env"] = ext.get("classe_env", "")
+                d["vehicule"]["masse_f1"] = ext.get("masse_f1", "")
+                d["vehicule"]["masse_g"] = ext.get("masse_g", "")
+                d["vehicule"]["cylindree_p1"] = ext.get("cylindree_p1", "")
+                d["vehicule"]["puissance_nette_p2"] = ext.get("puissance_nette_p2", "")
 
             elif dtype == "FACTURE":
                 d["vehicule"]["numero_identification"] = ext.get("vin") or d["vehicule"].get("numero_identification", "")
+                d["vehicule"]["vendeur_nom"] = ext.get("nom_vendeur", "")
+                d["vehicule"]["date_achat"] = ext.get("date_vente") or d["vehicule"].get("date_achat", "")
                 # Couleur depuis la facture
                 couleur_raw = ext.get("couleur", "")
                 if couleur_raw:

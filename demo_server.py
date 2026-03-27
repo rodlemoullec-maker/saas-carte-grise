@@ -191,6 +191,14 @@ def extract_data(doc_type: str, text: str) -> dict:
         if m: data["denomination"] = m.group(1).strip()
         m = re.search(r"(?:V\.?9|[Cc]lasse\s*environnementale)\s*[:\s]*(EURO\s*\w+)", text)
         if m: data["classe_env"] = m.group(1).strip()
+        m = re.search(r"(?:F\.?1|[Mm]asse\s*(?:en\s*charge)?\s*max\w*\s*tech\w*\s*admiss\w*)\s*[:\s]*(\d+)\s*kg", text, re.IGNORECASE)
+        if m: data["masse_f1"] = m.group(1)
+        m = re.search(r"(?:G\b|[Mm]asse\s*en\s*service)\s*[:\s]*(\d+)\s*kg", text, re.IGNORECASE)
+        if m: data["masse_g"] = m.group(1)
+        m = re.search(r"(?:P\.?1|[Cc]ylindree)\s*[:\s]*(\d+)\s*cm", text, re.IGNORECASE)
+        if m: data["cylindree_p1"] = m.group(1)
+        m = re.search(r"(?:P\.?2|[Pp]uissance\s*nette\s*maximale)\s*[:\s]*(\d+)\s*kW", text, re.IGNORECASE)
+        if m: data["puissance_nette_p2"] = m.group(1)
 
     elif doc_type == "FACTURE":
         m = re.search(r"[Aa]cheteur|[Cc]lient\s*[:\s]*([A-Za-zÀ-ÿ\-\s]{2,60})", text)
@@ -204,6 +212,13 @@ def extract_data(doc_type: str, text: str) -> dict:
         if m: data["prix_ttc"] = m.group(1).strip()
         m = re.search(r"[Mm]arque\s*[:\s]*([A-Za-zÀ-ÿ\-\s]{2,30})", text)
         if m: data["marque"] = m.group(1).strip()
+        # Vendeur (premiere ligne du doc = nom du garage)
+        first_line = text.strip().split("\n")[0].strip()
+        if first_line and len(first_line) > 3 and first_line[0].isupper():
+            data["nom_vendeur"] = first_line
+        # Date de facture/vente
+        m = re.search(r"[Dd]ate\s*(?:de\s*)?(?:facture|vente)\s*[:\s]*(\d{2}/\d{2}/\d{4})", text)
+        if m: data["date_vente"] = m.group(1)
 
     elif doc_type == "DOMICILE":
         m = re.search(r"(?:[Nn]om|[Tt]itulaire|[Dd]estinataire)\s*[:\s]*([A-Za-zÀ-ÿ\- ]{2,60})", text)
