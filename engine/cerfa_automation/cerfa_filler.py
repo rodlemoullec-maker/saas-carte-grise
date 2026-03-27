@@ -18,7 +18,10 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-CERFA_URL = "https://www.service-public.gouv.fr/simulateur/calcul/13750"
+CERFA_URLS = {
+    "VN": "https://www.service-public.gouv.fr/simulateur/calcul/13749",
+    "VO": "https://www.service-public.gouv.fr/simulateur/calcul/13750",
+}
 USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 
 
@@ -28,7 +31,7 @@ class CerfaFiller:
     def __init__(self, headless: bool = True):
         self.headless = headless
 
-    def fill_and_download(self, data: dict, output_path: str | None = None) -> bytes:
+    def fill_and_download(self, data: dict, output_path: str | None = None, dossier_type: str = "VO") -> bytes:
         """
         Remplit le formulaire 4 etapes et telecharge le PDF.
 
@@ -48,8 +51,10 @@ class CerfaFiller:
             page.set_default_timeout(30000)
 
             try:
-                logger.info("Ouverture formulaire Cerfa 13750")
-                page.goto(CERFA_URL, wait_until="networkidle")
+                cerfa_url = CERFA_URLS.get(dossier_type, CERFA_URLS["VO"])
+                cerfa_num = "13749" if dossier_type == "VN" else "13750"
+                logger.info(f"Ouverture formulaire Cerfa {cerfa_num} ({dossier_type})")
+                page.goto(cerfa_url, wait_until="networkidle")
 
                 # Cookies
                 try:

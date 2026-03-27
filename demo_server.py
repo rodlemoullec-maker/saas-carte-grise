@@ -610,10 +610,11 @@ def generate_cerfa(dossier_id: str):
 
     # Construire les donnees pour le CerfaFiller
     data = CerfaFiller.build_data_from_dossier(dossier)
+    dossier_type = dossier.get("type", "VO")  # VN ou VO
 
     # Generer le PDF via Playwright (service-public.gouv.fr)
     filler = CerfaFiller(headless=True)
-    pdf_bytes = filler.fill_and_download(data)
+    pdf_bytes = filler.fill_and_download(data, dossier_type=dossier_type)
 
     return Response(
         content=pdf_bytes,
