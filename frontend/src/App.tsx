@@ -254,9 +254,12 @@ function DossierView({ dossierId, onBack }: { dossierId: string; onBack: () => v
   const uploadFiles = async (files: FileList) => {
     setUploading(true)
     for (const file of Array.from(files)) {
+      if (file.name.startsWith('.')) continue  // Ignorer fichiers systeme
       const form = new FormData()
       form.append('file', file)
-      await fetch(`${API}/dossiers/${dossierId}/upload`, { method: 'POST', body: form })
+      try {
+        await fetch(`${API}/dossiers/${dossierId}/upload`, { method: 'POST', body: form })
+      } catch (e) { /* ignore upload errors */ }
     }
     setUploading(false)
     reload()
@@ -277,7 +280,11 @@ function DossierView({ dossierId, onBack }: { dossierId: string; onBack: () => v
 
   return (
     <div>
-      <button onClick={onBack} className="text-blue-600 hover:text-blue-800 mb-4 text-sm">&larr; Retour</button>
+      <div className="flex items-center justify-between mb-4">
+        <button onClick={onBack} className="text-blue-600 hover:text-blue-800 text-sm">&larr; Retour au tableau de bord</button>
+        <button onClick={async () => { await fetch(`${API}/dossiers/${dossierId}`, {method:'DELETE'}); onBack() }}
+          className="text-red-400 hover:text-red-600 text-sm">Supprimer ce dossier</button>
+      </div>
 
       {/* Header */}
       <div className="flex items-center justify-between mb-6">

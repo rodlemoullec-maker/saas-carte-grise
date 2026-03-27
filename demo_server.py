@@ -69,12 +69,14 @@ DOC_TYPES = {
     ],
     "FACTURE": [
         ("facture n", 0.9), ("total ttc", 0.7), ("prix", 0.3),
-        ("tva", 0.4), ("vehicule neuf", 0.6),
+        ("tva", 0.4), ("vehicule neuf", 0.7), ("vehicule", 0.3),
+        ("siret", 0.3), ("garage", 0.4), ("acheteur", 0.3),
     ],
     "DOMICILE": [
-        ("edf", 0.6), ("engie", 0.6), ("electricite", 0.5),
-        ("quittance", 0.5), ("avis d'imposition", 0.7),
+        ("edf", 0.7), ("engie", 0.7), ("electricite", 0.5), ("gaz", 0.4),
+        ("quittance", 0.6), ("avis d'imposition", 0.7), ("taxe fonciere", 0.6),
         ("attestation d'hebergement", 0.7), ("impot", 0.4),
+        ("destinataire", 0.5), ("facture electricite", 0.8),
     ],
     "CG_BARREE": [
         ("certificat d'immatriculation", 0.6), ("carte grise", 0.6),
@@ -533,6 +535,11 @@ async def upload_document(dossier_id: str, file: UploadFile):
     if not dossier:
         raise HTTPException(404, "Dossier non trouve")
 
+    # Filtrer les fichiers systeme
+    fname = file.filename or ""
+    if fname.startswith(".") or fname in (".DS_Store", "Thumbs.db", "desktop.ini"):
+        raise HTTPException(422, f"Fichier systeme ignore : {fname}")
+
     file_bytes = await file.read()
     if len(file_bytes) == 0:
         raise HTTPException(422, "Fichier vide")
@@ -640,31 +647,29 @@ def generate_cerfa(dossier_id: str):
             d["vin"] = ext.get("vin") or d["vin"]
         elif doc["type"] == "CG_BARREE":
             d["immat"] = ext.get("immatriculation") or d["immat"]
+            d["vin"] = ext.get("vin") or d["vin"]
 
     # ─── Overlay sur le vrai Cerfa officiel ─────────────────────────────
     from pypdf import PdfReader, PdfWriter
     import io
+    is_vn = dossier["type"] == "VN"
     is_pm = dossier.get("is_personne_morale", False)
     sexe = dossier.get("client_sexe") or ""
     has_co_tit = bool(dossier.get("co_titulaire_nom"))
 
-    H = 841.89  # A4 height in points
+    H = 841.89
     ov = FPDF(unit="pt", format=(595.276, H))
     ov.add_page()
     ov.set_text_color(0, 0, 0)
-    ov.set_font("Helvetica", "", 9)
+    OFF = 6
 
-    OFF = 6  # offset vertical pour centrer le texte dans les zones blanches
-
-    def w(x, y, text, size=9, bold=True):
-        """Ecrit du texte. x,y = coordonnees PDF (origine bas-gauche)."""
+    def w(x, y, text, size=9):
         if not text: return
-        ov.set_font("Helvetica", "B" if bold else "", size)
+        ov.set_font("Helvetica", "B", size)
         ov.set_xy(x, H - y - OFF)
         ov.cell(200, 8, str(text))
 
     def wc(x, y, text, sp=9.5):
-        """Ecrit caractere par caractere (cases individuelles)."""
         if not text: return
         ov.set_font("Helvetica", "B", 9)
         for i, c in enumerate(str(text)):
@@ -672,71 +677,83 @@ def generate_cerfa(dossier_id: str):
             ov.cell(sp, 8, c, align="C")
 
     def wx(x, y):
-        """Place un X (checkbox)."""
         ov.set_font("Helvetica", "B", 11)
         ov.set_xy(x + 1, H - y - 3)
         ov.cell(6, 6, "X")
 
-    # ─── VEHICULE ─────────────────────────────────────────────────────
-    # Zones blanches = ~12pt sous chaque label
-    w(370, 645, d.get("marque", ""))                      # D.1 Marque (label y=650)
-    w(200, 604, d.get("cnit", ""))                        # D.2.1 CNIT (label y=609)
-    w(410, 604, d.get("vin", ""))                         # E VIN
-    w(210, 518, d.get("energie", ""))                     # P.3 Energie (label y=536, write in box below)
-    w(310, 518, d.get("puissance_cv", ""))                # P.6 Puissance
-    w(380, 494, str(d.get("co2", "")))                    # V.7 CO2 (label y=504)
-    w(420, 484, (d.get("modele") or "")[:35], size=8)     # D.3 Denomination
-
-    # ─── DEMANDEUR ────────────────────────────────────────────────────
-    if is_pm:
-        wx(247, 357)                                      # Personne morale (label y=355)
-    else:
-        wx(247, 367)                                      # Personne physique (label y=365)
-        if sexe.upper() == "M": wx(332, 367)
-        elif sexe.upper() == "F": wx(360, 367)
-
-    if has_co_tit:
-        w(558, 366, "2", size=10)
-
-    # ─── TITULAIRE ────────────────────────────────────────────────────
-    # Nom dans la zone entre "NOM DE NAISSANCE et PRENOM" (y=332) et "SIRET" (y=310)
+    # Donnees communes
     nom = f"{d.get('nom', '')} {d.get('prenoms', d.get('prenom', ''))}".strip().upper()
-    w(72, 325, nom, size=10)                              # Nom titulaire (entre label 332 et SIRET 310)
-
-    # Ne(e) le (label y=298) — zone ecriture y=293
     ddn = (d.get("date_naissance") or "").replace("/", "").replace(".", "")
-    wc(72, 293, ddn, sp=9.5)                              # Date chiffre par case
-
-    lieu = d.get("lieu_naissance") or ""
-    w(170, 293, lieu.upper(), size=9)                      # Lieu naissance (apres "a" x=160)
-
-    dept = ""
-    if lieu.upper() == "PARIS":
-        dept = "75"
-    elif d.get("cp"):
-        dept = d["cp"][:2]
-    wc(355, 293, dept, sp=9.5)                             # Departement (x=336 label)
-
+    lieu = (d.get("lieu_naissance") or "").upper()
+    dept = {"PARIS":"75","LYON":"69","MARSEILLE":"13","TOULOUSE":"31","NICE":"06",
+            "NANTES":"44","BORDEAUX":"33","LILLE":"59","STRASBOURG":"67"}.get(lieu, d.get("cp","")[:2] if d.get("cp") else "")
     pays = d.get("nationalite") or "France"
-    if pays.lower() in ("francaise", "francais"):
-        pays = "FRANCE"
-    w(440, 293, pays.upper(), size=9)                      # Pays (x=420 label)
+    pays = "FRANCE" if pays.lower() in ("francaise","francais") else pays.upper()
 
-    if has_co_tit:
-        co = f"{dossier.get('co_titulaire_nom','')} {dossier.get('co_titulaire_prenom','')}".strip()
-        w(77, 265, co.upper(), size=10)                      # Co-titulaire (label y=271)
+    if is_vn:
+        # ═══ CERFA 13749 (VN) ═══
+        w(370, 645, d.get("marque", ""))
+        w(200, 604, d.get("cnit", ""))
+        w(410, 604, d.get("vin", ""))
+        w(210, 518, d.get("energie", ""))
+        w(310, 518, d.get("puissance_cv", ""))
+        w(380, 494, str(d.get("co2", "")))
+        w(420, 484, (d.get("modele") or "")[:35], size=8)
 
-    # ─── DOMICILE ─────────────────────────────────────────────────────
-    # "N. de la voie" label y=162, "Domicile" label y=181
-    # Zone adresse = y~172 (entre Domicile 181 et N.voie 162)
-    w(35, 172, d.get("adresse", ""), size=9)
-    # Code postal label y=142, zone = y~148
-    wc(35, 148, d.get("cp", ""), sp=9.5)
-    w(120, 148, d.get("ville", ""), size=9)
+        if is_pm: wx(247, 357)
+        else:
+            wx(247, 367)
+            if sexe.upper() == "M": wx(332, 367)
+            elif sexe.upper() == "F": wx(360, 367)
+        if has_co_tit: w(560, 364, "2", size=10)
 
-    # Fusionner avec le Cerfa officiel
+        w(72, 325, nom, size=10)
+        wc(72, 293, ddn)
+        w(170, 293, lieu, size=9)
+        wc(355, 293, dept)
+        w(440, 293, pays, size=9)
+        if has_co_tit:
+            co = f"{dossier.get('co_titulaire_nom','')} {dossier.get('co_titulaire_prenom','')}".strip().upper()
+            w(77, 265, co, size=10)
+        w(35, 172, d.get("adresse", ""), size=9)
+        wc(35, 148, d.get("cp", ""))
+        w(120, 148, d.get("ville", ""), size=9)
+    else:
+        # ═══ CERFA 13750 (VO) ═══
+        # Vehicule (haut)
+        w(35, 685, d.get("immat", ""), size=10)
+        w(35, 636, d.get("marque", ""))
+        w(200, 636, (d.get("modele") or "")[:35], size=8)
+        w(35, 620, d.get("vin", ""), size=8)
+
+        # Demandeur
+        if is_pm: wx(295, 538)
+        else:
+            wx(200, 538)
+            if sexe.upper() == "M": wx(247, 538)
+            elif sexe.upper() == "F": wx(268, 538)
+
+        # Titulaire
+        w(35, 505, nom, size=10)
+        wc(35, 490, ddn[:2], sp=9.5)
+        wc(70, 490, ddn[2:4], sp=9.5)
+        wc(105, 490, ddn[4:], sp=9.5)
+        w(185, 490, lieu, size=9)
+        wc(385, 490, dept)
+        w(435, 490, pays, size=9)
+
+        # Domicile
+        w(35, 455, d.get("adresse", ""), size=9)
+        wc(35, 425, d.get("cp", ""))
+        w(120, 425, d.get("ville", ""), size=9)
+
+        if has_co_tit:
+            co = f"{dossier.get('co_titulaire_nom','')} {dossier.get('co_titulaire_prenom','')}".strip().upper()
+            w(83, 395, co, size=10)
+
     ov_bytes = bytes(ov.output())
-    tpl = Path("./data/cerfa_templates/cerfa_13749.pdf")
+    tpl_name = "cerfa_13749.pdf" if is_vn else "cerfa_13750.pdf"
+    tpl = Path(f"./data/cerfa_templates/{tpl_name}")
     if tpl.exists():
         orig = PdfReader(str(tpl))
         ov_pdf = PdfReader(io.BytesIO(ov_bytes))
