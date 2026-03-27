@@ -220,6 +220,28 @@ def extract_data(doc_type: str, text: str) -> dict:
         if m: data["lieu_naissance"] = m.group(1).strip()
         m = re.search(r"[Nn]ationalit[eé]\s*[:\s]*([A-Za-zÀ-ÿ\- ]{2,30})", text)
         if m: data["nationalite"] = m.group(1).strip()
+        # Format Google DocAI CNI (champs sur lignes separees)
+        if not data.get("nom"):
+            m = re.search(r"C\.?1\s+([A-Z]{2,30})", text)
+            if m: data["nom"] = m.group(1).strip()
+        if not data.get("prenoms"):
+            # Chercher prenom apres le nom (ligne suivante)
+            nom = data.get("nom", "")
+            if nom:
+                m = re.search(re.escape(nom) + r"\s*\n\s*([A-Z][a-zÀ-ÿ]{1,20})", text)
+                if m: data["prenoms"] = m.group(1).strip()
+        # MRZ extraction (CARIAN<<HADRIEN)
+        m = re.search(r"([A-Z]{2,20})<<([A-Z]{2,20})<", text)
+        if m:
+            if not data.get("nom"): data["nom"] = m.group(1)
+            if not data.get("prenoms"): data["prenoms"] = m.group(2)
+        # Adresse depuis Google DocAI
+        m = re.search(r"(\d+\s+(?:RUE|AVENUE|BOULEVARD|PLACE|IMPASSE|CHEMIN|ALLEE)\s+[A-Z\- ]{2,40})", text)
+        if m: data["adresse_cni"] = m.group(1).strip()
+        m = re.search(r"(\d{5})\s+([A-Z][A-Z ]{2,30})", text)
+        if m:
+            data["code_postal_cni"] = m.group(1)
+            data["ville_cni"] = m.group(2).strip()
         m = re.search(r"(?:n[eé]e?\s*le|[Dd]ate\s*de\s*naissance)\s*[:\s]*(\d{2}[./]\d{2}[./]\d{4})", text)
         if m: data["date_naissance"] = m.group(1)
         m = re.search(r"(?:expir|valid)\S*\s*[:\s]*(\d{2}[./]\d{2}[./]\d{4})", text, re.IGNORECASE)
@@ -740,6 +762,9 @@ def create_dossier(req: DossierCreate):
         "documents_vendeur": [],    # Docs deposes par le pro (COC, CG barree, facture)
         "documents_client": [],     # Docs deposes par le client (CNI, permis, domicile)
         "documents": [],            # Fusion des deux (pour le diagnostic + cerfa)
+        "cerfa_pdf": None,          # Cerfa genere (bytes stockes)
+        "cerfa_generated_at": None,
+        "messages_admin": [],       # Messages pour l'admin (verifications manuelles)
         "created_at": datetime.utcnow().isoformat(),
     }
     DOSSIERS[dossier_id] = dossier
@@ -824,20 +849,42 @@ async def upload_document(dossier_id: str, file: UploadFile, source: str = "vend
         "id": doc_id,
         "filename": file.filename,
         "type": doc_type,
-        "source": source,  # vendeur ou client
+        "source": source,
         "classification_confidence": confidence,
         "matched_keywords": keywords,
         "extracted_data": extracted,
+        "ocr_text": raw_text,  # Texte brut OCR (pour fusion recto/verso)
         "status": "EXTRACTED",
         "size_bytes": len(file_bytes),
     }
 
-    # Ajouter dans la bonne liste + la liste fusionnee
-    if source == "client":
-        dossier["documents_client"].append(doc)
+    # ─── Anti-doublon : si meme type deja present dans la meme source, fusionner ───
+    source_list = dossier["documents_client"] if source == "client" else dossier["documents_vendeur"]
+    existing = None
+    for d_existing in source_list:
+        if d_existing["type"] == doc_type:
+            existing = d_existing
+            break
+
+    if existing:
+        # Fusion recto/verso : concatener le texte OCR et re-extraire
+        merged_text = existing.get("ocr_text", "") + "\n" + raw_text
+        merged_extracted = extract_data(doc_type, merged_text)
+        # Garder les valeurs non-vides de chaque cote
+        for k, v in merged_extracted.items():
+            if v and not existing["extracted_data"].get(k):
+                existing["extracted_data"][k] = v
+        existing["ocr_text"] = merged_text
+        existing["filename"] = f"{existing['filename']} + {file.filename}"
+        existing["status"] = "MERGED"
+        logger.info(f"Fusion recto/verso: {doc_type} ({existing['filename']})")
+        doc = existing  # Retourner le doc fusionne
     else:
-        dossier["documents_vendeur"].append(doc)
-    dossier["documents"].append(doc)
+        # Nouveau document
+        source_list.append(doc)
+
+    # Reconstruire la liste fusionnee (sans doublon)
+    dossier["documents"] = dossier["documents_vendeur"] + dossier["documents_client"]
 
     return doc
 
@@ -877,6 +924,99 @@ def generate_cerfa(dossier_id: str):
     filler = CerfaFiller(headless=True)
     pdf_bytes = filler.fill_and_download(data, dossier_type=dossier_type)
 
+    # Stocker le Cerfa dans le dossier (espace admin)
+    import base64
+    dossier["cerfa_pdf"] = base64.b64encode(pdf_bytes).decode()
+    dossier["cerfa_generated_at"] = datetime.utcnow().isoformat()
+    dossier["status"] = "CERFA_GENERE"
+
+    # Messages admin : verification manuelle si attestation formation presente
+    has_attestation = any(d["type"] == "ATTESTATION_FORMATION" for d in dossier["documents"])
+    has_permis = any(d["type"] == "PERMIS" for d in dossier["documents"])
+    if has_attestation:
+        msg = {
+            "type": "VERIFICATION_MANUELLE",
+            "priority": "HAUTE",
+            "message": "Attestation de suivi de formation detectee — verifier la coherence avec le permis de conduire (categorie, date obtention B, n. permis)",
+            "documents_concernes": ["ATTESTATION_FORMATION", "PERMIS"],
+            "permis_present": has_permis,
+            "created_at": datetime.utcnow().isoformat(),
+        }
+        dossier["messages_admin"].append(msg)
+        logger.info(f"Message admin: verification attestation formation")
+
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="cerfa_{dossier["reference"]}.pdf"'},
+    )
+
+
+@app.get("/api/dossiers/{dossier_id}/admin")
+def admin_view(dossier_id: str):
+    """
+    Vue admin complete du dossier :
+    - Tous les docs vendeur + client (sans doublon)
+    - Le Cerfa genere
+    - Le diagnostic
+    - Les messages admin (verifications manuelles)
+    """
+    dossier = DOSSIERS.get(dossier_id)
+    if not dossier:
+        raise HTTPException(404, "Dossier non trouve")
+
+    # Resume docs par source
+    docs_vendeur = []
+    for d in dossier["documents_vendeur"]:
+        docs_vendeur.append({
+            "type": d["type"],
+            "filename": d["filename"],
+            "status": d["status"],
+            "extracted_fields": len([k for k, v in d.get("extracted_data", {}).items() if v and k != "dates_detectees"]),
+        })
+
+    docs_client = []
+    for d in dossier["documents_client"]:
+        docs_client.append({
+            "type": d["type"],
+            "filename": d["filename"],
+            "status": d["status"],
+            "extracted_fields": len([k for k, v in d.get("extracted_data", {}).items() if v and k != "dates_detectees"]),
+        })
+
+    return {
+        "reference": dossier["reference"],
+        "type": dossier["type"],
+        "status": dossier["status"],
+        "diagnostic": dossier["diagnostic"],
+        "client_nom": dossier.get("client_nom"),
+        "client_prenom": dossier.get("client_prenom"),
+        "is_personne_morale": dossier.get("is_personne_morale"),
+        "documents_vendeur": docs_vendeur,
+        "documents_client": docs_client,
+        "total_documents": len(docs_vendeur) + len(docs_client),
+        "cerfa_genere": dossier.get("cerfa_pdf") is not None,
+        "cerfa_generated_at": dossier.get("cerfa_generated_at"),
+        "blocages": dossier.get("blocages", []),
+        "warnings": dossier.get("warnings", []),
+        "infos": dossier.get("infos", []),
+        "tax_estimate": dossier.get("tax_estimate"),
+        "messages_admin": dossier.get("messages_admin", []),
+        "created_at": dossier.get("created_at"),
+    }
+
+
+@app.get("/api/dossiers/{dossier_id}/admin/cerfa")
+def admin_download_cerfa(dossier_id: str):
+    """Telecharge le Cerfa stocke dans l'espace admin."""
+    import base64
+    dossier = DOSSIERS.get(dossier_id)
+    if not dossier:
+        raise HTTPException(404, "Dossier non trouve")
+    if not dossier.get("cerfa_pdf"):
+        raise HTTPException(404, "Cerfa pas encore genere")
+
+    pdf_bytes = base64.b64decode(dossier["cerfa_pdf"])
     return Response(
         content=pdf_bytes,
         media_type="application/pdf",
