@@ -15,7 +15,10 @@ interface Dossier {
   warnings: any[]
   tax_estimate: any | null
   phase0: any | null
+  is_personne_morale: boolean
   documents: DocItem[]
+  documents_vendeur: DocItem[]
+  documents_client: DocItem[]
   created_at: string
 }
 
@@ -323,11 +326,20 @@ function DossierView({ dossierId, onBack }: { dossierId: string; onBack: () => v
         {/* Client */}
         <div className="border-2 border-dashed rounded-lg p-6 text-center border-green-200 bg-green-50/30">
           <div className="font-medium text-green-700 mb-2">Espace Client (Acheteur)</div>
-          <p className="text-xs text-green-500 mb-3">CNI, permis, justificatif domicile</p>
+          <p className="text-xs text-green-500 mb-3">
+            {dossier.is_personne_morale
+              ? 'Kbis, CNI representant legal, justificatif domicile siege'
+              : 'CNI, permis, justificatif domicile'}
+          </p>
+          {dossier.is_personne_morale && (
+            <div className="mb-3 p-2 bg-orange-50 border border-orange-200 rounded text-xs text-orange-700">
+              Personne morale : le Kbis est obligatoire
+            </div>
+          )}
           <input type="file" multiple onChange={e => e.target.files && uploadFiles(e.target.files, 'client')}
             className="hidden" id="file-client" />
           <label htmlFor="file-client" className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm cursor-pointer">
-            {uploading ? 'Upload...' : 'Deposer les docs identite'}
+            {uploading ? 'Upload...' : dossier.is_personne_morale ? 'Deposer Kbis + docs' : 'Deposer les docs identite'}
           </label>
         </div>
       </div>

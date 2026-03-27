@@ -82,6 +82,11 @@ DOC_TYPES = {
         ("certificat d'immatriculation", 0.6), ("carte grise", 0.6),
         ("vendu le", 0.9), ("formule", 0.3), ("titulaire", 0.3),
     ],
+    "KBIS": [
+        ("kbis", 1.0), ("extrait du registre", 0.9), ("greffe", 0.7),
+        ("tribunal de commerce", 0.7), ("commerce et des societes", 0.6),
+        ("raison sociale", 0.5), ("siren", 0.4),
+    ],
 }
 
 
@@ -307,11 +312,16 @@ def run_diagnostic(dossier: dict) -> dict:
     for d in docs:
         by_type.setdefault(d["type"], []).append(d)
 
+    is_pm = dossier.get("is_personne_morale", False)
+    # Detection auto personne morale si Kbis present
+    if "KBIS" in by_type:
+        is_pm = True
+        dossier["is_personne_morale"] = True
+
     # ─── 1. Pieces presentes / manquantes ─────────────────────────────────
     required_common = {
         "CNI": "Piece d'identite (CNI ou passeport)",
         "DOMICILE": "Justificatif de domicile",
-        "PERMIS": "Permis de conduire",
     }
     required_vn = {"COC": "Certificat de conformite (COC)", "FACTURE": "Facture vehicule neuf"}
     required_vo = {"CG_BARREE": "Carte grise barree"}
@@ -323,6 +333,13 @@ def run_diagnostic(dossier: dict) -> dict:
         required.update(required_vn)
     else:
         required.update(required_vo)
+
+    # Personne morale : Kbis obligatoire, permis non requis
+    if is_pm:
+        required["KBIS"] = "Kbis (personne morale - obligatoire)"
+        required.pop("PERMIS", None)  # Pas de permis pour PM
+    else:
+        required["PERMIS"] = "Permis de conduire"
 
     # CNI ou PASSEPORT comptent pour "CNI"
     types_present = set(by_type.keys())
