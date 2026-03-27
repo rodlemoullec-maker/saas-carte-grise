@@ -1,29 +1,59 @@
-CERTIFICAT DE CONFORMITE
+CERTIFICAT DE CONFORMITE CEE
 CERTIFICATE OF CONFORMITY - COC
+pour vehicules complets
 
-Constructeur: RENAULT SAS
+Le soussigne
 Soussigne: RENAULT SAS
+General Manager Quality Assurance Department
+
 Reception par type le: 15/01/2025
 sous le n. (K): e2*2018/858*00123
 
+0.1 Marque: RENAULT
+0.2 Type: BB1KZ1
+    Variante: KZ1
+    Version: 1
+0.2.1 CNIT: FE123456A
 D.1 Marque: RENAULT
 D.2 Type Variante Version: BB1KZ1
 D.2.1 CNIT: FE123456A
 D.3 Denomination commerciale: CLIO V TCE 100
 E VIN: WBA3A5C50CF256789
 
+0.4 Categorie vehicule: M1
+J Categorie: M1
+J.1 Genre national: VP
+J.2 Carrosserie CE: CI
+J.3 Carrosserie nationale: BERLINE
+
+13 Masse du vehicule en ordre de marche (kg): 1200
 F.1 Masse en charge max tech admissible: 1760 kg
 F.2 PTAC Masse en charge maximale: 1600 kg
+F.3 Masse en charge maxi de l ensemble: 2760 kg
 G Masse en service: 1200 kg
-J Genre national: VP
-J.1 Carrosserie: CI
+G.1 Poids a vide national: 1150 kg
+
 P.1 Cylindree: 999 cm3
 P.2 Puissance nette maximale: 74 kW
 P.3 Carburant: Essence
 P.6 Puissance administrative: 5 CV
 S.1 Places assises: 5
+S.2 Places debout: 0
 
+U.1 Niveau sonore a l arret: 72 dB(A)
+U.2 Vitesse du moteur: 4500 min-1
 V.7 CO2 WLTP: 119 g/km
 V.9 Classe environnementale: EURO 6
 
+40 Couleur du vehicule: gris
+
 Homologation CE e2*2018/858*00123
+
+conforme a tous egards au type decrit dans la reception
+delivree le 30 juin 2023
+et peut etre immatricule a titre permanent dans les Etats membres
+avec conduite a droite
+
+Lieu: Boulogne-Billancourt
+Date: 15/01/2025
+Signature: [signe]

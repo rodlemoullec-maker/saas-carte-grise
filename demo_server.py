@@ -199,6 +199,23 @@ def extract_data(doc_type: str, text: str) -> dict:
         if m: data["cylindree_p1"] = m.group(1)
         m = re.search(r"(?:P\.?2|[Pp]uissance\s*nette\s*maximale)\s*[:\s]*(\d+)\s*kW", text, re.IGNORECASE)
         if m: data["puissance_nette_p2"] = m.group(1)
+        # Champs supplementaires pour Cerfa complet
+        m = re.search(r"(?:F\.?3|[Mm]asse\s*(?:en\s*charge)?\s*maxi?\s*(?:de\s*l)?\s*ensemble)\s*[:\s]*(\d+)\s*kg", text, re.IGNORECASE)
+        if m: data["masse_f3"] = m.group(1)
+        m = re.search(r"(?:G\.?1|[Pp]oids\s*a\s*vide\s*national)\s*[:\s]*(\d+)\s*kg", text, re.IGNORECASE)
+        if m: data["poids_vide_g1"] = m.group(1)
+        m = re.search(r"(?:J\b|[Cc]ategorie(?:\s*vehicule)?)\s*[:\s]*(M\d|N\d|L\d)", text)
+        if m: data["categorie_j"] = m.group(1)
+        m = re.search(r"(?:J\.?2|[Cc]arrosserie\s*CE)\s*[:\s]*([A-Z]{2})", text)
+        if m: data["carrosserie_j2"] = m.group(1)
+        m = re.search(r"(?:J\.?3|[Cc]arrosserie\s*nationale)\s*[:\s]*([A-Z]{2,15})", text)
+        if m: data["carrosserie_j3"] = m.group(1)
+        m = re.search(r"(?:U\.?1|[Nn]iveau\s*sonore)\s*[:\s]*(\d+)\s*dB", text, re.IGNORECASE)
+        if m: data["niveau_sonore_u1"] = m.group(1)
+        m = re.search(r"(?:U\.?2|[Vv]itesse\s*du\s*moteur)\s*[:\s]*(\d+)\s*min", text, re.IGNORECASE)
+        if m: data["vitesse_moteur_u2"] = m.group(1)
+        m = re.search(r"(?:S\.?2|[Pp]laces\s*debout)\s*[:\s]*(\d+)", text)
+        if m: data["places_debout_s2"] = m.group(1)
 
     elif doc_type == "FACTURE":
         m = re.search(r"[Aa]cheteur|[Cc]lient\s*[:\s]*([A-Za-zÀ-ÿ\-\s]{2,60})", text)
