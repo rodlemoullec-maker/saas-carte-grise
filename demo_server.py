@@ -189,6 +189,8 @@ def extract_data(doc_type: str, text: str) -> dict:
         if m: data["genre_national"] = m.group(1).strip()
         m = re.search(r"[Dd]enomination\s*commerciale\s*[:\s]*(.{2,50})", text)
         if m: data["denomination"] = m.group(1).strip()
+        m = re.search(r"(?:V\.?9|[Cc]lasse\s*environnementale)\s*[:\s]*(EURO\s*\w+)", text)
+        if m: data["classe_env"] = m.group(1).strip()
 
     elif doc_type == "FACTURE":
         m = re.search(r"[Aa]cheteur|[Cc]lient\s*[:\s]*([A-Za-zÀ-ÿ\-\s]{2,60})", text)

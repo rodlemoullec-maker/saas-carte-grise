@@ -117,20 +117,36 @@ class CerfaFiller:
     # ─── VN (13749) specifique ──────────────────────────────────────
 
     def _fill_vn_page1(self, page, data: dict):
-        """P1 VN: identification vehicule."""
+        """P1 VN: identification vehicule — tous les champs COC."""
         page.click("#identification_vehicule_choix_1")  # Du constructeur
+        time.sleep(0.5)
         v = data.get("vehicule", {})
+
+        # Remplir soussigne/reception/K (visibles dans tous les modes)
         self._fill(page, "#identification_vehicule_soussigne", v.get("soussigne"))
         self._fill(page, "#identification_vehicule_reception", v.get("date_reception"))
         self._fill(page, "#identification_vehicule_numero_K", v.get("numero_k"))
-        # COC = Non pour que les champs vehicule soient visibles et remplissables
-        # (COC = Oui masque les champs car le site attend un COC electronique)
-        page.click("#identification_vehicule_presence_coc_2")
-        time.sleep(0.5)
+
+        # COC = Non → affiche TOUS les champs vehicule (30 champs)
+        # COC = Oui → n'affiche que D.1, D.2, D.2.1, E
+        page.click("#identification_vehicule_presence_coc_2")  # Non
+        time.sleep(1)  # Attendre que les champs apparaissent
+
+        # Champs obligatoires
         self._fill(page, "#identification_vehicule_marque_D_1", v.get("marque"))
         self._fill(page, "#identification_vehicule_type_D_2", v.get("type_variante_version"))
         self._fill(page, "#identification_vehicule_code_national_D_2_1", v.get("cnit"))
         self._fill(page, "#identification_vehicule_id_vehicule_E", v.get("numero_identification"))
+        self._fill(page, "#identification_vehicule_denomination_D3", v.get("denomination_commerciale"))
+
+        # Champs techniques (visibles seulement avec COC=Non)
+        self._fill(page, "#identification_vehicule_genre_national_J_1", v.get("genre_national"))
+        self._fill(page, "#identification_vehicule_carburant_P_3", v.get("energie"))
+        self._fill(page, "#identification_vehicule_puissance_admin_P_6", v.get("puissance_cv"))
+        self._fill(page, "#identification_vehicule_co2_V_7", v.get("co2_wltp"))
+        self._fill(page, "#identification_vehicule_places_assises_S_1", v.get("places"))
+        self._fill(page, "#identification_vehicule_masse_etat_F_2", v.get("ptac_kg"))
+        self._fill(page, "#identification_vehicule_classe_env_V_9", v.get("classe_env"))
         # Couleur
         nuance = v.get("couleur_nuance", "")
         if nuance == "fonce":
@@ -309,6 +325,12 @@ class CerfaFiller:
                 d["vehicule"]["soussigne"] = ext.get("soussigne", "")
                 d["vehicule"]["date_reception"] = ext.get("date_reception", "")
                 d["vehicule"]["numero_k"] = ext.get("numero_k", "")
+                d["vehicule"]["energie"] = ext.get("energie", "")
+                d["vehicule"]["puissance_cv"] = str(ext.get("puissance_cv") or "")
+                d["vehicule"]["co2_wltp"] = str(ext.get("co2_wltp") or "")
+                d["vehicule"]["places"] = str(ext.get("places") or "")
+                d["vehicule"]["ptac_kg"] = str(ext.get("ptac_kg") or "")
+                d["vehicule"]["classe_env"] = ext.get("classe_env", "")
 
             elif dtype == "FACTURE":
                 d["vehicule"]["numero_identification"] = ext.get("vin") or d["vehicule"].get("numero_identification", "")
