@@ -534,7 +534,9 @@ def create_dossier(req: DossierCreate):
         "warnings": [],
         "infos": [],
         "tax_estimate": None,
-        "documents": [],
+        "documents_vendeur": [],    # Docs deposes par le pro (COC, CG barree, facture)
+        "documents_client": [],     # Docs deposes par le client (CNI, permis, domicile)
+        "documents": [],            # Fusion des deux (pour le diagnostic + cerfa)
         "created_at": datetime.utcnow().isoformat(),
     }
     DOSSIERS[dossier_id] = dossier
@@ -555,7 +557,12 @@ def get_dossier(dossier_id: str):
 
 
 @app.post("/api/dossiers/{dossier_id}/upload")
-async def upload_document(dossier_id: str, file: UploadFile):
+async def upload_document(dossier_id: str, file: UploadFile, source: str = "vendeur"):
+    """
+    Upload un document. source = 'vendeur' ou 'client'.
+    Le vendeur depose : COC, CG barree, facture
+    Le client depose : CNI, permis, justificatif domicile
+    """
     dossier = DOSSIERS.get(dossier_id)
     if not dossier:
         raise HTTPException(404, "Dossier non trouve")
@@ -595,12 +602,19 @@ async def upload_document(dossier_id: str, file: UploadFile):
         "id": doc_id,
         "filename": file.filename,
         "type": doc_type,
+        "source": source,  # vendeur ou client
         "classification_confidence": confidence,
         "matched_keywords": keywords,
         "extracted_data": extracted,
         "status": "EXTRACTED",
         "size_bytes": len(file_bytes),
     }
+
+    # Ajouter dans la bonne liste + la liste fusionnee
+    if source == "client":
+        dossier["documents_client"].append(doc)
+    else:
+        dossier["documents_vendeur"].append(doc)
     dossier["documents"].append(doc)
 
     return doc

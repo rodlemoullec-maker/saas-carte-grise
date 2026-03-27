@@ -246,20 +246,19 @@ function DossierView({ dossierId, onBack }: { dossierId: string; onBack: () => v
   const [dossier, setDossier] = useState<Dossier | null>(null)
   const [uploading, setUploading] = useState(false)
   const [running, setRunning] = useState(false)
-  const [dragOver, setDragOver] = useState(false)
 
   const reload = () => fetch(`${API}/dossiers/${dossierId}`).then(r => r.json()).then(setDossier)
   useEffect(() => { reload() }, [dossierId])
 
-  const uploadFiles = async (files: FileList) => {
+  const uploadFiles = async (files: FileList, source: string = 'vendeur') => {
     setUploading(true)
     for (const file of Array.from(files)) {
-      if (file.name.startsWith('.')) continue  // Ignorer fichiers systeme
+      if (file.name.startsWith('.')) continue
       const form = new FormData()
       form.append('file', file)
       try {
-        await fetch(`${API}/dossiers/${dossierId}/upload`, { method: 'POST', body: form })
-      } catch (e) { /* ignore upload errors */ }
+        await fetch(`${API}/dossiers/${dossierId}/upload?source=${source}`, { method: 'POST', body: form })
+      } catch (e) { /* ignore */ }
     }
     setUploading(false)
     reload()
@@ -309,33 +308,44 @@ function DossierView({ dossierId, onBack }: { dossierId: string; onBack: () => v
         </div>
       )}
 
-      {/* Upload zone */}
-      <div
-        onDragOver={e => { e.preventDefault(); setDragOver(true) }}
-        onDragLeave={() => setDragOver(false)}
-        onDrop={e => { e.preventDefault(); setDragOver(false); uploadFiles(e.dataTransfer.files) }}
-        className={`border-2 border-dashed rounded-lg p-8 text-center mb-6 transition ${dragOver ? 'border-blue-400 bg-blue-50' : 'border-gray-300'}`}>
-        <p className="text-gray-500 mb-2">{uploading ? 'Upload en cours...' : 'Glissez vos documents ici'}</p>
-        <input type="file" multiple onChange={e => e.target.files && uploadFiles(e.target.files)}
-          className="hidden" id="file-input" />
-        <label htmlFor="file-input" className="text-blue-600 hover:text-blue-800 cursor-pointer text-sm">
-          ou cliquez pour selectionner
-        </label>
-        <p className="text-xs text-gray-400 mt-2">PDF, JPG, PNG — 10 MB max par fichier</p>
+      {/* Upload zones — vendeur + client */}
+      <div className="grid grid-cols-2 gap-4 mb-6">
+        {/* Vendeur */}
+        <div className="border-2 border-dashed rounded-lg p-6 text-center border-blue-200 bg-blue-50/30">
+          <div className="font-medium text-blue-700 mb-2">Espace Vendeur (Pro)</div>
+          <p className="text-xs text-blue-500 mb-3">COC, CG barree, facture</p>
+          <input type="file" multiple onChange={e => e.target.files && uploadFiles(e.target.files, 'vendeur')}
+            className="hidden" id="file-vendeur" />
+          <label htmlFor="file-vendeur" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm cursor-pointer">
+            {uploading ? 'Upload...' : 'Deposer les docs vehicule'}
+          </label>
+        </div>
+        {/* Client */}
+        <div className="border-2 border-dashed rounded-lg p-6 text-center border-green-200 bg-green-50/30">
+          <div className="font-medium text-green-700 mb-2">Espace Client (Acheteur)</div>
+          <p className="text-xs text-green-500 mb-3">CNI, permis, justificatif domicile</p>
+          <input type="file" multiple onChange={e => e.target.files && uploadFiles(e.target.files, 'client')}
+            className="hidden" id="file-client" />
+          <label htmlFor="file-client" className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm cursor-pointer">
+            {uploading ? 'Upload...' : 'Deposer les docs identite'}
+          </label>
+        </div>
       </div>
 
-      {/* Documents list */}
+      {/* Documents list — par source */}
       {dossier.documents.length > 0 && (
         <div className="bg-white rounded-lg shadow mb-6">
           <div className="px-4 py-3 border-b bg-gray-50 font-medium text-sm text-gray-600">
-            {dossier.documents.length} document(s) uploade(s)
+            {dossier.documents.length} document(s) — Vendeur: {dossier.documents.filter((d: any) => d.source !== 'client').length} | Client: {dossier.documents.filter((d: any) => d.source === 'client').length}
           </div>
           {dossier.documents.map(doc => (
             <div key={doc.id} className="px-4 py-3 border-b last:border-0 flex items-center justify-between">
               <div>
+                <span className={`text-xs px-1.5 py-0.5 rounded mr-2 ${(doc as any).source === 'client' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}>
+                  {(doc as any).source === 'client' ? 'Client' : 'Vendeur'}
+                </span>
                 <span className="text-sm font-medium">{doc.filename}</span>
                 <span className="ml-2 px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-600">{doc.type}</span>
-                <span className="ml-2 text-xs text-gray-400">confiance: {Math.round(doc.classification_confidence * 100)}%</span>
               </div>
               <span className={`text-xs px-2 py-0.5 rounded ${doc.status === 'EXTRACTED' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
                 {doc.status}
