@@ -1,0 +1,706 @@
+[
+  {
+    "tag": "input",
+    "name": "keyword",
+    "id": "header-search-input",
+    "type": "search",
+    "placeholder": "Rechercher sur le site"
+  },
+  {
+    "tag": "input",
+    "name": "Certificat",
+    "id": "Certificat",
+    "type": "text"
+  },
+  {
+    "tag": "input",
+    "name": "valeurNumeroImma",
+    "id": "valeurNumeroImma",
+    "type": "text"
+  },
+  {
+    "tag": "input",
+    "name": "Jour1_concat",
+    "id": "Jour1_concat",
+    "type": "text",
+    "placeholder": "JJ/MM/AAAA"
+  },
+  {
+    "tag": "input",
+    "name": "Jour2_concat",
+    "id": "Jour2_concat",
+    "type": "text",
+    "placeholder": "JJ/MM/AAAA"
+  },
+  {
+    "tag": "input",
+    "name": "Jour3_concat",
+    "id": "Jour3_concat",
+    "type": "text",
+    "placeholder": "JJ/MM/AAAA"
+  },
+  {
+    "tag": "input",
+    "name": "Newformatimma",
+    "id": "Newformatimma",
+    "type": "text"
+  },
+  {
+    "tag": "input",
+    "name": "Marque",
+    "id": "Marque",
+    "type": "text"
+  },
+  {
+    "tag": "input",
+    "name": "DenominationCommerciale",
+    "id": "DenominationCommerciale",
+    "type": "text"
+  },
+  {
+    "tag": "input",
+    "name": "TypeVarianteVersion",
+    "id": "TypeVarianteVersion",
+    "type": "text"
+  },
+  {
+    "tag": "input",
+    "name": "NumeroIdentificationVehicule",
+    "id": "NumeroIdentificationVehicule",
+    "type": "text"
+  },
+  {
+    "tag": "input",
+    "name": "GenreNational",
+    "id": "GenreNational",
+    "type": "text"
+  },
+  {
+    "tag": "input",
+    "name": "NumeroExploitationAgricole",
+    "id": "NumeroExploitationAgricole",
+    "type": "text"
+  },
+  {
+    "tag": "input",
+    "name": "nuance",
+    "id": "nuance_1",
+    "type": "radio",
+    "value": "1"
+  },
+  {
+    "tag": "input",
+    "name": "nuance",
+    "id": "nuance_2",
+    "type": "radio",
+    "value": "0"
+  },
+  {
+    "tag": "input",
+    "name": "couleur[]",
+    "id": "couleur_1_1",
+    "type": "checkbox",
+    "value": "1"
+  },
+  {
+    "tag": "input",
+    "name": "couleur[]",
+    "id": "couleur_2_2",
+    "type": "checkbox",
+    "value": "2"
+  },
+  {
+    "tag": "input",
+    "name": "couleur[]",
+    "id": "couleur_3_3",
+    "type": "checkbox",
+    "value": "3"
+  },
+  {
+    "tag": "input",
+    "name": "couleur[]",
+    "id": "couleur_4_4",
+    "type": "checkbox",
+    "value": "4"
+  },
+  {
+    "tag": "input",
+    "name": "couleur[]",
+    "id": "couleur_5_5",
+    "type": "checkbox",
+    "value": "5"
+  },
+  {
+    "tag": "input",
+    "name": "couleur[]",
+    "id": "couleur_6_6",
+    "type": "checkbox",
+    "value": "6"
+  },
+  {
+    "tag": "input",
+    "name": "couleur[]",
+    "id": "couleur_7_7",
+    "type": "checkbox",
+    "value": "7"
+  },
+  {
+    "tag": "input",
+    "name": "couleur[]",
+    "id": "couleur_8_8",
+    "type": "checkbox",
+    "value": "8"
+  },
+  {
+    "tag": "input",
+    "name": "couleur[]",
+    "id": "couleur_9_9",
+    "type": "checkbox",
+    "value": "9"
+  },
+  {
+    "tag": "input",
+    "name": "couleur[]",
+    "id": "couleur_10_10",
+    "type": "checkbox",
+    "value": "10"
+  },
+  {
+    "tag": "input",
+    "name": "Vehiculenumeroimmaactuel",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "Jour1",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "Jour2",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "Jour3",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "clair",
+    "type": "hidden",
+    "value": "0"
+  },
+  {
+    "tag": "input",
+    "name": "fonce",
+    "type": "hidden",
+    "value": "0"
+  },
+  {
+    "tag": "input",
+    "name": "noir",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "marron",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "rouge",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "orange",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "jaune",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "vert",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "bleu",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "beige",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "gris",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "blanc",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "Groupe_de_boutons_radio",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "Personne",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "Sexe",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "FamilyName",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "NomPrenomTitulaire",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "RaisonSocialeTitu",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "N_SIREN",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "Name",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "Jour4",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "CityName1",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "DPT",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "Pays",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "Adresse",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "Adresse_1_",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "BuildingNumber",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "BlockName",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "RoadType",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "StreetName",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "Adresse_2_",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "telPorTitulaire",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "Postcode",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "CityName2",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "mailTitulaire",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "mutlipropriete",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "Multi_propriete",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "Co_titulaire",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "Nomusage2",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "N_SIREN2",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "louPersonne",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "LouSexe",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "louN_SIREN",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "louFamilyName",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "louName",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "louAdresse",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "louAdresse_1_",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "louBuildingNumber",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "louBlockName",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "louRoadType",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "louStreetName",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "louAdresse_2_",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "telPorLoueur",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "louPostcode",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "louCityName2",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "mailLoueur",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "locPersonne",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "LocSexe",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "locN_SIREN",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "locFamilyName",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "locName",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "locAdresse",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "locAdresse_1_",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "locBuildingNumber",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "locBlockName",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "locRoadType",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "locStreetName",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "locAdresse_2_",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "telPorLocataire",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "locPostcode",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "locCityName2",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "mailLocataire",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "FaitATitulaire",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "LeTitulaire",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "FaitALoueur",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "LeLoueur",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "FaitALocataire",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "LeLocataire",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "Case_a_cocher_titulaire",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "Case_a_cocher_loueur",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "Case_a_cocher_locataire",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "co_titulaire_type",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "nomPrenomCoTitulaire",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "RaisonSocialeCoTitulaire",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "Jour4_concat",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "RaisonSocialeLoueur",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "RaisonSocialeLocataire",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "vehiculeLocation",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "nomPrenomLoueur",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "nomPrenomLocataire",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "loueurLocataire",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "step",
+    "type": "hidden",
+    "value": "1"
+  },
+  {
+    "tag": "input",
+    "name": "sequence",
+    "type": "hidden"
+  },
+  {
+    "tag": "input",
+    "name": "script",
+    "type": "hidden",
+    "value": "1"
+  },
+  {
+    "tag": "input",
+    "name": "view",
+    "type": "hidden",
+    "value": "dsfr-particuliers"
+  },
+  {
+    "tag": "input",
+    "name": "recaptcha",
+    "type": "hidden",
+    "value": "<YOUR GOOGLE SITE KEY>"
+  },
+  {
+    "tag": "input",
+    "name": "visible_datas_in_pdf",
+    "id": "visible_datas_in_pdf",
+    "type": "hidden",
+    "value": "{}"
+  },
+  {
+    "tag": "input",
+    "name": "_csrf_token",
+    "type": "hidden",
+    "value": "6ac7df39407.KuPD5AAk7b8JqWyGz0ax2Wfr8xn8Xad6RgOjXlapW6M.U5qLijAdne1x8Tnkrj-ciiCFv124E8AMDkTULRzjGpteoJrWbGm63VDLHw"
+  },
+  {
+    "tag": "input",
+    "id": "envoi-mail-1",
+    "type": "text"
+  },
+  {
+    "tag": "input",
+    "id": "envoi-mail-2",
+    "type": "text"
+  },
+  {
+    "tag": "input",
+    "id": "envoi-mail-3",
+    "type": "text"
+  },
+  {
+    "tag": "textarea",
+    "id": "envoi-mail-4"
+  }
+]

@@ -1,0 +1,49 @@
+2026-03-27 14:52:11,134 [INFO] Ouverture https://www.service-public.gouv.fr/simulateur/calcul/13750
+2026-03-27 14:52:17,393 [INFO] Page chargee : 13750*07 - Demande de certificat d'immatriculation d'un véhicule - Service-Public.fr
+2026-03-27 14:52:47,439 [WARNING] Demarche certificat non trouvee : Page.click: Timeout 30000ms exceeded.
+Call log:
+  - waiting for locator("#Certificat")
+    - locator resolved to <input value="" type="text" id="Certificat" name="Certificat" aria-hidden="true" class="listbox-input"/>
+  - attempting click action
+    2 × waiting for element to be visible, enabled and stable
+      - element is not visible
+    - retrying click action
+    - waiting 20ms
+    2 × waiting for element to be visible, enabled and stable
+      - element is not visible
+    - retrying click action
+      - waiting 100ms
+    57 × waiting for element to be visible, enabled and stable
+       - element is not visible
+     - retrying click action
+       - waiting 500ms
+
+2026-03-27 14:52:47,557 [WARNING] Element non trouve : input[value='Personne physique']
+2026-03-27 14:52:47,558 [WARNING] Element non trouve : input[value='M']
+2026-03-27 14:52:47,558 [WARNING] Champ non trouve : #FamilyName
+2026-03-27 14:52:47,559 [WARNING] Champ non trouve : #NomPrenomTitulaire
+2026-03-27 14:52:47,560 [WARNING] Champ non trouve : #Jour4_concat
+2026-03-27 14:52:47,561 [WARNING] Champ non trouve : #Commune_naissance
+2026-03-27 14:52:47,561 [WARNING] Champ non trouve : #Departement_naissance
+2026-03-27 14:52:47,562 [WARNING] Champ non trouve : #Pays_naissance
+2026-03-27 14:52:47,563 [WARNING] Champ non trouve : #NumeroVoie
+2026-03-27 14:52:47,564 [WARNING] Champ non trouve : #TypeVoie
+2026-03-27 14:52:47,564 [WARNING] Champ non trouve : #LibelleVoie
+2026-03-27 14:52:47,565 [WARNING] Champ non trouve : #CodePostal
+2026-03-27 14:52:47,566 [WARNING] Champ non trouve : #Commune
+2026-03-27 14:52:47,566 [WARNING] Champ non trouve : #Telephone
+2026-03-27 14:52:47,567 [WARNING] Champ non trouve : #Email
+2026-03-27 14:52:47,567 [INFO] Formulaire rempli - generation du PDF
+2026-03-27 14:53:17,571 [WARNING] Tentative 1/3 echouee : Timeout 30000ms exceeded while waiting for event "download"
+=========================== logs ===========================
+waiting for event "download"
+============================================================
+2026-03-27 14:53:49,579 [WARNING] Tentative 2/3 echouee : Timeout 30000ms exceeded while waiting for event "download"
+=========================== logs ===========================
+waiting for event "download"
+============================================================
+2026-03-27 14:54:21,589 [WARNING] Tentative 3/3 echouee : Timeout 30000ms exceeded while waiting for event "download"
+=========================== logs ===========================
+waiting for event "download"
+============================================================
+2026-03-27 14:54:21,589 [ERROR] Erreur : Echec telechargement PDF apres 3 tentatives
