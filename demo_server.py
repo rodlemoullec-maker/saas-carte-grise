@@ -87,6 +87,13 @@ DOC_TYPES = {
         ("tribunal de commerce", 0.7), ("commerce et des societes", 0.6),
         ("raison sociale", 0.5), ("siren", 0.4),
     ],
+    "ATTESTATION_FORMATION": [
+        ("attestation de formation", 1.0), ("suivi de formation", 0.9),
+        ("formation 7 heures", 0.8), ("formation 7h", 0.8),
+        ("125", 0.3), ("equivalence", 0.4), ("a1", 0.3), ("a2", 0.3),
+        ("conduite accompagnee", 0.5), ("ecole de conduite", 0.5),
+        ("auto-ecole", 0.5), ("moto-ecole", 0.6),
+    ],
 }
 
 
