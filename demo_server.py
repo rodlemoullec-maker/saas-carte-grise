@@ -326,23 +326,89 @@ def extract_data(doc_type: str, text: str) -> dict:
         if m: data["adresse"] = m.group(1).strip().rstrip()
 
     elif doc_type == "CG_BARREE":
-        m = re.search(r"(?:C\.?1|[Tt]itulaire)\s*[:\s]*([A-Za-zÀ-ÿ\- ]{2,60})", text)
+        # Titulaire C.1
+        m = re.search(r"C\.?1\s+([A-Z][A-Z\- ]{1,30})", text)
         if m: data["titulaire"] = m.group(1).strip()
+        # Prenom (ligne apres C.1)
+        if data.get("titulaire"):
+            m = re.search(r"C\.?1\s+" + re.escape(data["titulaire"]) + r"\s*\n\s*([A-Z][A-Za-zÀ-ÿ\- ]{1,30})", text)
+            if m: data["titulaire_prenom"] = m.group(1).strip()
+        # Vendu le (si CG barree)
         m = re.search(r"[Vv]endu\s*le\s*[:\s]*(\d{2}[./]\d{2}[./]\d{4})", text)
         if m: data["date_vente"] = m.group(1)
         data["barre_diagonale"] = bool(re.search(r"barr[eé]|diagonale|vendu le", text, re.IGNORECASE))
-        m = re.search(r"(?:D\.?1\s*)?[Mm]arque\s*[:\s]*([A-Z][A-Za-z\-]{1,20})", text)
-        if m: data["marque"] = m.group(1).strip()
-        m = re.search(r"(?:D\.?3\s*)?[Dd]enomination\s*(?:commerciale)?\s*[:\s]*(.{2,40})", text)
-        if m: data["denomination"] = m.group(1).strip()
-        m = re.search(r"[Dd]ate\s*premiere\s*immatriculation\s*[:\s]*(\d{2}/\d{2}/\d{4})", text)
+        # A. Immatriculation
+        m = re.search(r"A\.?\s*([A-Z]{2}[\-\s]?\d{3}[\-\s]?[A-Z]{2})", text)
+        if m: data["immatriculation"] = m.group(1).strip()
+        # B. Date 1ere immatriculation
+        m = re.search(r"B\.?\s*(\d{2}/\d{2}/\d{4})", text)
         if m: data["date_premiere_immat"] = m.group(1)
-        m = re.search(r"[Dd]ate\s*certificat\s*[:\s]*(\d{2}/\d{2}/\d{4})", text)
-        if m: data["date_certificat"] = m.group(1)
-        m = re.search(r"[Ff]ormule\s*[:\s]*([A-Z0-9]{8,15})", text)
-        if m: data["numero_formule"] = m.group(1)
-        m = re.search(r"(?:J\.?1\s*)?[Gg]enre\s*national\s*[:\s]*([A-Z]{2,10})", text)
+        # C.3 Adresse
+        m = re.search(r"C\.?3\s*\n\s*(.+)\n\s*(\d{5})\s+([A-Z][A-Za-zÀ-ÿ\- ]+)", text)
+        if m:
+            data["adresse"] = m.group(1).strip()
+            data["code_postal"] = m.group(2)
+            data["ville"] = m.group(3).strip()
+        # D.1 Marque
+        m = re.search(r"D\.?1\s+([A-Z][A-Z\- ]{1,20})", text)
+        if m: data["marque"] = m.group(1).strip()
+        # D.2 Type Variante Version
+        m = re.search(r"D\.?2\s+([A-Z0-9][A-Z0-9 ]{1,20})", text)
+        if m: data["type_variante_version"] = m.group(1).strip()
+        # D.2.1 CNIT
+        m = re.search(r"D\.?2\.?1\s+([A-Z0-9]{5,20})", text)
+        if m: data["cnit"] = m.group(1).strip()
+        # D.3 Denomination
+        m = re.search(r"D\.?3\s+([A-Za-z0-9 \-]{2,40})", text)
+        if m: data["denomination"] = m.group(1).strip()
+        # E. VIN
+        m = re.search(r"E\.?\s*([A-HJ-NPR-Z0-9]{17})", text)
+        if m: data["vin"] = m.group(1)
+        # F.1 Masse tech admissible
+        m = re.search(r"F\.?1\s*\n?\s*(\d{2,5})", text)
+        if m: data["masse_f1"] = m.group(1)
+        # F.2 PTAC
+        m = re.search(r"F\.?2\s+(\d{2,5})", text)
+        if m: data["ptac_kg"] = m.group(1)
+        # G Masse en service
+        m = re.search(r"\bG\b\s*\n?\s*(\d{2,5})", text)
+        if m: data["masse_g"] = m.group(1)
+        # G.1 Poids a vide
+        m = re.search(r"G\.?1\s+(\d{2,5})", text)
+        if m: data["poids_vide_g1"] = m.group(1)
+        # J Categorie
+        m = re.search(r"\bJ\b\s*\n?\s*(L\d[A-Za-z\-]*|M\d|N\d)", text)
+        if m: data["categorie_j"] = m.group(1)
+        # J.1 Genre national
+        m = re.search(r"J\.?1\s+([A-Z]{2,5})", text)
         if m: data["genre_national"] = m.group(1).strip()
+        # J.3 Carrosserie
+        m = re.search(r"J\.?3\s+([A-Z]{2,15})", text)
+        if m: data["carrosserie_j3"] = m.group(1).strip()
+        # K Homologation
+        m = re.search(r"K\s*\n?\s*(e\d\*[\d/\*\w]+)", text)
+        if m: data["numero_k"] = m.group(1)
+        # P.1 Cylindree
+        m = re.search(r"P\.?1\s*\n?\s*(\d+)", text)
+        if m and int(m.group(1)) > 0: data["cylindree_p1"] = m.group(1)
+        # P.2 Puissance nette kW
+        m = re.search(r"P\.?2\s+(\d+)", text)
+        if m: data["puissance_nette_p2"] = m.group(1)
+        # P.3 Energie
+        m = re.search(r"P\.?3\s+([A-Z]{2,10})", text)
+        if m: data["energie"] = m.group(1).strip()
+        # P.6 Puissance administrative CV
+        m = re.search(r"P\.?6\s+(\d+)", text)
+        if m: data["puissance_cv"] = int(m.group(1))
+        # S.1 Places
+        m = re.search(r"S\.?1\s+(\d+)", text)
+        if m: data["places"] = int(m.group(1))
+        # Numero formule
+        m = re.search(r"(\d{4}[A-Z]{2}\d{5})", text)
+        if m: data["numero_formule"] = m.group(1)
+        # Date certificat (I)
+        m = re.search(r"I\s+(\d{2}/\d{2}/\d{4})", text)
+        if m: data["date_certificat"] = m.group(1)
 
     elif doc_type == "KBIS":
         m = re.search(r"(?:SIREN|RCS)\s*[:\s]*(\d{9})", text)
