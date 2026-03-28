@@ -770,6 +770,9 @@ def create_dossier(req: DossierCreate):
         "documents": [],            # Fusion des deux (pour le diagnostic + cerfa)
         "cerfa_pdf": None,          # Cerfa genere (bytes stockes)
         "cerfa_generated_at": None,
+        "signature_status": None,   # None → ATTENTE_VENDEUR → ATTENTE_CLIENT → SIGNE_COMPLET
+        "cerfa_signe_vendeur": None,  # PDF signe par le vendeur
+        "cerfa_signe_complet": None,  # PDF signe par vendeur + client
         "messages_admin": [],       # Messages pour l'admin (verifications manuelles)
         "created_at": datetime.utcnow().isoformat(),
     }
@@ -1023,6 +1026,9 @@ def admin_view(dossier_id: str):
         "total_documents": len(docs_vendeur) + len(docs_client),
         "cerfa_genere": dossier.get("cerfa_pdf") is not None,
         "cerfa_generated_at": dossier.get("cerfa_generated_at"),
+        "signature_status": dossier.get("signature_status"),
+        "cerfa_signe_vendeur": dossier.get("cerfa_signe_vendeur") is not None,
+        "cerfa_signe_complet": dossier.get("cerfa_signe_complet") is not None,
         "blocages": dossier.get("blocages", []),
         "warnings": dossier.get("warnings", []),
         "infos": dossier.get("infos", []),
@@ -1048,6 +1054,76 @@ def admin_download_cerfa(dossier_id: str):
         media_type="application/pdf",
         headers={"Content-Disposition": f'attachment; filename="cerfa_{dossier["reference"]}.pdf"'},
     )
+
+
+# ─── Flux signature Cerfa ─────────────────────────────────────────────────────
+
+@app.post("/api/dossiers/{dossier_id}/signature/lancer")
+def lancer_signature(dossier_id: str):
+    """Le vendeur lance le processus de signature (optionnel)."""
+    dossier = DOSSIERS.get(dossier_id)
+    if not dossier:
+        raise HTTPException(404, "Dossier non trouve")
+    if not dossier.get("cerfa_pdf"):
+        raise HTTPException(422, "Cerfa pas encore genere")
+    dossier["signature_status"] = "ATTENTE_VENDEUR"
+    return {"status": "ATTENTE_VENDEUR", "message": "Le vendeur peut telecharger, signer et re-uploader le Cerfa"}
+
+
+@app.post("/api/dossiers/{dossier_id}/signature/vendeur")
+async def upload_cerfa_signe_vendeur(dossier_id: str, file: UploadFile):
+    """Le vendeur uploade le Cerfa signe de son cote."""
+    dossier = DOSSIERS.get(dossier_id)
+    if not dossier:
+        raise HTTPException(404, "Dossier non trouve")
+    if dossier.get("signature_status") != "ATTENTE_VENDEUR":
+        raise HTTPException(422, "Signature vendeur non attendue")
+    import base64
+    file_bytes = await file.read()
+    dossier["cerfa_signe_vendeur"] = base64.b64encode(file_bytes).decode()
+    dossier["signature_status"] = "ATTENTE_CLIENT"
+    return {"status": "ATTENTE_CLIENT", "message": "Cerfa signe vendeur recu — en attente signature client"}
+
+
+@app.get("/api/dossiers/{dossier_id}/signature/cerfa-a-signer")
+def get_cerfa_a_signer(dossier_id: str):
+    """Le client telecharge le Cerfa signe par le vendeur pour le signer a son tour."""
+    import base64
+    dossier = DOSSIERS.get(dossier_id)
+    if not dossier:
+        raise HTTPException(404, "Dossier non trouve")
+    if dossier.get("signature_status") == "ATTENTE_CLIENT" and dossier.get("cerfa_signe_vendeur"):
+        pdf_bytes = base64.b64decode(dossier["cerfa_signe_vendeur"])
+        return Response(content=pdf_bytes, media_type="application/pdf",
+                       headers={"Content-Disposition": f'attachment; filename="cerfa_a_signer_{dossier["reference"]}.pdf"'})
+    elif dossier.get("cerfa_pdf") and not dossier.get("signature_status"):
+        # Pas de signature lancee — retourner le Cerfa non signe
+        pdf_bytes = base64.b64decode(dossier["cerfa_pdf"])
+        return Response(content=pdf_bytes, media_type="application/pdf",
+                       headers={"Content-Disposition": f'attachment; filename="cerfa_{dossier["reference"]}.pdf"'})
+    raise HTTPException(404, "Aucun Cerfa disponible pour signature")
+
+
+@app.post("/api/dossiers/{dossier_id}/signature/client")
+async def upload_cerfa_signe_client(dossier_id: str, file: UploadFile):
+    """Le client uploade le Cerfa signe des deux cotes (vendeur + client)."""
+    dossier = DOSSIERS.get(dossier_id)
+    if not dossier:
+        raise HTTPException(404, "Dossier non trouve")
+    if dossier.get("signature_status") != "ATTENTE_CLIENT":
+        raise HTTPException(422, "Signature client non attendue")
+    import base64
+    file_bytes = await file.read()
+    dossier["cerfa_signe_complet"] = base64.b64encode(file_bytes).decode()
+    dossier["signature_status"] = "SIGNE_COMPLET"
+    dossier["status"] = "SIGNE"
+    dossier["messages_admin"].append({
+        "type": "SIGNATURE_COMPLETE",
+        "priority": "INFO",
+        "message": "Cerfa signe par le vendeur et le client — disponible dans l'espace admin",
+        "created_at": datetime.utcnow().isoformat(),
+    })
+    return {"status": "SIGNE_COMPLET", "message": "Cerfa signe complet — visible dans l'espace admin"}
 
 
 @app.delete("/api/dossiers/{dossier_id}")
