@@ -32,7 +32,6 @@ from engine.cross_checks.address_checks import (
     AddressCerfaTitreSejourCheck,
 )
 from engine.cross_checks.coc_cerfa_checks import (
-    CNITUTACCheck,
     CO2WLTPCheck,
     PuissanceFiscaleCheck,
 )
@@ -373,7 +372,6 @@ class Phase1Pipeline:
 
         # COC / Cerfa technique
         if docs.coc:
-            results.extend(CNITUTACCheck().run(docs.coc))
             results.extend(CO2WLTPCheck().run(docs.coc))
 
         if docs.coc and docs.cerfa:

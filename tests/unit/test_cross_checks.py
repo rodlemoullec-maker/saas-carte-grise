@@ -18,7 +18,6 @@ from engine.cross_checks.vo_checks import (
     SignaturesCotitulaireCheck,
 )
 from engine.cross_checks.coc_cerfa_checks import (
-    CNITUTACCheck,
     CO2WLTPCheck,
     PuissanceFiscaleCheck,
 )
@@ -172,19 +171,6 @@ class TestSignaturesCotitulaireCheck:
 
 
 # ─── COC / Cerfa (C-08 → C-10) ──────────────────────────────────────────────
-
-class TestCNITUTACCheck:
-
-    def test_cnit_valid_format(self):
-        coc = ExtractedCOC(vin="VF1RFD00068123456", marque="RENAULT", energie="Essence", cnit="AB12345C")
-        results = CNITUTACCheck().run(coc)
-        assert any(r.status == CrossCheckStatus.PASS for r in results)
-
-    def test_cnit_missing(self):
-        coc = ExtractedCOC(vin="VF1RFD00068123456", marque="RENAULT", energie="Essence", cnit=None)
-        results = CNITUTACCheck().run(coc)
-        assert any(r.status == CrossCheckStatus.WARNING for r in results)
-
 
 class TestPuissanceFiscaleCheck:
 

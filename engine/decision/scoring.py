@@ -31,7 +31,6 @@ def categorize_rule(rule_name: str) -> str | None:
         # Vehicule
         "marque_coc_facture": "vehicule",
         "energie_coc_facture": "vehicule",
-        "cnit_format": "vehicule",
         "puissance_fiscale_coc_cerfa": "vehicule",
         "co2_wltp_source": "vehicule",
         "co2_wltp_nedc_gap": "vehicule",

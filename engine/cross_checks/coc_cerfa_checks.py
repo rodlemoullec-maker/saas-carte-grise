@@ -1,89 +1,17 @@
 """
-Cross-checks COC ↔ Cerfa et cohérence données techniques véhicule.
+Cross-checks COC ↔ Cerfa et coherence donnees techniques vehicule.
 
-Règles implémentées :
-  C-08 — CNIT ↔ base UTAC (validation format + stub appel API)
-  C-09 — Puissance fiscale COC vs Cerfa (±1CV → WARNING, ±3CV → BLOCKING)
-  C-10 — CO2 : s'assurer que la valeur WLTP est utilisée pour le malus
-          (et non NEDC) — applicable si les deux sont présentes sur le COC
+Regles implementees :
+  C-09 — Puissance fiscale COC vs Cerfa (+-1CV → WARNING, +-3CV → BLOCKING)
+  C-10 — CO2 : s'assurer que la valeur WLTP est utilisee pour le malus
+
+Note : C-08 (CNIT ↔ UTAC) retire — UTAC non necessaire pour le perimetre actuel.
 """
 from __future__ import annotations
-
-import re
 
 from engine.cross_checks.base import BaseCrossCheck
 from engine.models.decision import CrossCheckResult, CrossCheckStatus
 from engine.models.documents import ExtractedCOC, ExtractedCerfa
-
-
-# Format CNIT : 2 lettres + 6 chiffres + 1 lettre (ex. AA000001A)
-# Format exact peut varier selon constructeur — on vérifie le pattern minimal
-_CNIT_PATTERN = re.compile(r"^[A-Z]{1,3}\d{5,7}[A-Z0-9]{1,3}$", re.IGNORECASE)
-
-
-class CNITUTACCheck(BaseCrossCheck):
-    """
-    C-08 — Vérifie la cohérence du CNIT avec la base homologation UTAC.
-
-    Phase 1 : validation du format CNIT (synchrone, sans appel réseau).
-    Phase 2 (TODO) : appel API UTAC/OTC pour vérifier que le CNIT existe
-                     et que les caractéristiques correspondent au COC.
-
-    En l'absence d'API UTAC publique directe, ce check lève un WARNING
-    si le CNIT est absent ou mal formé, et un INFO si présent mais non
-    encore vérifié en base.
-    """
-
-    @property
-    def name(self) -> str:
-        return "cnit_utac"
-
-    def run(self, coc: ExtractedCOC) -> list[CrossCheckResult]:
-        results = []
-
-        if not coc.cnit:
-            results.append(CrossCheckResult(
-                rule_name="cnit_format",
-                status=CrossCheckStatus.WARNING,
-                source_a="COC", source_b="UTAC",
-                field="cnit",
-                value_a="", value_b="",
-                confidence=0.5,
-                detail=(
-                    "CNIT absent sur le COC — impossible de vérifier l'homologation UTAC. "
-                    "Contacter le constructeur si nécessaire pour la saisie SIV."
-                ),
-            ))
-            return results
-
-        cnit = coc.cnit.strip().upper()
-
-        if not _CNIT_PATTERN.match(cnit):
-            results.append(CrossCheckResult(
-                rule_name="cnit_format",
-                status=CrossCheckStatus.WARNING,
-                source_a="COC", source_b="UTAC",
-                field="cnit",
-                value_a=cnit, value_b="",
-                confidence=0.4,
-                detail=f"Format CNIT suspect : {cnit!r} — vérifier le COC original",
-            ))
-        else:
-            # Format OK — vérification UTAC en base non encore implémentée
-            results.append(CrossCheckResult(
-                rule_name="cnit_format",
-                status=CrossCheckStatus.PASS,
-                source_a="COC", source_b="UTAC",
-                field="cnit",
-                value_a=cnit, value_b="",
-                confidence=0.8,
-                detail="Format CNIT valide — vérification base UTAC (TODO: appel API OTC)",
-            ))
-
-        # TODO: appel async integrations/utac.py pour validation en base UTAC
-        # utac_result = await UTACClient().check_cnit(cnit, coc.marque, coc.energie)
-
-        return results
 
 
 class PuissanceFiscaleCheck(BaseCrossCheck):
