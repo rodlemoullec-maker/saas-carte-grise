@@ -26,10 +26,10 @@ class TestDecisionEngine:
 
     def test_non_fraud_blocking_gives_correction(self):
         results = self._make_results({"vin_coc_facture": CrossCheckStatus.PASS})
-        decision = self.engine.decide(results, [], extra_blocking_rules=["ct_too_old"])
+        decision = self.engine.decide(results, [], extra_blocking_rules=["missing_mandatory_document"])
         assert decision.status == DecisionStatus.CORRECTION
         assert decision.diagnostic == Diagnostic.ROUGE
-        assert "ct_too_old" in decision.blocages
+        assert "missing_mandatory_document" in decision.blocages
 
     def test_all_pass_gives_vert(self):
         results = self._make_results({
@@ -49,10 +49,10 @@ class TestDecisionEngine:
     def test_warning_gives_orange(self):
         results = [
             CrossCheckResult(
-                rule_name="ct_validity_at_saisie_siv",
+                rule_name="assurance_delay_after_sale",
                 status=CrossCheckStatus.WARNING,
-                source_a="CT", source_b="SYSTEM", field="date_ct",
-                detail="CT expire dans 15 jours",
+                source_a="ASSURANCE", source_b="SYSTEM", field="date_effet",
+                detail="Assurance souscrite 20 jours apres la vente",
             ),
         ]
         decision = self.engine.decide(results, [])

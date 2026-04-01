@@ -22,7 +22,6 @@ from engine.models.documents import (
     ExtractedCGBarree,
     ExtractedCession,
     ExtractedCOC,
-    ExtractedCT,
     ExtractedDA,
     ExtractedDomicile,
     ExtractedFacture,
@@ -157,20 +156,6 @@ class DocumentExtractor:
             "ocr_confidence": ocr.average_confidence,
         }
 
-    def _extract_ct(self, ocr: OCRResult) -> dict:
-        text = ocr.full_text
-        resultat_raw = self._find_field(text, r"(?:r[eé]sultat)\s*[:\s]*(favorable|d[eé]favorable|critique|A|S|R)")
-        resultat_map = {"favorable": "A", "a": "A", "defavorable": "S", "s": "S", "critique": "R", "r": "R"}
-        resultat = resultat_map.get((resultat_raw or "").lower(), None)
-        return {
-            "vin": self._find_field(text, r"(?:VIN)\s*[:\s]*([A-HJ-NPR-Z0-9]{17})"),
-            "immatriculation": self._find_field(text, r"(?:immatriculation)\s*[:\s]*([A-Z]{2}[\-\s]?\d{3}[\-\s]?[A-Z]{2})"),
-            "date_ct": self._find_date(text, r"(?:date\s*du\s*contr[oô]le|date)\s*[:\s]*(\d{2}[./]\d{2}[./]\d{4})"),
-            "resultat": resultat,
-            "contre_visite": bool(re.search(r"contre[\-\s]?visite", text, re.IGNORECASE)),
-            "ocr_confidence": ocr.average_confidence,
-        }
-
     def _extract_cerfa(self, ocr: OCRResult) -> dict:
         text = ocr.full_text
         return {
@@ -181,7 +166,7 @@ class DocumentExtractor:
             "adresse": self._find_field(text, r"(?:adresse)\s*[:\s]*(.{5,100})"),
             "code_postal": self._find_field(text, r"(?:code\s*postal)\s*[:\s]*(\d{5})"),
             "ville": self._find_field(text, r"(?:ville|commune)\s*[:\s]*([A-Za-zÀ-ÿ\-\s]{2,40})"),
-            "signe": bool(re.search(r"signature|sign[eé]", text, re.IGNORECASE)),
+            "signe_pro": bool(re.search(r"signature|sign[eé]", text, re.IGNORECASE)),
             "rature_detectee": bool(re.search(r"rature|biff[eé]|surcharge", text, re.IGNORECASE)),
             "ocr_confidence": ocr.average_confidence,
         }
@@ -236,7 +221,6 @@ class DocumentExtractor:
         DocumentType.ASSURANCE: _extract_assurance,
         DocumentType.DOMICILE: _extract_domicile,
         DocumentType.CG_BARREE: _extract_cg_barree,
-        DocumentType.CONTROLE_TECHNIQUE: _extract_ct,
         DocumentType.CERFA_VN: _extract_cerfa,
         DocumentType.CERFA_VO: _extract_cerfa,
         DocumentType.CERFA_CESSION: _extract_cession,

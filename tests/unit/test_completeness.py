@@ -74,7 +74,7 @@ class TestCompletenessVO:
             cni_ou_passeport=True, permis=True, justif_domicile=True,
             cerfa_cg=True, mandat=True, assurance=True,
             attestation_identite_pro=True,
-            cerfa_cession=True, cg_barree=True, controle_technique=True,
+            cerfa_cession=True, cg_barree=True,
             da=True, recepisse_da=True,
         )
         defaults.update(overrides)
@@ -98,27 +98,6 @@ class TestCompletenessVO:
         result = self.v.validate(FlowType.VO, self._full_vo_docs(cg_barree=False, cg_perdue=True))
         # WARNING, pas BLOCKING
         assert not any(e.code == "V-07" and e.level.value == "BLOCKING" for e in result.errors)
-
-    def test_ct_missing(self):
-        result = self.v.validate(FlowType.VO, self._full_vo_docs(controle_technique=False))
-        assert result.valid is False
-        assert any(e.code == "V-08" for e in result.errors)
-
-    def test_ct_missing_but_dispense(self):
-        result = self.v.validate(
-            FlowType.VO,
-            self._full_vo_docs(controle_technique=False, ct_dispense=True),
-        )
-        # Dispensé → pas de V-08
-        assert not any(e.code == "V-08" for e in result.errors)
-
-    def test_ct_dispense_but_volontaire(self):
-        # CT volontaire sur dispensé → DEVIENT obligatoire
-        result = self.v.validate(
-            FlowType.VO,
-            self._full_vo_docs(controle_technique=False, ct_dispense=True, ct_volontaire=True),
-        )
-        assert any(e.code == "V-08" for e in result.errors)
 
     def test_da_missing(self):
         result = self.v.validate(FlowType.VO, self._full_vo_docs(da=False))

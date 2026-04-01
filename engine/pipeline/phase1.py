@@ -40,7 +40,6 @@ from engine.cross_checks.vehicle_coherence import VehicleCoherenceCheck
 from engine.cross_checks.vin_consistency import VINConsistencyCheck
 from engine.cross_checks.vo_checks import (
     ChaineProprieteCheck,
-    CTSaisieCheck,
     DatesCGBarreeCheck,
     SignaturesCotitulaireCheck,
 )
@@ -53,7 +52,6 @@ from engine.models.documents import (
     ExtractedCGBarree,
     ExtractedCession,
     ExtractedCOC,
-    ExtractedCT,
     ExtractedDA,
     ExtractedDomicile,
     ExtractedFacture,
@@ -79,7 +77,6 @@ from engine.validators.documents import (
     CerfaValidator,
     CGBarreeValidator,
     COCDocumentValidator,
-    CTDocumentValidator,
     DomicileDocumentValidator,
     FactureDocumentValidator,
     IdentiteDocumentValidator,
@@ -123,7 +120,6 @@ class ExtractedDocuments:
 
     # Véhicule VO
     cg_barree: ExtractedCGBarree | None = None
-    ct: ExtractedCT | None = None
     da: ExtractedDA | None = None
     recepisse_da: ExtractedRecepisseDA | None = None
     cession: ExtractedCession | None = None
@@ -137,8 +133,6 @@ class ExtractedDocuments:
     is_personne_morale: bool = False
     is_mineur: bool = False
     is_etranger: bool = False
-    ct_dispense: bool = False
-    ct_volontaire: bool = False
     pro_habilite_siv: bool = False
     cg_perdue: bool = False
 
@@ -271,7 +265,6 @@ class Phase1Pipeline:
             cerfa_cession=docs.cession is not None,
             coc=docs.coc is not None,
             cg_barree=docs.cg_barree is not None,
-            controle_technique=docs.ct is not None,
             assurance=docs.assurance is not None,
             da=docs.da is not None,
             recepisse_da=docs.recepisse_da is not None,
@@ -279,8 +272,6 @@ class Phase1Pipeline:
             is_personne_morale=docs.is_personne_morale,
             is_mineur=docs.is_mineur,
             is_etranger=docs.is_etranger,
-            ct_dispense=docs.ct_dispense,
-            ct_volontaire=docs.ct_volontaire,
             pro_habilite_siv=docs.pro_habilite_siv,
             cg_perdue=docs.cg_perdue,
         )
@@ -329,9 +320,6 @@ class Phase1Pipeline:
         # VO-specific
         if docs.cg_barree:
             _collect(CGBarreeValidator().validate(docs.cg_barree))
-
-        if docs.ct:
-            _collect(CTDocumentValidator().validate(docs.ct, saisie_siv_date=None))
 
         if not docs.attestation_identite_pro:
             _collect(AttestationIdentiteProValidator().validate(False))
@@ -393,11 +381,6 @@ class Phase1Pipeline:
         if docs.cg_barree:
             results.extend(
                 SignaturesCotitulaireCheck().run(docs.cg_barree, docs.cession)
-            )
-
-        if docs.ct and docs.ct.date_ct:
-            results.extend(
-                CTSaisieCheck().run(docs.ct.date_ct, saisie_siv_date)
             )
 
     def _estimate_taxes(self, docs: ExtractedDocuments) -> dict[str, Any] | None:

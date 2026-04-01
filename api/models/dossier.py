@@ -20,7 +20,7 @@ class DossierDB(Base, TimestampMixin):
     reference: Mapped[str] = mapped_column(String(20), unique=True, index=True)  # CG-2026-00001
 
     # Type et statut
-    type: Mapped[str] = mapped_column(String(40))  # NEUF_PRO_PARTICULIER | OCCASION_PRO_PARTICULIER
+    type: Mapped[str | None] = mapped_column(String(40), nullable=True)  # Déduit auto (VN/VO) après upload docs
     status: Mapped[str] = mapped_column(String(20), default="PENDING", index=True)
 
     # Véhicule
@@ -38,7 +38,14 @@ class DossierDB(Base, TimestampMixin):
         UUID(as_uuid=True), ForeignKey("professionnels.id"), index=True,
     )
 
-    # Phase 1 — Diagnostic (VERT / ORANGE / ROUGE — pas de score)
+    # Lien client sécurisé (token SMS)
+    client_link_token: Mapped[str | None] = mapped_column(String(64), nullable=True, unique=True, index=True)
+    client_link_sent_at: Mapped[datetime | None] = mapped_column(nullable=True)
+
+    # Métadonnées client (consentement RGPD, choix CPI, assurance, etc.)
+    metadata_: Mapped[dict | None] = mapped_column("metadata", JSONB, nullable=True)
+
+    # Phase 1 — Diagnostic binaire (VERT / ROUGE)
     diagnostic: Mapped[str | None] = mapped_column(String(10), nullable=True)
     blocages: Mapped[dict | None] = mapped_column(JSONB, nullable=True)   # Liste V-XX declenches
     cross_check_results: Mapped[dict | None] = mapped_column(JSONB, nullable=True)

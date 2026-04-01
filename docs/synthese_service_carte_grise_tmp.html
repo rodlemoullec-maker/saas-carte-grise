@@ -1,0 +1,1277 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>synthese_service_carte_grise.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<h1 id="synthese-du-service-carte-grise--analyse-complete">Synthese du Service Carte Grise — Analyse Complete</h1>
+<h2 id="1-le-service-en-bref">1. Le Service en Bref</h2>
+<p><strong>Carte Grise Pro</strong> est un outil integre dans le site d'un commercant moto qui automatise la demande de carte grise (VN et VO). Le pro depose ses documents vehicule dans son espace admin, le client recoit automatiquement un lien pour uploader ses documents d'identite — pas d'espace client, pas de compte a creer. Le systeme verifie, extrait, diagnostique, genere le Cerfa officiel pre-rempli, appose le cachet/signature du pro automatiquement, et gere la signature numerique de la cession (VO).</p>
+<p><strong>Perimetre :</strong> Motos + Voitures | VN + VO | Personne physique + morale | Co-titulaire</p>
+<hr>
+<h2 id="2-parcours-complet--ce-que-fait-chaque-acteur">2. Parcours Complet — Ce que fait chaque acteur</h2>
+<h3 id="21-ce-que-fait-le-pro-vendeur--commercant-moto">2.1 Ce que fait le PRO (vendeur / commercant moto)</h3>
+<table>
+<thead>
+<tr>
+<th>Etape</th>
+<th>Action du pro</th>
+<th>Temps estime</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Cree le dossier (VN/VO, infos client, VIN/immat)</td>
+<td>30 sec</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Depose le COC dans son espace admin</td>
+<td>15 sec</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Depose la facture de vente (VN) ou CG barree (VO)</td>
+<td>15 sec</td>
+</tr>
+<tr>
+<td>4</td>
+<td>→ Le systeme envoie automatiquement un lien au client</td>
+<td>—</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Attend que le client uploade ses docs via le lien</td>
+<td>—</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Verifie le diagnostic VERT/ORANGE/ROUGE</td>
+<td>10 sec</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Lance la generation du Cerfa (1 clic)</td>
+<td>15-45 sec (auto)</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Verifie les messages admin (attestation formation, assurance)</td>
+<td>30 sec</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Recupere les Cerfa signes/cachetes automatiquement</td>
+<td>—</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Soumet au SIV</td>
+<td>—</td>
+</tr>
+<tr>
+<td>11</td>
+<td>Facture le client (prix libre)</td>
+<td>1 min</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Temps total pro : ~5 minutes</strong></p>
+<h3 id="22-ce-que-fait-le-client-acheteur">2.2 Ce que fait le CLIENT (acheteur)</h3>
+<p><strong>Pas d'espace client sur le site du commercant.</strong> Le client recoit automatiquement un lien securise (SMS/email) vers une page d'upload simple — pas de compte, pas de login.</p>
+<table>
+<thead>
+<tr>
+<th>Etape</th>
+<th>Ce que fait le client</th>
+<th>Temps estime</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Recoit un lien automatique apres depot des docs pro</td>
+<td>—</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Uploade CNI, permis, justificatif domicile via le lien</td>
+<td>2 min</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Uploade attestation formation (si moto 125cc)</td>
+<td>15 sec</td>
+</tr>
+<tr>
+<td>4</td>
+<td>(VO uniquement) Signe la cession 15776 au doigt + OTP SMS</td>
+<td>30 sec</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Temps total client : ~2-3 minutes</strong> (VN = upload docs seulement | VO = upload + signature cession 30 sec)</p>
+<h3 id="23-ce-que-fait-le-systeme-automatique">2.3 Ce que fait le SYSTEME (automatique)</h3>
+<table>
+<thead>
+<tr>
+<th>Etape</th>
+<th>Action automatique</th>
+<th>Temps</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Envoi automatique du lien client apres depot docs pro</td>
+<td>instantane</td>
+</tr>
+<tr>
+<td>2</td>
+<td>OCR sur chaque document (Tesseract local + Google DocAI fallback)</td>
+<td>1-5 sec/doc</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Classification automatique (9 types de documents)</td>
+<td>instantane</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Extraction des donnees (nom, VIN, adresse, dates, etc.)</td>
+<td>instantane</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Extraction facture → pre-remplissage certificat de vente VN</td>
+<td>instantane</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Fusion recto/verso si meme type uploade 2 fois</td>
+<td>instantane</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Anti-doublon (remplacement si re-upload)</td>
+<td>instantane</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Detection auto personne morale (si Kbis present)</td>
+<td>instantane</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Verification coherence VIN entre documents</td>
+<td>instantane</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Verification coherence nom CNI ↔ domicile</td>
+<td>instantane</td>
+</tr>
+<tr>
+<td>11</td>
+<td>Verification CNI non expiree</td>
+<td>instantane</td>
+</tr>
+<tr>
+<td>12</td>
+<td>Verification CG barree + signatures (VO)</td>
+<td>instantane</td>
+</tr>
+<tr>
+<td>13</td>
+<td>Diagnostic VERT/ORANGE/ROUGE</td>
+<td>instantane</td>
+</tr>
+<tr>
+<td>14</td>
+<td>Estimation des taxes (Y1-Y6)</td>
+<td>instantane</td>
+</tr>
+<tr>
+<td>15</td>
+<td>Generation Cerfa via Playwright (service-public.gouv.fr)</td>
+<td>15-45 sec</td>
+</tr>
+<tr>
+<td>16</td>
+<td>Apposition cachet/signature du pro sur les documents</td>
+<td>instantane</td>
+</tr>
+<tr>
+<td>17</td>
+<td>(VO) Envoi lien signature cession au client + co-titulaire</td>
+<td>instantane</td>
+</tr>
+<tr>
+<td>18</td>
+<td>Stockage Cerfa dans l'espace admin</td>
+<td>instantane</td>
+</tr>
+<tr>
+<td>19</td>
+<td>Messages admin (attestation formation, assurance)</td>
+<td>instantane</td>
+</tr>
+<tr>
+<td>20</td>
+<td>Suivi : ajout au compteur dossiers (max 5), generation demande de paiement</td>
+<td>instantane</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="3-comparatif--ce-que-fait-le-pro-aujourdhui-sans-notre-systeme">3. Comparatif — Ce que fait le pro aujourd'hui sans notre systeme</h2>
+<p>Un vendeur pro habilite SIV a aujourd'hui 3 options pour gerer la carte grise de son client :</p>
+<h3 id="31-les-3-options-actuelles-du-pro">3.1 Les 3 options actuelles du pro</h3>
+<h4 id="option-a--le-pro-fait-tout-lui-meme-via-son-acces-siv">Option A — Le pro fait tout lui-meme via son acces SIV</h4>
+<ol>
+<li>Collecte les documents du client (CNI, permis, domicile, etc.)</li>
+<li>Verifie manuellement la coherence (VIN, noms, dates, expiration)</li>
+<li>Remplit le Cerfa a la main ou sur service-public.gouv.fr (15-20 champs)</li>
+<li>Imprime, appose son cachet, fait signer le client</li>
+<li>Soumet au SIV via son portail habilite</li>
+<li>Gere les corrections si erreur de saisie</li>
+</ol>
+<p><strong>Temps : ~30 minutes par dossier</strong>
+<strong>Revenu : le pro peut facturer le service (20-50 EUR) mais perd 30 min de temps de vente</strong>
+<strong>Risque : erreurs de saisie, oubli de document, rejet SIV</strong></p>
+<h4 id="option-b--le-pro-envoie-le-client-se-debrouiller">Option B — Le pro envoie le client se debrouiller</h4>
+<p>Le pro dit au client d'aller sur Cartegrise.com, Eplaque.fr ou ANTS.</p>
+<table>
+<thead>
+<tr>
+<th>Service externe</th>
+<th>Prix client</th>
+<th>Temps client</th>
+<th>Revenu pro</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cartegrise.com</td>
+<td>29.90 EUR + taxes</td>
+<td>15-30 min</td>
+<td><strong>0 EUR</strong></td>
+</tr>
+<tr>
+<td>Eplaque.fr</td>
+<td>24.90 EUR + taxes</td>
+<td>15-30 min</td>
+<td><strong>0 EUR</strong></td>
+</tr>
+<tr>
+<td>LegalPlace</td>
+<td>29.90 EUR + taxes</td>
+<td>15-30 min</td>
+<td><strong>0 EUR</strong></td>
+</tr>
+<tr>
+<td>ANTS (direct)</td>
+<td>0 EUR</td>
+<td>30+ min</td>
+<td><strong>0 EUR</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Temps pro : 0 min</strong>
+<strong>Revenu pro : 0 EUR — le client paie un tiers, le pro ne gagne rien</strong>
+<strong>Probleme : le client quitte le site du pro, mauvaise experience, pas de fidelisation</strong></p>
+<h4 id="option-c--le-pro-utilise-notre-systeme">Option C — Le pro utilise notre systeme</h4>
+<ol>
+<li>Depose ses docs vehicule (30 sec)</li>
+<li>Le client recoit un lien et uploade ses docs (2-3 min)</li>
+<li>Le systeme verifie, extrait, genere le Cerfa, appose cachet/signature (automatique)</li>
+<li>Le pro soumet au SIV avec un dossier complet et verifie</li>
+<li>Le pro facture son client (prix libre)</li>
+</ol>
+<p><strong>Temps pro : ~5 minutes</strong>
+<strong>Revenu pro : tout ce qu'il facture au client minus notre tarif fixe (~12 EUR moto, ~14 EUR voiture)</strong>
+<strong>Risque : quasi nul — le systeme detecte les erreurs avant soumission SIV</strong></p>
+<h3 id="32-comparatif-des-3-options">3.2 Comparatif des 3 options</h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Option A (pro fait tout)</th>
+<th>Option B (service externe)</th>
+<th><strong>Option C (notre systeme)</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Temps pro</td>
+<td>30 min</td>
+<td>0 min</td>
+<td><strong>5 min</strong></td>
+</tr>
+<tr>
+<td>Saisie manuelle</td>
+<td>Oui (15-20 champs)</td>
+<td>Non (le client fait)</td>
+<td><strong>Non (extraction auto)</strong></td>
+</tr>
+<tr>
+<td>Verification documents</td>
+<td>Manuelle</td>
+<td>Faite par le tiers</td>
+<td><strong>Automatique (VIN, nom, dates, CNI)</strong></td>
+</tr>
+<tr>
+<td>Cerfa</td>
+<td>Rempli a la main</td>
+<td>Fait par le tiers</td>
+<td><strong>Genere en 1 clic</strong></td>
+</tr>
+<tr>
+<td>Cachet/signature</td>
+<td>Imprimer + tamponner + scanner</td>
+<td>—</td>
+<td><strong>Automatique</strong></td>
+</tr>
+<tr>
+<td>Signature client (VN)</td>
+<td>Oui</td>
+<td>Oui</td>
+<td><strong>Non (pro = vendeur pro)</strong></td>
+</tr>
+<tr>
+<td>Signature client (VO)</td>
+<td>Imprimer + signer + scanner</td>
+<td>Idem</td>
+<td><strong>Doigt + OTP SMS (30 sec)</strong></td>
+</tr>
+<tr>
+<td>Risque erreur SIV</td>
+<td>Eleve (saisie manuelle)</td>
+<td>Faible (le tiers gere)</td>
+<td><strong>Faible (diagnostic auto avant soumission)</strong></td>
+</tr>
+<tr>
+<td>Le client reste chez le pro</td>
+<td>Oui</td>
+<td>Non</td>
+<td><strong>Oui</strong></td>
+</tr>
+<tr>
+<td>Le pro facture le client</td>
+<td>Oui (mais 30 min de travail)</td>
+<td>Non (le tiers facture)</td>
+<td><strong>Oui (5 min de travail)</strong></td>
+</tr>
+<tr>
+<td><strong>Revenu pro</strong></td>
+<td><strong>20-50 EUR mais 30 min perdues</strong></td>
+<td><strong>0 EUR</strong></td>
+<td><strong>Prix libre - 12 EUR (notre tarif)</strong></td>
+</tr>
+</tbody>
+</table>
+<h3 id="33-fonctionnalites-detaillees-vs-saisie-manuelle">3.3 Fonctionnalites detaillees vs saisie manuelle</h3>
+<table>
+<thead>
+<tr>
+<th>Fonctionnalite</th>
+<th>Pro fait a la main</th>
+<th>Notre systeme</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OCR des documents</td>
+<td>Non — lecture visuelle</td>
+<td>Tesseract + Google DocAI</td>
+</tr>
+<tr>
+<td>Extraction donnees</td>
+<td>Recopie manuelle</td>
+<td>Automatique (regex + IA)</td>
+</tr>
+<tr>
+<td>Certificat de vente VN</td>
+<td>Remplissage manuel</td>
+<td>Pre-rempli depuis la facture d'achat</td>
+</tr>
+<tr>
+<td>Coherence inter-documents</td>
+<td>Verification visuelle</td>
+<td>Croisement auto (VIN, nom, dates)</td>
+</tr>
+<tr>
+<td>CNI expiree</td>
+<td>Le pro doit verifier</td>
+<td>Detection automatique</td>
+</tr>
+<tr>
+<td>CG barree correctement (VO)</td>
+<td>Le pro doit verifier</td>
+<td>Detection automatique</td>
+</tr>
+<tr>
+<td>Fusion recto/verso</td>
+<td>Le pro assemble</td>
+<td>Automatique</td>
+</tr>
+<tr>
+<td>Detection personne morale</td>
+<td>Le pro identifie</td>
+<td>Automatique (si Kbis)</td>
+</tr>
+<tr>
+<td>Estimation taxes</td>
+<td>Le pro calcule ou devine</td>
+<td>Automatique (Y1-Y6)</td>
+</tr>
+<tr>
+<td>Collecte docs client</td>
+<td>Le pro relance par tel/email</td>
+<td>Lien automatique SMS/email</td>
+</tr>
+<tr>
+<td>Gestion co-titulaire</td>
+<td>Le pro gere manuellement</td>
+<td>Lien + signature separee auto</td>
+</tr>
+<tr>
+<td>Suivi facturation</td>
+<td>Le pro gere dans sa compta</td>
+<td>Tableau de bord integre</td>
+</tr>
+</tbody>
+</table>
+<h3 id="34-nos-avantages">3.4 Nos Avantages</h3>
+<h4 id="pour-le-pro-commercant-moto">Pour le pro (commercant moto)</h4>
+<p><strong>Liberte tarifaire totale — l'avantage concurrentiel majeur :</strong></p>
+<p>Le pro fixe <strong>librement</strong> son prix au client. Notre tarif reste le meme : <strong>12 EUR (moto) / 14 EUR (voiture)</strong>, base sur 50% de la facturation de reference competitive (marche -20%). Ce que le pro facture a son client ne change rien a ce qu'il nous doit.</p>
+<p><strong>Les 4 leviers du pro :</strong></p>
+<table>
+<thead>
+<tr>
+<th>Levier</th>
+<th>Strategie du pro</th>
+<th>Prix client</th>
+<th>Notre tarif (fixe)</th>
+<th>Marge pro</th>
+<th>Avantage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Casser les prix</strong></td>
+<td>Facturer moins cher que le marche</td>
+<td>15-20 EUR</td>
+<td>12 EUR</td>
+<td>3-8 EUR</td>
+<td>Attirer des clients, se differencier des concurrents en ligne</td>
+</tr>
+<tr>
+<td><strong>Prix competitif</strong></td>
+<td>S'aligner sur le prix de reference</td>
+<td>24 EUR</td>
+<td>12 EUR</td>
+<td>12 EUR</td>
+<td>Partenariat 50/50 exact, client paie 20% de moins que le marche</td>
+</tr>
+<tr>
+<td><strong>Prix marche</strong></td>
+<td>Facturer comme les concurrents</td>
+<td>30 EUR</td>
+<td>12 EUR</td>
+<td>18 EUR</td>
+<td>Maximiser la marge par dossier</td>
+</tr>
+<tr>
+<td><strong>Offrir le service</strong></td>
+<td>Inclure dans le prix du vehicule</td>
+<td>0 EUR (offert)</td>
+<td>12 EUR</td>
+<td>-12 EUR (absorbe)</td>
+<td>Argument de vente : &quot;carte grise offerte&quot;, fidelisation</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Aucun autre systeme ne permet ca.</strong> Les services externes (Cartegrise.com, Eplaque) facturent le client directement a 25-40 EUR. Le pro n'a aucun controle sur le prix, aucun revenu, aucun levier commercial.</p>
+<p><strong>Source de revenu vs les alternatives actuelles :</strong></p>
+<ul>
+<li><strong>Option A (tout a la main)</strong> : le pro peut facturer mais perd 30 min → avec nous, meme revenu en 5 min</li>
+<li><strong>Option B (service externe)</strong> : le pro gagne 0 EUR, n'a aucun levier → avec nous, il controle tout</li>
+<li><strong>Zero investissement</strong> — pas de forfait, pas d'abonnement, pas de mise de depart</li>
+<li><strong>Zero risque financier</strong> — il obtient le Cerfa, facture son client, puis paie notre tarif fixe</li>
+<li><strong>Fidilisation client</strong> — le service carte grise devient un argument de vente, le client reste chez le pro</li>
+</ul>
+<p><strong>Gain de temps :</strong></p>
+<ul>
+<li><strong>5 minutes par dossier</strong> au lieu de 30 min de saisie manuelle via SIV</li>
+<li><strong>Zero saisie</strong> — le systeme extrait tout des documents, le pro ne remplit aucun formulaire</li>
+<li><strong>Cerfa genere en 1 clic</strong> — plus d'erreurs de remplissage, plus de corrections, plus de rejets SIV</li>
+<li><strong>Cachet/signature apposes automatiquement</strong> — photo uploadee une fois au parametrage, reutilisee a vie</li>
+<li><strong>Certificat de vente VN pre-rempli</strong> — extraction auto depuis la facture d'achat</li>
+<li><strong>HistoVec automatise</strong> apres habilitation SIV — plus de copier-coller manuel</li>
+<li><strong>Collecte docs client automatisee</strong> — le systeme envoie le lien, le client uploade, le pro n'a rien a faire</li>
+</ul>
+<p><strong>Fiabilite :</strong></p>
+<ul>
+<li><strong>Diagnostic avant soumission SIV</strong> — document manquant, VIN incoherent, CNI expiree detectes en amont</li>
+<li><strong>Zero erreur de saisie</strong> — tout est extrait automatiquement, pas de recopie manuelle</li>
+<li><strong>Verification coherence inter-documents</strong> — le systeme croise VIN, noms, dates entre tous les docs</li>
+<li><strong>Le pro soumet au SIV avec un dossier verifie</strong> — moins de rejets, moins de corrections</li>
+</ul>
+<p><strong>Simplicite :</strong></p>
+<ul>
+<li><strong>Integre dans son site</strong> — pas de redirection, pas de site externe</li>
+<li><strong>Tableau de bord</strong> — compteur dossiers, solde a payer, historique</li>
+<li><strong>Aucune competence technique requise</strong> — le systeme fait le travail</li>
+<li><strong>Gestion moto specifique</strong> — attestation formation 125cc/L5e, CT moto</li>
+</ul>
+<h4 id="pour-le-client-acheteur">Pour le client (acheteur)</h4>
+<p><strong>Potentiellement moins cher :</strong></p>
+<ul>
+<li><strong>Le pro fixe le prix</strong> — il peut proposer un tarif inferieur aux services en ligne (25-40 EUR)</li>
+<li><strong>Le pro peut meme offrir le service</strong> en l'incluant dans le prix de vente du vehicule</li>
+<li><strong>Prix transparent</strong> — pas de frais caches, pas de supplement</li>
+</ul>
+<p><strong>Plus simple :</strong></p>
+<ul>
+<li><strong>Rien a comprendre</strong> — il recoit un lien, uploade ses documents, c'est fini</li>
+<li><strong>Pas de compte a creer, pas de login</strong> — un simple lien securise</li>
+<li><strong>Pas de formulaire a remplir</strong> — le systeme extrait tout des documents</li>
+<li><strong>Liste claire</strong> des documents a fournir, adaptee au type de dossier</li>
+<li><strong>Fait directement chez son commercant</strong> — pas besoin d'aller sur un site inconnu</li>
+</ul>
+<p><strong>Plus rapide :</strong></p>
+<ul>
+<li><strong>2-3 minutes</strong> au lieu de 15-30 min sur les sites en ligne</li>
+<li><strong>VN : zero signature</strong> — le pro gere tout comme vendeur professionnel</li>
+<li><strong>VO : 30 secondes</strong> — une seule signature (cession au doigt + OTP SMS)</li>
+<li><strong>100% numerique</strong> — zero impression, zero scan, zero deplacement</li>
+</ul>
+<h4 id="pour-nous-plateforme">Pour nous (plateforme)</h4>
+<p><strong>Modele economique :</strong></p>
+<ul>
+<li><strong>Tarif fixe par dossier</strong> base sur partenariat 50/50 (prix de reference marche -20%)</li>
+<li><strong>12 EUR par dossier moto</strong>, 14 EUR par dossier voiture — simple, previsible</li>
+<li><strong>Marge nette &gt; 98%</strong> — cout reel ~0.20 EUR/dossier</li>
+<li><strong>Revenus recurrents</strong> — les pros traitent des dossiers chaque mois</li>
+</ul>
+<p><strong>Scalabilite :</strong></p>
+<ul>
+<li><strong>50 pros × 25 dossiers/mois = 15 000 dossiers/an = ~180 000 EUR/an</strong> (a 12 EUR/dossier moto)</li>
+<li><strong>100 pros = ~360 000 EUR/an</strong> pour un cout infrastructure de ~2 000 EUR/an</li>
+<li>Chaque nouveau pro ajoute du revenu recurrent sans cout marginal significatif</li>
+</ul>
+<p><strong>Protection :</strong></p>
+<ul>
+<li><strong>Verrou paiement</strong> — le pro doit payer les dossiers en cours (max 5) avant de continuer</li>
+<li><strong>Stickiness forte</strong> — une fois integre dans le site du pro, le cout de changement est eleve</li>
+<li><strong>Zero service client</strong> — le pro gere la relation avec son client, on fournit l'outil</li>
+<li><strong>Donnees marche</strong> — visibilite sur les volumes de carte grise par type, zone, saisonnalite</li>
+</ul>
+<h3 id="35-nos-limites-transparence">3.5 Nos Limites (transparence)</h3>
+<table>
+<thead>
+<tr>
+<th>Limite</th>
+<th>Impact</th>
+<th>Mitigation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Pas de soumission SIV</td>
+<td>Le pro soumet lui-meme au SIV</td>
+<td>Cerfa pre-rempli + cachet/signature = 95% du travail fait</td>
+</tr>
+<tr>
+<td>OCR Tesseract limite sur photos sombres</td>
+<td>Fallback Google DocAI (payant ~0.01 EUR/page)</td>
+<td>Le systeme bascule automatiquement</td>
+</tr>
+<tr>
+<td>Pas de paiement taxes integre</td>
+<td>En attente reponse ANTS</td>
+<td>Le pro gere les taxes dans son SIV</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="4-modele-economique">4. Modele Economique</h2>
+<h3 id="41-couts-reels-du-systeme">4.1 Couts reels du systeme</h3>
+<table>
+<thead>
+<tr>
+<th>Poste</th>
+<th>Cout</th>
+<th>Frequence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Tesseract OCR</td>
+<td>Gratuit</td>
+<td>Illimite</td>
+</tr>
+<tr>
+<td>Google DocAI (fallback)</td>
+<td>~0.01 EUR/page</td>
+<td>~20% des dossiers</td>
+</tr>
+<tr>
+<td>Playwright (generation Cerfa)</td>
+<td>Gratuit</td>
+<td>Illimite</td>
+</tr>
+<tr>
+<td>SMS OTP (signature cession VO)</td>
+<td>~0.03-0.05 EUR</td>
+<td>VO uniquement</td>
+</tr>
+<tr>
+<td>SMS lien client</td>
+<td>~0.03 EUR</td>
+<td>1 par dossier</td>
+</tr>
+<tr>
+<td>Hebergement serveur</td>
+<td>10-30 EUR/mois</td>
+<td>Fixe</td>
+</tr>
+<tr>
+<td><strong>Cout reel par dossier</strong></td>
+<td><strong>~0.10-0.25 EUR</strong></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="42-modele-de-facturation--partenariat-5050">4.2 Modele de facturation : partenariat 50/50</h3>
+<p><strong>Comment on calcule notre tarif :</strong></p>
+<ol>
+<li>On prend le <strong>prix moyen du marche</strong> (ce que les concurrents facturent au client final)</li>
+<li>On applique <strong>-20%</strong> pour obtenir un prix de reference competitif</li>
+<li>On partage ce prix de reference <strong>50/50</strong> entre nous et le pro</li>
+</ol>
+<pre class="hljs"><code><div>Prix marche moyen → -20% → prix de reference → 50% nous / 50% pro
+</div></code></pre>
+<p><strong>Calcul detaille :</strong></p>
+<table>
+<thead>
+<tr>
+<th>Etape</th>
+<th>Moto</th>
+<th>Voiture</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Prix marche moyen (Cartegrise.com, Eplaque, etc.)</td>
+<td>~30 EUR</td>
+<td>~35 EUR</td>
+</tr>
+<tr>
+<td>Prix de reference (-20%)</td>
+<td>24 EUR</td>
+<td>28 EUR</td>
+</tr>
+<tr>
+<td><strong>Notre tarif (50% du prix de reference)</strong></td>
+<td><strong>12 EUR</strong></td>
+<td><strong>14 EUR</strong></td>
+</tr>
+<tr>
+<td>Part pro (50% du prix de reference)</td>
+<td>12 EUR</td>
+<td>14 EUR</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Notre tarif est fixe par dossier : 12 EUR (moto) / 14 EUR (voiture).</strong> C'est ce que le pro nous paie, quel que soit le prix qu'il facture a son client.</p>
+<p><strong>Le pro fixe librement son prix au client.</strong> Tout ce qu'il facture au-dessus de notre tarif, il le garde a 100% :</p>
+<ul>
+<li>Si le pro facture 20 EUR → il garde 20 - 12 = <strong>8 EUR</strong> (et le client paie 33% moins cher que le marche)</li>
+<li>Si le pro facture 24 EUR → il garde 24 - 12 = <strong>12 EUR</strong> (partenariat 50/50 exact)</li>
+<li>Si le pro facture 30 EUR → il garde 30 - 12 = <strong>18 EUR</strong></li>
+<li>Si le pro inclut dans la vente → il absorbe 12 EUR dans sa marge vehicule</li>
+</ul>
+<p>Plus le pro facture, plus il gagne. Notre tarif ne change pas.</p>
+<h3 id="43-flux-financier-et-verrou-de-paiement">4.3 Flux financier et verrou de paiement</h3>
+<p><strong>Le pro peut traiter jusqu'a 5 dossiers en batch.</strong> Il obtient les Cerfa, soumet au SIV, facture ses clients. Mais il doit <strong>payer notre tarif avant de pouvoir traiter de nouveaux dossiers</strong>.</p>
+<pre class="hljs"><code><div>Pro uploade jusqu'a 5 dossiers → Systeme genere les Cerfa
+    → Pro soumet au SIV, facture ses clients (prix libre)
+        → Pro paie notre tarif (5 × 12 EUR = 60 EUR pour 5 motos)
+            → Systeme debloque → Pro peut traiter 5 nouveaux dossiers
+</div></code></pre>
+<ol>
+<li>Le pro uploade et traite <strong>jusqu'a 5 dossiers</strong> en une fois</li>
+<li>Le systeme genere les Cerfa (cachet/signature auto)</li>
+<li>Le pro soumet au SIV et facture ses clients au prix de son choix</li>
+<li><strong>Le pro paie notre tarif</strong> pour les dossiers traites (CB, virement ou prelevement SEPA)</li>
+<li>Le systeme se debloque → le pro peut traiter 5 nouveaux dossiers</li>
+</ol>
+<p><strong>Verrou : tant que le pro n'a pas paye les dossiers en cours, le systeme ne genere plus de nouveau Cerfa.</strong></p>
+<table>
+<thead>
+<tr>
+<th>Situation</th>
+<th>Consequence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Pro a traite 1 a 5 dossiers</td>
+<td>Cerfa generes, pro peut soumettre au SIV</td>
+</tr>
+<tr>
+<td>Pro veut traiter un 6eme dossier</td>
+<td><strong>Systeme bloque</strong> — paiement des dossiers en cours requis</td>
+</tr>
+<tr>
+<td>Pro paie son solde</td>
+<td>Systeme debloque — 5 nouveaux dossiers disponibles</td>
+</tr>
+</tbody>
+</table>
+<h3 id="44-tableau-de-bord-du-pro">4.4 Tableau de bord du pro</h3>
+<p>Le pro dispose d'un tableau de bord dans son espace admin :</p>
+<ul>
+<li><strong>Dossiers en cours</strong> : X/5 (compteur visuel)</li>
+<li><strong>Solde a payer</strong> : montant total des dossiers traites non regles</li>
+<li><strong>Historique</strong> : tous les dossiers traites, dates, montants payes</li>
+<li><strong>Export</strong> : telechargement CSV/PDF pour la comptabilite du pro</li>
+</ul>
+<h3 id="45-exemple-mensuel">4.5 Exemple mensuel</h3>
+<p>Pour un commercant moto qui traite <strong>25 dossiers/mois</strong> :</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Montant</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Notre tarif fixe</td>
+<td>25 × 12 = <strong>300 EUR</strong></td>
+</tr>
+<tr>
+<td>Si le pro facture 24 EUR/dossier</td>
+<td>Encaisse 600 - 300 = <strong>marge 300 EUR</strong></td>
+</tr>
+<tr>
+<td>Si le pro facture 30 EUR/dossier</td>
+<td>Encaisse 750 - 300 = <strong>marge 450 EUR</strong></td>
+</tr>
+<tr>
+<td>Si le pro inclut dans la vente</td>
+<td>Absorbe 300 EUR dans marge vehicule</td>
+</tr>
+<tr>
+<td>Temps de travail pro</td>
+<td>~2h (25 × 5 min)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="46-comparatif-final">4.6 Comparatif final</h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Concurrent (Cartegrise.com)</th>
+<th>ANTS direct</th>
+<th><strong>Notre systeme</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Prix client</td>
+<td>29.90 EUR</td>
+<td>0 EUR (mais 30 min de travail)</td>
+<td><strong>Libre (fixe par le pro)</strong></td>
+</tr>
+<tr>
+<td>Travail pro</td>
+<td>0 min (il n'intervient pas)</td>
+<td>30 min saisie manuelle</td>
+<td><strong>5 min</strong></td>
+</tr>
+<tr>
+<td>Notre tarif</td>
+<td>—</td>
+<td>—</td>
+<td><strong>Fixe (12 EUR moto / 14 EUR voiture)</strong></td>
+</tr>
+<tr>
+<td>Revenu pro</td>
+<td>0 EUR</td>
+<td>0 EUR</td>
+<td><strong>Prix client - 12 EUR</strong></td>
+</tr>
+<tr>
+<td>Investissement pro</td>
+<td>—</td>
+<td>—</td>
+<td><strong>0 EUR (paie par dossier)</strong></td>
+</tr>
+<tr>
+<td>Le client reste chez le pro</td>
+<td>Non</td>
+<td>Non</td>
+<td><strong>Oui</strong></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="5-experience-utilisateur-comparee">5. Experience Utilisateur Comparee</h2>
+<h3 id="51-le-pro-fait-tout-a-la-main-option-a--aujourdhui">5.1 Le pro fait tout a la main (option A — aujourd'hui)</h3>
+<ol>
+<li>Le client arrive en magasin, le pro lui demande CNI, permis, domicile</li>
+<li>Le pro photocopie/scanne les documents</li>
+<li>Le pro verifie visuellement : VIN, noms, dates d'expiration</li>
+<li>Le pro ouvre service-public.gouv.fr et remplit 15-20 champs a la main</li>
+<li>Le pro imprime le Cerfa, appose son cachet, fait signer le client</li>
+<li>Le pro soumet au SIV via son portail</li>
+<li>Si erreur → correction → re-soumission</li>
+</ol>
+<p><strong>Resultat :</strong> 30 min de travail, risque d'erreur, le pro facture 20-50 EUR mais perd du temps de vente.</p>
+<h3 id="52-le-client-va-sur-un-site-externe-option-b--aujourdhui">5.2 Le client va sur un site externe (option B — aujourd'hui)</h3>
+<ol>
+<li>Le pro dit au client &quot;allez sur cartegrise.com&quot;</li>
+<li>Le client quitte le site du commercant</li>
+<li>Le client remplit un formulaire de 15-20 champs</li>
+<li>Le client paie 29.90 EUR a un tiers</li>
+<li>Le pro ne gagne rien, ne controle rien</li>
+</ol>
+<p><strong>Resultat :</strong> 0 min de travail pro, 0 EUR de revenu pro, le client part ailleurs.</p>
+<h3 id="53-avec-notre-systeme-option-c">5.3 Avec notre systeme (option C)</h3>
+<ol>
+<li>Le pro cree le dossier en 30 sec et depose ses docs</li>
+<li>Le client recoit un lien automatique et uploade ses docs en 2-3 min</li>
+<li>Le systeme verifie, extrait, diagnostique automatiquement</li>
+<li>Le pro genere le Cerfa en 1 clic (15-45 sec)</li>
+<li>Cachet/signature apposes automatiquement</li>
+<li>(VO) Le client signe la cession au doigt + OTP — 30 sec</li>
+<li>Le pro soumet au SIV avec un dossier complet et verifie</li>
+<li>Le pro facture le client au prix de son choix</li>
+<li>Le pro paie notre tarif fixe (12 ou 14 EUR) pour debloquer de nouveaux dossiers</li>
+</ol>
+<p><strong>Resultat :</strong> 5 min de travail pro, 2-3 min cote client. Le client reste sur le site du commercant. Le pro facture ce qu'il veut et garde tout au-dessus de notre tarif fixe. Zero risque d'erreur SIV grace au diagnostic automatique.</p>
+<hr>
+<h2 id="6-fonctionnalites-detaillees">6. Fonctionnalites Detaillees</h2>
+<h3 id="documents-acceptes-et-traites">Documents acceptes et traites</h3>
+<ul>
+<li>CNI / Passeport (recto + verso, fusion auto)</li>
+<li>Permis de conduire (recto + verso)</li>
+<li>Justificatif de domicile (facture EDF/Engie/TotalEnergies, etc.)</li>
+<li>COC (Certificat de Conformite constructeur)</li>
+<li>Carte grise barree (extraction 25 champs, verification signature/barre)</li>
+<li>Facture de vente (extraction pour certificat de vente VN)</li>
+<li>Kbis (detection auto personne morale)</li>
+<li>Attestation de formation moto 125cc/L5e</li>
+<li>Attestation d'assurance (optionnel)</li>
+<li>Rapport HistoVec (VO — automatise apres habilitation SIV)</li>
+<li>Cession 15776 (VO — generee et signee numeriquement)</li>
+</ul>
+<h3 id="verifications-automatiques">Verifications automatiques</h3>
+<ul>
+<li>VIN coherent entre tous les documents</li>
+<li>Nom coherent CNI ↔ justificatif domicile</li>
+<li>CNI non expiree (regle +5 ans 2004-2013)</li>
+<li>CG barree correctement + signatures co-titulaires (VO)</li>
+<li>Cession signee vendeur + acquereur (VO)</li>
+<li>Kbis present si personne morale</li>
+<li>Permis present (sauf personne morale)</li>
+<li>Documents obligatoires presents selon le type (VN/VO)</li>
+</ul>
+<h3 id="generation-cerfa">Generation Cerfa</h3>
+<ul>
+<li>Cerfa 13749 (VN) — tous les champs techniques remplis (D.1 a V.9) + certificat de vente pre-rempli</li>
+<li>Cerfa 13750 (VO) — vehicule + titulaire + case Certificat cochee</li>
+<li>Personne morale : case cochee + SIREN + raison sociale</li>
+<li>Couleur dominante cochee</li>
+<li>Co-titulaire si applicable</li>
+<li>Cachet/signature du pro apposes automatiquement</li>
+</ul>
+<h3 id="signatures">Signatures</h3>
+<ul>
+<li><strong>VN</strong> : zero signature client — pro signe comme vendeur professionnel</li>
+<li><strong>VO</strong> : signature cession 15776 par le client (doigt + OTP SMS)</li>
+<li><strong>Co-titulaire VO</strong> : chacun recoit son propre lien de signature</li>
+<li><strong>Cachet/signature pro</strong> : photo uploadee une fois au parametrage, apposee auto sur tous les docs</li>
+</ul>
+<hr>
+<h2 id="7-conclusion">7. Conclusion</h2>
+<p>Notre service se differencie des concurrents sur 5 points cles :</p>
+<ol>
+<li><strong>Rapidite</strong> — 5 min pro + 2-3 min client. Cerfa genere en 30 sec, cachet/signature auto.</li>
+<li><strong>Facilite</strong> — zero saisie manuelle, zero formulaire. Le client uploade via un lien, le systeme fait le reste.</li>
+<li><strong>100% numerique</strong> — signature cession au doigt (VO), cachet pro auto, zero papier, zero impression.</li>
+<li><strong>Integre</strong> — dans le site du commercant, pas de redirection, le client reste chez le pro.</li>
+<li><strong>Partenariat 50/50</strong> — tarif fixe (12 EUR moto / 14 EUR voiture), le pro fixe son prix librement et garde tout au-dessus. Plus il facture, plus il gagne.</li>
+</ol>
+<p>Le commercant moto transforme un service administratif penible en <strong>source de revenu</strong> avec un partenariat simple et transparent : 12 EUR par dossier moto, le pro facture ce qu'il veut a son client. A 25 dossiers par mois, c'est 300 EUR pour la plateforme et au minimum 300 EUR de marge pour le pro — pour 2h de travail total.</p>
+
+</body>
+</html>

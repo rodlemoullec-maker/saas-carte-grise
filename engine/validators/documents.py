@@ -207,7 +207,7 @@ class AssuranceDocumentValidator(BaseValidator):
 
 # ─── Validators VO ────────────────────────────────────────────────────────────
 
-from engine.models.documents import ExtractedCGBarree, ExtractedCT, CTResultat
+from engine.models.documents import ExtractedCGBarree
 
 
 class CGBarreeValidator(BaseValidator):
@@ -270,55 +270,6 @@ class CGBarreeValidator(BaseValidator):
         return result
 
 
-class CTDocumentValidator(BaseValidator):
-    """
-    Valide le contrôle technique (V-35, V-16, V-17).
-
-    Règles :
-    - Résultat favorable (A ou S) — R = BLOCAGE TOTAL (V-35)
-    - Date < 6 mois à la saisie SIV (V-16)
-    - 5-6 mois → WARNING (V-17)
-    - Contre-visite < 2 mois
-    """
-
-    def validate(self, ct: ExtractedCT, saisie_siv_date: date | None = None) -> ValidationResult:
-        from engine.validators.dates import CTDateValidator
-        result = ValidationResult(valid=True)
-
-        # V-35 : résultat
-        if ct.resultat == CTResultat.R:
-            result.add_error(
-                "CT_CRITIQUE",
-                "Contrôle technique défavorable critique (R) — véhicule dangereux, vente interdite",
-                ValidationLevel.BLOCKING, "resultat",
-                correction_action="Le véhicule doit être réparé et repasser un CT complet"
-            )
-        elif ct.resultat == CTResultat.S:
-            result.add_error(
-                "CT_DEFAUTS_MAJEURS",
-                "Contrôle technique avec défauts majeurs (S) — contre-visite dans 2 mois",
-                ValidationLevel.WARNING, "resultat",
-                correction_action="Vérifier que la contre-visite est disponible et valide"
-            )
-
-        # Contre-visite
-        if ct.contre_visite and ct.date_contre_visite:
-            cv_result = CTDateValidator().validate_contre_visite(ct.date_contre_visite, saisie_siv_date)
-            result.errors.extend(cv_result.errors)
-            if cv_result.is_blocking:
-                result.valid = False
-
-        # V-16/V-17 : fraîcheur du CT
-        if ct.date_ct:
-            date_result = CTDateValidator().validate(ct.date_ct, saisie_siv_date)
-            result.errors.extend(date_result.errors)
-            result.warnings.extend(date_result.warnings)
-            if date_result.is_blocking:
-                result.valid = False
-
-        return result
-
-
 class AttestationIdentiteProValidator(BaseValidator):
     """
     Vérifie que l'attestation de vérification d'identité pro est présente (V-38, D-31).
@@ -368,12 +319,16 @@ class CerfaValidator(BaseValidator):
                 correction_action="Fournir un nouveau Cerfa sans rature"
             )
 
-        if not cerfa.signe:
+        # Note : le client ne signe PAS les Cerfa 13749/13750.
+        # Le pro signe comme vendeur professionnel — le cachet/signature pro
+        # est apposé automatiquement après génération du PDF.
+        # La seule signature client requise est sur la cession 15776 (VO uniquement).
+        if not cerfa.signe_pro:
             result.add_error(
-                "CERFA_NON_SIGNE",
-                "Cerfa non signé par le titulaire",
-                ValidationLevel.BLOCKING, "signe",
-                correction_action="Le portail peut générer un Cerfa pré-rempli à faire signer au client"
+                "CERFA_NON_SIGNE_PRO",
+                "Cachet/signature pro absent sur le Cerfa — sera apposé automatiquement à la génération",
+                ValidationLevel.WARNING, "signe_pro",
+                correction_action="Le système apposera le cachet/signature du pro automatiquement"
             )
 
         if not cerfa.nom_titulaire:

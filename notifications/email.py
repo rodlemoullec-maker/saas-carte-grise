@@ -97,6 +97,34 @@ TEMPLATES: dict[str, dict[str, str]] = {
             "Cordialement,\nL'équipe Carte Grise Pro"
         ),
     },
+    "docs_pro_qualite": {
+        "subject": "[Action requise] Document illisible — Dossier {reference}",
+        "body": (
+            "Bonjour,\n\n"
+            "Un ou plusieurs documents que vous avez déposés pour le dossier {reference} "
+            "n'ont pas pu être lus correctement par notre système :\n\n"
+            "{problemes_list}\n\n"
+            "Le lien au client ne sera envoyé qu'une fois vos documents lisibles et valides.\n\n"
+            "Merci de re-déposer les documents concernés depuis votre espace admin.\n\n"
+            "Conseils :\n"
+            "- Scanner le document bien à plat, avec un bon éclairage\n"
+            "- Éviter les reflets, les doigts sur le document, les zones d'ombre\n"
+            "- Privilégier le format PDF ou une photo nette en haute résolution\n\n"
+            "Cordialement,\nL'équipe Carte Grise Pro"
+        ),
+    },
+    "docs_pro_valides": {
+        "subject": "Documents validés — Lien envoyé au client — Dossier {reference}",
+        "body": (
+            "Bonjour,\n\n"
+            "Vos documents pour le dossier {reference} ont été validés avec succès.\n\n"
+            "Documents traités :\n{documents_ok_list}\n\n"
+            "Le lien de collecte a été envoyé automatiquement à votre client "
+            "au {client_telephone}.\n\n"
+            "Vous serez notifié dès que le client aura déposé ses documents.\n\n"
+            "Cordialement,\nL'équipe Carte Grise Pro"
+        ),
+    },
     "phase0_alerte": {
         "subject": "[ALERTE] Blocage détecté sur le véhicule — {immatriculation}",
         "body": (

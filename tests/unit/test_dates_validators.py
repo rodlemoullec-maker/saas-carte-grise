@@ -8,7 +8,6 @@ import pytest
 from engine.validators.dates import (
     AgeValidator,
     CodeCessionValidator,
-    CTDateValidator,
     DocumentDateValidator,
     KbisValidator,
     TitreSejourValidator,
@@ -110,41 +109,6 @@ class TestAgeValidator:
         ddn = date(2010, 1, 1)  # 16 ans
         result = self.v.validate(ddn, permis_categories=["B"], reference_date=self.ref)
         assert any(e.code == "AGE_CATEGORY_MISMATCH" for e in result.errors)
-
-
-class TestCTDateValidator:
-    """Tests V-16 / V-17."""
-
-    def setup_method(self):
-        self.v = CTDateValidator()
-
-    def test_ct_fresh(self):
-        date_ct = date(2026, 2, 1)
-        result = self.v.validate(date_ct, date(2026, 3, 26))
-        assert result.valid is True
-        assert len(result.errors) == 0
-
-    def test_ct_expiring_soon(self):
-        # CT de 5.5 mois — WARNING
-        date_ct = date(2025, 10, 10)
-        result = self.v.validate(date_ct, date(2026, 3, 26))
-        assert result.valid is True
-        assert any(e.code == "CT_EXPIRING_SOON" for e in result.warnings)
-
-    def test_ct_expired(self):
-        # CT > 6 mois
-        date_ct = date(2025, 8, 1)
-        result = self.v.validate(date_ct, date(2026, 3, 26))
-        assert result.valid is False
-        assert any(e.code == "CT_TOO_OLD" for e in result.errors)
-
-    def test_contre_visite_valid(self):
-        result = self.v.validate_contre_visite(date(2026, 3, 1), date(2026, 3, 26))
-        assert result.valid is True
-
-    def test_contre_visite_expired(self):
-        result = self.v.validate_contre_visite(date(2026, 1, 1), date(2026, 3, 26))
-        assert result.valid is False
 
 
 class TestCodeCessionValidator:

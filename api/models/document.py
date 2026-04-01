@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import uuid
 
-from sqlalchemy import Float, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -21,9 +21,11 @@ class DocumentDB(Base, TimestampMixin):
         UUID(as_uuid=True), ForeignKey("dossiers.id"), index=True,
     )
 
-    # Type et statut
+    # Source et type
+    source: Mapped[str] = mapped_column(String(20), default="vendeur")  # "vendeur" ou "client"
     type: Mapped[str] = mapped_column(String(40))  # DocumentType enum value
-    status: Mapped[str] = mapped_column(String(20), default="PENDING")  # PENDING → PROCESSING → EXTRACTED → VALIDATED / REJECTED
+    status: Mapped[str] = mapped_column(String(20), default="PENDING")
+    captured_by_camera: Mapped[bool] = mapped_column(Boolean, default=False)
 
     # Fichier
     storage_path: Mapped[str] = mapped_column(String(500))  # Chemin logique dans le store

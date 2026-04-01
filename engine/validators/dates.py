@@ -8,14 +8,16 @@ from datetime import date, timedelta
 from engine.validators.base import BaseValidator, ValidationLevel, ValidationResult
 
 # Délais de validité en jours par type de justificatif de domicile
+# Réglementation ANTS : moins de 6 mois (183 jours) pour les factures/quittances
+# Avis d'imposition : année précédente (365 jours)
 DOMICILE_VALIDITY_DAYS: dict[str, int] = {
-    "facture_electricite": 92,
-    "facture_gaz": 92,
-    "facture_eau": 92,
-    "facture_telephone": 92,
-    "facture_internet": 92,
-    "quittance_loyer": 92,
-    "releve_bancaire": 92,
+    "facture_electricite": 183,
+    "facture_gaz": 183,
+    "facture_eau": 183,
+    "facture_telephone": 183,
+    "facture_internet": 183,
+    "quittance_loyer": 183,
+    "releve_bancaire": 183,
     "avis_imposition": 365,
     "attestation_hebergement": -1,  # -1 = pas de délai
 }
@@ -175,50 +177,6 @@ class AgeValidator(BaseValidator):
                 message=f"L'acheteur est mineur ({age} ans) — escalade obligatoire",
                 level=ValidationLevel.WARNING, field="date_naissance",
                 correction_action="Dossier mineur : autorisation parentale (D-27) + livret famille (D-26) requis"
-            )
-        return result
-
-
-class CTDateValidator(BaseValidator):
-    """
-    Vérifie la validité du contrôle technique pour une vente (règles V-16, V-17).
-
-    Règle : CT < 6 mois à la DATE DE SAISIE SIV (pas à la date de commande).
-    5-6 mois → WARNING (risque expiration avant saisie).
-    Contre-visite : < 2 mois.
-    """
-
-    def validate(self, date_ct: date, saisie_siv_date: date | None = None) -> ValidationResult:
-        result = ValidationResult(valid=True)
-        ref = saisie_siv_date or date.today()
-        age_days = (ref - date_ct).days
-
-        if age_days > 183:  # > 6 mois
-            result.add_error(
-                code="CT_TOO_OLD",
-                message=f"Contrôle technique trop ancien ({age_days} jours — max 183 jours à la saisie SIV)",
-                level=ValidationLevel.BLOCKING, field="date_ct",
-                correction_action="Un nouveau contrôle technique est requis avant la saisie SIV"
-            )
-        elif age_days > 152:  # 5-6 mois → WARNING
-            result.add_error(
-                code="CT_EXPIRING_SOON",
-                message=f"Contrôle technique proche de l'expiration ({age_days} jours — expire dans {183 - age_days} jours)",
-                level=ValidationLevel.WARNING, field="date_ct",
-                correction_action="Vérifier que la saisie SIV pourra être effectuée avant expiration"
-            )
-        return result
-
-    def validate_contre_visite(self, date_cv: date, reference_date: date | None = None) -> ValidationResult:
-        result = ValidationResult(valid=True)
-        ref = reference_date or date.today()
-        age_days = (ref - date_cv).days
-        if age_days > 61:  # > 2 mois
-            result.add_error(
-                code="CONTRE_VISITE_EXPIRED",
-                message=f"Contre-visite expirée ({age_days} jours — max 61 jours)",
-                level=ValidationLevel.BLOCKING, field="date_contre_visite",
-                correction_action="Repasser un contrôle technique complet"
             )
         return result
 

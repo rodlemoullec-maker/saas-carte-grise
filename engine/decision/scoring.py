@@ -50,7 +50,6 @@ def categorize_rule(rule_name: str) -> str | None:
         "cg_signatures_vs_cotitulaires": "documents",
         "cession_signature_vendeur": "documents",
         "cession_tampon_siret": "documents",
-        "ct_validity_at_saisie_siv": "documents",
         # Adresse
         "address_cerfa_vs_domicile": "adresse",
         "address_cerfa_vs_titre_sejour": "adresse",

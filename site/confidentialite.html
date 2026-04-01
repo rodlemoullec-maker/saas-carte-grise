@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Politique de confidentialite — AutoDoc Pro</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="header">
+        <nav class="nav">
+            <a href="index.html" class="logo"><span class="logo-icon">&#9670;</span> AutoDoc <span class="logo-accent">Pro</span></a>
+            <ul class="nav-links">
+                <li><a href="index.html">Accueil</a></li>
+                <li><a href="index.html#contact" class="btn btn-nav">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section class="section" style="padding-top: 120px;">
+        <div class="container" style="max-width: 800px;">
+            <h1 style="font-size: 2rem; margin-bottom: 24px;">Politique de confidentialite</h1>
+            <p style="color: #6b7280; margin-bottom: 32px;">Derniere mise a jour : 1er avril 2026</p>
+
+            <h2>1. Responsable du traitement</h2>
+            <p><strong>AutoDoc Pro</strong><br>
+            Contact DPO : rgpd@cartegrisepro.fr</p>
+
+            <h2>2. Donnees collectees</h2>
+            <p>Dans le cadre du traitement des demandes de carte grise, nous collectons :</p>
+            <ul>
+                <li>Pieces d'identite (CNI, passeport) : nom, prenom, date de naissance, lieu de naissance, numero de document</li>
+                <li>Permis de conduire : categories, dates d'obtention</li>
+                <li>Justificatif de domicile : adresse</li>
+                <li>Documents vehicule (COC, carte grise, facture) : VIN, immatriculation, marque, modele</li>
+                <li>Coordonnees : telephone, email</li>
+            </ul>
+
+            <h2>3. Finalite du traitement</h2>
+            <p>Vos donnees sont collectees uniquement pour la constitution de votre dossier de demande d'immatriculation de vehicule (carte grise), a l'initiative de votre vendeur professionnel.</p>
+
+            <h2>4. Base legale</h2>
+            <p>Le traitement est fonde sur votre <strong>consentement</strong> (article 6.1.a du RGPD), recueilli avant tout depot de document.</p>
+
+            <h2>5. Sous-traitants et transferts de donnees</h2>
+            <p>Le traitement de vos documents fait appel aux sous-traitants suivants :</p>
+
+            <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
+                <thead>
+                    <tr style="background: #f3f4f6;">
+                        <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e5e7eb;">Sous-traitant</th>
+                        <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e5e7eb;">Role</th>
+                        <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e5e7eb;">Pays</th>
+                        <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e5e7eb;">Retention</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;"><strong>Google LLC</strong><br>Google Document AI</td>
+                        <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">Lecture optique des documents (OCR) — conversion image/PDF en texte</td>
+                        <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">Etats-Unis</td>
+                        <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">Aucune — traitement en temps reel</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;"><strong>Anthropic</strong><br>Claude (API)</td>
+                        <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">Extraction et structuration des informations des documents</td>
+                        <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">Etats-Unis</td>
+                        <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">Aucune — Anthropic ne conserve pas les donnees API et ne les utilise pas pour l'entrainement</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;"><strong>Neon</strong><br>PostgreSQL heberge</td>
+                        <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">Stockage temporaire des dossiers en cours</td>
+                        <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">Union Europeenne (Francfort)</td>
+                        <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">Suppression a la finalisation du dossier</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <p>Les transferts de donnees vers les Etats-Unis (Google, Anthropic) sont encadres par des <strong>clauses contractuelles types (CCT)</strong> conformement a l'article 46 du RGPD. Aucune donnee n'est conservee aux Etats-Unis au-dela du traitement immediat.</p>
+
+            <h2>6. Duree de conservation</h2>
+            <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
+                <tr style="background: #f3f4f6;">
+                    <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e5e7eb;">Donnees</th>
+                    <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e5e7eb;">Duree</th>
+                </tr>
+                <tr>
+                    <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">Documents client (CNI, permis, domicile)</td>
+                    <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">Supprimes automatiquement a la finalisation du dossier</td>
+                </tr>
+                <tr>
+                    <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">Dossiers professionnels</td>
+                    <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">Archives 5 ans (obligation legale)</td>
+                </tr>
+                <tr>
+                    <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">Donnees de facturation</td>
+                    <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">Archives 10 ans (obligation comptable)</td>
+                </tr>
+            </table>
+
+            <h2>7. Vos droits</h2>
+            <p>Conformement au RGPD, vous disposez des droits suivants :</p>
+            <ul>
+                <li><strong>Droit d'acces</strong> — obtenir une copie de vos donnees</li>
+                <li><strong>Droit de rectification</strong> — corriger des donnees inexactes</li>
+                <li><strong>Droit a l'effacement</strong> — demander la suppression de vos donnees</li>
+                <li><strong>Droit a la portabilite</strong> — recevoir vos donnees dans un format structure</li>
+                <li><strong>Droit d'opposition</strong> — vous opposer au traitement</li>
+                <li><strong>Droit de retrait du consentement</strong> — retirer votre consentement a tout moment</li>
+            </ul>
+            <p>Pour exercer vos droits : <strong>rgpd@cartegrisepro.fr</strong></p>
+            <p>Vous pouvez egalement introduire une reclamation aupres de la <strong>CNIL</strong> (Commission Nationale de l'Informatique et des Libertes).</p>
+
+            <h2>8. Securite</h2>
+            <p>Nous mettons en oeuvre des mesures techniques et organisationnelles appropriees pour proteger vos donnees : chiffrement en transit (HTTPS/TLS), stockage securise, acces restreint aux donnees.</p>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-bottom">
+                <p>&copy; 2026 AutoDoc Pro. Tous droits reserves.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

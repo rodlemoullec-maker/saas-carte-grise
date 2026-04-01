@@ -36,12 +36,6 @@ class TestDocumentClassifier:
         assert result.doc_type == DocumentType.ASSURANCE
         assert result.confidence > 0.5
 
-    def test_controle_technique(self):
-        text = "CONTROLE TECHNIQUE\nRésultat: Favorable\nCentre de contrôle agréé\nContre-visite non requise"
-        result = self.c.classify(text)
-        assert result.doc_type == DocumentType.CONTROLE_TECHNIQUE
-        assert result.confidence > 0.5
-
     def test_cerfa_vn(self):
         text = "CERFA 13749 Demande de certificat d'immatriculation véhicule neuf"
         result = self.c.classify(text)

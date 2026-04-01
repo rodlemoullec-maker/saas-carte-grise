@@ -433,14 +433,9 @@ Espace Vendeur                  Espace Client
 </thead>
 <tbody>
 <tr>
-<td>Carte grise (CG)</td>
-<td>Oui</td>
-<td>Immat, VIN, marque, D.2 type, CNIT, titulaire, adresse, toutes les cases techniques (25 champs)</td>
-</tr>
-<tr>
 <td>COC (si disponible)</td>
 <td>Recommande</td>
-<td>Complete les infos techniques manquantes de la CG</td>
+<td>Complete les infos techniques pour le Cerfa</td>
 </tr>
 </tbody>
 </table>
@@ -452,10 +447,11 @@ Espace Vendeur                  Espace Client
 <li>Le Cerfa genere une fois le dossier complet</li>
 </ul>
 <hr>
-<h2 id="2-parcours-client-acheteur">2. Parcours Client (Acheteur)</h2>
+<h2 id="2-documents-client-acheteur">2. Documents Client (Acheteur)</h2>
 <p>Le client est la personne qui achete le vehicule.</p>
-<h3 id="etape-1--depot-des-documents-identite">Etape 1 : Depot des documents identite</h3>
-<p>Le client depose ses documents dans l'<strong>espace client</strong> :</p>
+<p><strong>Pas d'espace client sur le site du commercant.</strong> Une fois que le pro a depose ses documents vehicule dans son espace admin, le systeme envoie automatiquement un <strong>lien securise au client</strong> (SMS ou email) vers une page d'upload simple. Le client y depose ses documents d'identite. Pas de compte a creer, pas de login. En VO, le meme lien permet aussi de signer la cession numeriquement (voir section 4.6).</p>
+<h3 id="documents-identite-requis">Documents identite requis</h3>
+<p>Le client uploade les documents suivants via le lien recu :</p>
 <p><strong>Personne physique :</strong></p>
 <table>
 <thead>
@@ -482,12 +478,29 @@ Espace Vendeur                  Espace Client
 <td>Nom, adresse, code postal, ville</td>
 </tr>
 <tr>
+<td>Carte grise barree (VO uniquement)</td>
+<td>Oui (VO)</td>
+<td>Immat, VIN, marque, titulaire, toutes cases techniques (25 champs)</td>
+</tr>
+<tr>
 <td>Attestation de formation moto</td>
 <td>Si moto 125cc/L5e</td>
 <td>Collecte sans verification — message admin</td>
 </tr>
+<tr>
+<td>Attestation d'assurance</td>
+<td>Optionnel</td>
+<td>Collecte sans verification — message admin pour verification</td>
+</tr>
 </tbody>
 </table>
+<p><strong>Note :</strong> si l'attestation d'assurance n'est pas fournie par le client, un message est envoye a l'admin sur son espace pour suivi.</p>
+<p><strong>Signature client :</strong></p>
+<ul>
+<li><strong>VN</strong> : aucune signature client requise. Le pro soumet comme professionnel vendeur.</li>
+<li><strong>VO</strong> : le client signe uniquement la <strong>cession 15776</strong> (en tant qu'acquereur) via signature numerique (doigt + OTP SMS). Voir section 4.6.</li>
+</ul>
+<p>Le cachet/signature du pro est appose automatiquement sur tous les autres documents. Voir section 4.7.</p>
 <p><strong>Personne morale :</strong></p>
 <table>
 <thead>
@@ -514,13 +527,23 @@ Espace Vendeur                  Espace Client
 <td>Adresse siege social</td>
 </tr>
 <tr>
+<td>Carte grise barree (VO uniquement)</td>
+<td>Oui (VO)</td>
+<td>Immat, VIN, marque, titulaire, cases techniques</td>
+</tr>
+<tr>
+<td>Attestation d'assurance</td>
+<td>Optionnel</td>
+<td>Collecte sans verification — message admin</td>
+</tr>
+<tr>
 <td>Permis</td>
 <td>Non requis</td>
 <td>—</td>
 </tr>
 </tbody>
 </table>
-<h3 id="etape-2--fusion-rectoverso">Etape 2 : Fusion recto/verso</h3>
+<h3 id="fusion-rectoverso">Fusion recto/verso</h3>
 <p>Si le client uploade le recto et le verso d'un meme document (ex: CNI recto.jpg + CNI verso.jpg), le systeme :</p>
 <ol>
 <li>Detecte que les deux fichiers sont du meme type (CNI)</li>
@@ -528,7 +551,7 @@ Espace Vendeur                  Espace Client
 <li>Re-extrait les donnees du texte fusionne</li>
 <li>Garde un seul document fusionne (pas de doublon)</li>
 </ol>
-<h3 id="etape-3--anti-doublon">Etape 3 : Anti-doublon</h3>
+<h3 id="anti-doublon">Anti-doublon</h3>
 <p>Si le client re-uploade un document deja present :</p>
 <ul>
 <li>L'ancien est remplace par le nouveau</li>
@@ -579,7 +602,7 @@ Espace Vendeur                  Espace Client
 <li>Permis present (sauf personne morale)</li>
 </ul>
 <hr>
-<h2 id="4-generation-du-cerfa">4. Generation du Cerfa</h2>
+<h2 id="4-generation-du-cerfa-signatures-et-mandat">4. Generation du Cerfa, Signatures et Mandat</h2>
 <h3 id="41-processus">4.1 Processus</h3>
 <p>Quand le diagnostic est VERT ou ORANGE :</p>
 <ol>
@@ -588,12 +611,13 @@ Espace Vendeur                  Espace Client
 <li>Remplit automatiquement tous les champs (vehicule, titulaire, adresse)</li>
 <li>Le site genere le Cerfa PDF officiel</li>
 <li>Le systeme telecharge le PDF et le stocke dans le dossier</li>
+<li>Le systeme appose le cachet/signature du pro sur les documents concernes (voir 4.6)</li>
 </ol>
 <h3 id="42-cerfa-vn-13749">4.2 Cerfa VN (13749)</h3>
 <p>4 etapes sur le site :</p>
 <ol>
 <li>Identification du vehicule (D.1 a V.9, couleur)</li>
-<li>Certificat de vente (skip — le pro remplit a la main)</li>
+<li>Certificat de vente — <strong>pre-rempli automatiquement</strong> a partir de la facture d'achat (voir 4.7)</li>
 <li>Demandeur / titulaire (nom, naissance, adresse, sexe/PM)</li>
 <li>Telecharger le PDF</li>
 </ol>
@@ -612,6 +636,128 @@ Espace Vendeur                  Espace Client
 <li>SIREN + raison sociale remplis (au lieu de nom/prenom)</li>
 <li>Permis non exige</li>
 </ul>
+<h3 id="45-regles-de-signature-selon-le-type-de-transaction">4.5 Regles de signature selon le type de transaction</h3>
+<p>Le pro etant toujours le vendeur, il soumet la demande d'immatriculation en tant que <strong>&quot;professionnel de l'automobile&quot;</strong> — pas besoin de mandat du client.</p>
+<p><strong>Regle cle : pro vendeur ≠ mandataire.</strong> Le mandat 13757 n'est necessaire que si quelqu'un agit au nom du client sans etre le vendeur (hors perimetre actuel).</p>
+<p><strong>Matrice des signatures :</strong></p>
+<table>
+<thead>
+<tr>
+<th>Transaction</th>
+<th>Document</th>
+<th style="text-align:center">Signature pro (auto)</th>
+<th style="text-align:center">Signature client</th>
+<th>Remarque</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>VN</strong></td>
+<td>Facture d'achat</td>
+<td style="text-align:center">Oui (cachet)</td>
+<td style="text-align:center">Non</td>
+<td>Cachet auto</td>
+</tr>
+<tr>
+<td><strong>VN</strong></td>
+<td>Cerfa 13749 (demande immat.)</td>
+<td style="text-align:center">Oui (professionnel vendeur)</td>
+<td style="text-align:center"><strong>Non</strong></td>
+<td>Pro soumet en son nom</td>
+</tr>
+<tr>
+<td><strong>VO</strong></td>
+<td>CG barree</td>
+<td style="text-align:center">Oui</td>
+<td style="text-align:center">Non</td>
+<td>Pro = ancien titulaire</td>
+</tr>
+<tr>
+<td><strong>VO</strong></td>
+<td>Cerfa 13750 (demande immat.)</td>
+<td style="text-align:center">Oui (professionnel vendeur)</td>
+<td style="text-align:center"><strong>Non</strong></td>
+<td>Pro soumet en son nom</td>
+</tr>
+<tr>
+<td><strong>VO</strong></td>
+<td>Cession 15776 (cote vendeur)</td>
+<td style="text-align:center">Oui</td>
+<td style="text-align:center">Non</td>
+<td>Cachet + signature auto</td>
+</tr>
+<tr>
+<td><strong>VO</strong></td>
+<td>Cession 15776 (cote acquereur)</td>
+<td style="text-align:center">Non</td>
+<td style="text-align:center"><strong>Oui (numerique)</strong></td>
+<td>Seul doc signe par le client</td>
+</tr>
+<tr>
+<td><strong>VO</strong></td>
+<td>Cession 15776 (co-titulaire acquereur)</td>
+<td style="text-align:center">Non</td>
+<td style="text-align:center"><strong>Oui (numerique)</strong></td>
+<td>Si co-titulaire renseigne</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Resultat :</strong></p>
+<ul>
+<li><strong>VN sans co-titulaire : zero signature client.</strong></li>
+<li><strong>VN avec co-titulaire : zero signature client.</strong> Le co-titulaire fournit ses docs (CNI, permis) mais ne signe rien.</li>
+<li><strong>VO sans co-titulaire : une seule signature client</strong> — cession 15776 (acquereur).</li>
+<li><strong>VO avec co-titulaire : deux signatures client</strong> — cession 15776 (acquereur + co-acquereur). Chacun recoit son propre lien SMS.</li>
+</ul>
+<h3 id="46-signature-numerique-de-la-cession-vo-uniquement">4.6 Signature numerique de la cession (VO uniquement)</h3>
+<p>En VO, le client doit signer la cession 15776 en tant qu'acquereur. Cette signature est 100% numerique :</p>
+<p><strong>Parcours :</strong></p>
+<ol>
+<li>Le pro cree le dossier VO → le systeme genere la cession 15776 pre-remplie</li>
+<li>Le client recoit un <strong>SMS avec lien securise</strong></li>
+<li>Il ouvre la cession dans son navigateur, verifie ses infos</li>
+<li>Il <strong>signe au doigt/stylet</strong> sur l'ecran (canvas HTML)</li>
+<li>Il recoit un <strong>code OTP par SMS</strong> et le saisit pour confirmer</li>
+<li>Le systeme genere le PDF final avec : signature + horodatage + adresse IP + confirmation OTP</li>
+</ol>
+<p><strong>Preuve conservee :</strong> trace signature (PNG) + horodatage + IP + mention &quot;confirme par OTP au 06XX le JJ/MM a HH:MM&quot;</p>
+<p><strong>Cout :</strong> ~0.03-0.05 EUR par dossier (envoi SMS OTP uniquement)</p>
+<p><strong>Co-titulaire :</strong> si un co-titulaire est renseigne, il recoit son propre SMS et signe separement comme co-acquereur. Le systeme attend les deux signatures avant de finaliser la cession.</p>
+<p><strong>Note :</strong> en VN, ce parcours n'est pas declenche — aucune signature client requise (meme avec co-titulaire).</p>
+<h3 id="47-cachet-et-signature-automatique-du-pro">4.7 Cachet et signature automatique du pro</h3>
+<p><strong>Parametrage initial (une seule fois) :</strong>
+Lors de la creation de son espace, le pro uploade :</p>
+<ul>
+<li>Une <strong>photo de sa signature</strong> sur fond blanc</li>
+<li>Une <strong>photo de son cachet</strong> (tampon commercial) sur fond blanc</li>
+</ul>
+<p>Les images sont stockees dans son profil (S3, chiffrees).</p>
+<p><strong>Apposition automatique :</strong>
+Apres generation de chaque document PDF, le systeme appose le cachet/signature du pro aux emplacements prevus (overlay PDF).</p>
+<p>Le systeme determine automatiquement quels documents cacheter/signer selon le type de dossier :</p>
+<ul>
+<li><strong>VN</strong> : facture + Cerfa 13749</li>
+<li><strong>VO</strong> : CG barree + cession (cote vendeur) + Cerfa 13750</li>
+</ul>
+<p><strong>Resultat :</strong> zero impression, zero scan, zero signature papier.</p>
+<h3 id="48-extraction-facture-%E2%86%92-certificat-de-vente-vn">4.8 Extraction facture → certificat de vente VN</h3>
+<p>Pour les VN, le systeme extrait automatiquement de la facture d'achat les donnees necessaires au certificat de vente du Cerfa 13749 :</p>
+<ul>
+<li>Identite vendeur (raison sociale, SIRET, adresse du pro)</li>
+<li>Identite acheteur (nom, prenom, adresse du client)</li>
+<li>Donnees vehicule (marque, modele, VIN, date 1ere immatriculation)</li>
+<li>Prix de vente TTC, date de la transaction</li>
+</ul>
+<p>Ces donnees sont injectees dans l'etape 2 du formulaire service-public.gouv.fr (certificat de vente), eliminant le remplissage manuel par le pro.</p>
+<h3 id="49-integration-histovec-post-habilitation">4.9 Integration HistoVec (post-habilitation)</h3>
+<p><strong>Actuellement :</strong> le pro consulte manuellement HistoVec et uploade le rapport PDF (2 min).</p>
+<p><strong>Evolution prevue</strong> (apres obtention habilitation SIV) :</p>
+<ol>
+<li>Lors du parametrage de l'espace pro, le vendeur renseigne ses identifiants HistoVec (stockes chiffres)</li>
+<li>Le systeme interroge automatiquement HistoVec avec le numero d'immatriculation et le numero de formule</li>
+<li>Le rapport (gage, OTCI, vol, VEC/VEI) est recupere et integre au dossier sans intervention du pro</li>
+</ol>
+<p><strong>Note :</strong> necessite de verifier si l'acces pro habilite SIV donne un acces programmatique ou s'il faut passer par l'extension navigateur.</p>
 <hr>
 <h2 id="5-espace-admin">5. Espace Admin</h2>
 <p>Apres generation du Cerfa, l'espace admin affiche :</p>
@@ -665,9 +811,12 @@ Espace Vendeur                  Espace Client
 </ul>
 <h3 id="63-co-titulaire">6.3 Co-titulaire</h3>
 <ul>
-<li>Renseigne par le vendeur a la creation du dossier</li>
-<li>Affiche sur le Cerfa si present</li>
-<li>Multi-propriete cochee automatiquement</li>
+<li>Renseigne par le vendeur a la creation du dossier (nom, prenom, telephone, email)</li>
+<li>Le co-titulaire recoit son propre lien d'upload pour deposer ses documents (CNI, permis)</li>
+<li>Multi-propriete cochee automatiquement sur le Cerfa</li>
+<li><strong>VN</strong> : le co-titulaire fournit ses documents mais ne signe rien</li>
+<li><strong>VO</strong> : le co-titulaire doit aussi signer la cession 15776 en tant que co-acquereur (signature numerique doigt + OTP via son propre lien SMS)</li>
+<li>Le systeme ne genere le Cerfa que lorsque TOUS les co-titulaires ont fourni leurs documents (et signe la cession en VO)</li>
 </ul>
 <hr>
 <h2 id="7-stack-technique">7. Stack Technique</h2>

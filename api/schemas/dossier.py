@@ -11,23 +11,19 @@ from engine.models.dossier import DossierType, DossierStatus
 
 
 class DossierCreateRequest(BaseModel):
-    type: DossierType
+    """Saisie ultra-minimale : portable client + email optionnel.
+    Tout le reste est déduit des documents."""
     professionnel_id: UUID
-    vin: str | None = None
-    immatriculation: str | None = None
-    client_nom: str | None = None
-    client_prenom: str | None = None
+    client_telephone: str
     client_email: str | None = None
-    client_telephone: str | None = None
-    is_personne_morale: bool = False
 
 
 class DossierResponse(BaseModel):
     id: UUID
     reference: str
-    type: str
+    type: str | None = None  # Déduit auto (VN/VO)
     status: str
-    diagnostic: str | None = None     # VERT / ORANGE / ROUGE
+    diagnostic: str | None = None     # VERT / ROUGE
     vin: str | None = None
     immatriculation: str | None = None
     client_nom: str | None = None

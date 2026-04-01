@@ -80,15 +80,6 @@ _KEYWORDS: dict[DocumentType, list[tuple[str, float]]] = {
         ("titulaire", 0.3),
         ("immatriculation", 0.3),
     ],
-    DocumentType.CONTROLE_TECHNIQUE: [
-        ("controle technique", 1.0),
-        ("proces-verbal", 0.5),
-        ("resultat", 0.3),
-        ("defaut", 0.3),
-        ("favorable", 0.4),
-        ("contre-visite", 0.5),
-        ("centre de controle", 0.5),
-    ],
     DocumentType.CERFA_VN: [
         ("cerfa", 0.7),
         ("13749", 0.9),

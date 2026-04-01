@@ -7,7 +7,7 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import Boolean, String, Text
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from api.models.base import Base, TimestampMixin
@@ -45,10 +45,31 @@ class Professionnel(Base, TimestampMixin):
     stripe_customer_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
     sepa_mandate_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
+    # Paramétrage profil (rempli à l'installation)
+    nom_commerce: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    telephone_commerce: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    email_commerce: Mapped[str | None] = mapped_column(String(255), nullable=True)
+
+    # Documents profil (chemins S3)
+    cachet_path: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    signature_path: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    kbis_path: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    kbis_extracted: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+
+    # Assurance flotte
+    assurance_flotte_vn: Mapped[bool] = mapped_column(Boolean, default=False)
+    assurance_flotte_vo: Mapped[bool] = mapped_column(Boolean, default=False)
+    # Si pas de flotte : demander attestation au client automatiquement ?
+    demander_assurance_client_vn: Mapped[bool] = mapped_column(Boolean, default=False)
+    demander_assurance_client_vo: Mapped[bool] = mapped_column(Boolean, default=False)
+
     # Relances
     relance_mode: Mapped[str] = mapped_column(
-        String(20), default="PRO"  # PRO | SYSTEME (le pro relance ou le système relance le client)
+        String(20), default="PRO"
     )
+
+    # Setup complet ?
+    setup_complete: Mapped[bool] = mapped_column(Boolean, default=False)
 
     # Actif
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)

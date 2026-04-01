@@ -1,12 +1,10 @@
 """
 Moteur de decision principal.
 
-Logique binaire — pas de score pondere.
-Un dossier est soit conforme (VERT), soit avec warnings (ORANGE), soit bloque (ROUGE).
+Logique binaire — pas de score pondere, pas d'etat intermediaire.
 
-ROUGE  = au moins 1 verrouillage V-XX declenche
-ORANGE = zero verrouillage, au moins 1 warning
-VERT   = zero verrouillage, zero warning
+VERT  = tout est conforme, Cerfa generable
+ROUGE = au moins 1 blocage
 """
 from __future__ import annotations
 
@@ -81,16 +79,8 @@ class DecisionEngine:
                 cross_check_results=cross_check_results,
             )
 
-        if warnings:
-            return Decision(
-                diagnostic=Diagnostic.ORANGE,
-                status=DecisionStatus.REVUE_AGENT,
-                blocages=[],
-                warnings=warnings,
-                cross_check_results=cross_check_results,
-                requires_human_review=True,
-            )
-
+        # Pas d'etat intermediaire — VERT ou ROUGE uniquement
+        # Les warnings sont informatifs mais ne bloquent pas
         return Decision(
             diagnostic=Diagnostic.VERT,
             status=DecisionStatus.ACCEPTE,

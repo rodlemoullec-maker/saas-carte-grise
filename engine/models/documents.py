@@ -34,7 +34,6 @@ class DocumentType(str, Enum):
     DOMICILE = "DOMICILE"
     # Véhicule
     CG_BARREE = "CG_BARREE"         # D-17
-    CONTROLE_TECHNIQUE = "CONTROLE_TECHNIQUE"  # D-18
     ASSURANCE = "ASSURANCE"         # D-19
     RECEPISEE_DA = "RECEPISEE_DA"   # D-21
     CSA_HISTOVEC = "CSA_HISTOVEC"   # D-22
@@ -42,6 +41,10 @@ class DocumentType(str, Enum):
     KBIS = "KBIS"                   # D-23
     # Attestation pro
     ATTESTATION_IDENTITE_PRO = "ATTESTATION_IDENTITE_PRO"  # D-31
+    ATTESTATION_FORMATION = "ATTESTATION_FORMATION"      # Formation 7h moto 125cc/L5e
+    ATTESTATION_HEBERGEMENT = "ATTESTATION_HEBERGEMENT"  # Attestation manuscrite hebergement
+    CNI_HEBERGEANT = "CNI_HEBERGEANT"                    # CNI de l'hebergeant
+    CERTIFICAT_CESSION = "CERTIFICAT_CESSION"            # 15776 signe depose par le pro
 
 
 class DocumentStatus(str, Enum):
@@ -120,13 +123,18 @@ class ExtractedIdentite(BaseModel):
     prenoms: list[str] = Field(default_factory=list)
     date_naissance: date
     lieu_naissance: str | None = None
+    departement_naissance: str | None = None  # Deduit de la commune (pour le Cerfa)
+    sexe: str | None = None                   # M/F — deduit du prenom ou du passeport
     date_expiration: date
+    date_delivrance: date | None = None       # Pour la regle CNI 2004-2013
     n_document: str
     nationalite: str | None = None
     mrz_ligne1: str | None = None
     mrz_ligne2: str | None = None
     mrz_valide: bool | None = None
     type_document: str  # CNI | PASSEPORT | TITRE_SEJOUR
+    # Note : l'adresse sur la CNI/passeport n'est PAS extraite pour le Cerfa.
+    # L'adresse du Cerfa vient du justificatif de domicile uniquement.
     ocr_confidence: float = 0.0
 
 
@@ -154,11 +162,14 @@ class ExtractedPermis(BaseModel):
     nom: str
     prenom: str
     date_naissance: date
+    lieu_naissance: str | None = None       # Pour croisement avec CNI
     n_permis: str
     categories: list[PermisCategorie] = Field(default_factory=list)
+    categories_codes: list[str] = Field(default_factory=list)  # ["AM", "B1", "B"] — raccourci
     restrictions: list[str] = Field(default_factory=list)
     pays_emission: str = "France"
     date_delivrance: date | None = None
+    date_expiration: date | None = None     # Champ 4b — validite du permis
     ocr_confidence: float = 0.0
 
 
@@ -182,11 +193,6 @@ class ExtractedAssurance(BaseModel):
 
 # ─── Documents VO ─────────────────────────────────────────────────────────────
 
-class CTResultat(str, Enum):
-    A = "A"   # Favorable (Avis Favorable)
-    S = "S"   # Défavorable avec défaillances majeures
-    R = "R"   # Défavorable avec défaillances critiques (BLOCAGE TOTAL)
-
 
 class ExtractedCGBarree(BaseModel):
     """D-17 — Carte grise barrée (VO)."""
@@ -194,24 +200,22 @@ class ExtractedCGBarree(BaseModel):
     immatriculation: str | None = None
     n_formule: str | None = None        # Numéro de formule (11 chars)
     titulaire_nom: str | None = None
+    titulaire_prenom: str | None = None
     date_vente: date | None = None      # "Vendu le" + date
     heure_vente: str | None = None      # Heure obligatoire (HH:MM)
+    date_mise_circulation: date | None = None  # Champ B
+    # Acheteur inscrit sur la barre horizontale
+    acheteur_nom_barre: str | None = None
+    acheteur_prenom_barre: str | None = None
     barre_diagonale: bool = False       # Barre diagonale détectée
     signatures_count: int = 0          # Nb de signatures détectées
     co_titulaires_count: int = 0       # Nb co-titulaires sur la CG
+    # Champs techniques (pour le Cerfa)
+    marque: str | None = None           # D.1
+    genre_national: str | None = None   # J.1
+    categorie_j: str | None = None      # J — categorie EU (L3e, M1, etc.)
     ocr_confidence: float = 0.0
 
-
-class ExtractedCT(BaseModel):
-    """D-18 — Contrôle technique."""
-    vin: str | None = None
-    immatriculation: str | None = None
-    date_ct: date | None = None
-    resultat: CTResultat | None = None
-    contre_visite: bool = False
-    date_contre_visite: date | None = None
-    centre_ct: str | None = None
-    ocr_confidence: float = 0.0
 
 
 class ExtractedDA(BaseModel):
@@ -236,7 +240,14 @@ class ExtractedRecepisseDA(BaseModel):
 
 
 class ExtractedCerfa(BaseModel):
-    """D-01/D-02 — Cerfa demande de CG (VN ou VO)."""
+    """D-01/D-02 — Cerfa demande de CG (VN ou VO).
+
+    Règles de signature (pro = toujours le vendeur) :
+    - VN (13749) : aucune signature client requise, pro signe comme vendeur professionnel
+    - VO (13750) : aucune signature client requise, pro signe comme vendeur professionnel
+    - La signature client est requise UNIQUEMENT sur la cession 15776 (voir ExtractedCession)
+    - Le cachet/signature du pro est apposé automatiquement après génération
+    """
     type_cerfa: str | None = None       # "13749" ou "13750"
     vin: str | None = None
     immatriculation: str | None = None
@@ -246,7 +257,7 @@ class ExtractedCerfa(BaseModel):
     code_postal: str | None = None
     ville: str | None = None
     puissance_fiscale_cv: int | None = None     # Case P.6 du Cerfa
-    signe: bool = False
+    signe_pro: bool = False             # Signature/cachet pro (apposé auto)
     date_signature: date | None = None
     rature_detectee: bool = False
     n_formule_ancienne_cg: str | None = None  # VO uniquement
@@ -297,5 +308,4 @@ class ExtractedHistoVec(BaseModel):
     vol_signale: bool = False
     vec: bool = False
     vei: bool = False
-    km_dernier_ct: int | None = None
     date_consultation: date | None = None

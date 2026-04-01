@@ -34,7 +34,6 @@ class DossierDocuments:
     # Véhicule
     coc: bool = False                        # D-16 (VN)
     cg_barree: bool = False                  # D-17 (VO)
-    controle_technique: bool = False         # D-18 (VO si applicable)
     assurance: bool = False                  # D-19
     code_cession_ants: bool = False          # D-20 (VO)
     da: bool = False                         # D-05 (VO)
@@ -52,8 +51,6 @@ class DossierDocuments:
     is_personne_morale: bool = False
     is_mineur: bool = False
     is_etranger: bool = False
-    ct_dispense: bool = False                # < 4 ans voiture / < 5 ans moto
-    ct_volontaire: bool = False              # CT passé sur véhicule dispensé → obligatoire
     pro_habilite_siv: bool = False           # Pro habilité → code cession non requis
     cg_perdue: bool = False                  # CG perdue → D-06 remplace D-17
 
@@ -91,7 +88,6 @@ class CompletenessValidator(BaseValidator):
     V-05 : Mandat absent
     V-06 : Cerfa cession absent (VO)
     V-07 : CG barrée absente (VO, sauf perte)
-    V-08 : CT absent (VO, sauf dispense)
     V-09 : Assurance absente
     V-10 : COC absent (VN)
     V-36 : DA / récépissé DA absent (VO)
@@ -156,20 +152,6 @@ class CompletenessValidator(BaseValidator):
                         level=ValidationLevel.BLOCKING,
                         field=attr,
                         correction_action="Demander le document au professionnel",
-                    )
-
-            # V-08 : CT — obligatoire sauf dispense (âge véhicule)
-            if not docs.ct_dispense or docs.ct_volontaire:
-                if not docs.controle_technique:
-                    msg = "Contrôle technique absent (D-18)"
-                    if docs.ct_volontaire:
-                        msg += " — CT volontaire passé sur véhicule dispensé → DEVIENT obligatoire"
-                    result.add_error(
-                        code="V-08",
-                        message=msg,
-                        level=ValidationLevel.BLOCKING,
-                        field="controle_technique",
-                        correction_action="Fournir un CT valide (< 6 mois à la saisie SIV)",
                     )
 
             # Code cession ANTS : non requis si pro habilité SIV

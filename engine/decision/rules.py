@@ -85,13 +85,9 @@ BLOCKING_RULES: dict[str, BlockingRule] = {
         code="cg_barree_signature_missing",
         message="Signatures insuffisantes sur la carte grise barrée",
     ),
-    "ct_critique": BlockingRule(
-        code="ct_critique",
-        message="Contrôle technique défavorable critique (R) — véhicule dangereux, vente interdite",
-    ),
-    "ct_too_old": BlockingRule(
-        code="ct_too_old",
-        message="Contrôle technique expiré à la date de saisie SIV",
+    "cession_signature_acheteur_missing": BlockingRule(
+        code="cession_signature_acheteur_missing",
+        message="Signature acquéreur (client) absente sur le Cerfa cession — seule signature client requise en VO",
     ),
     "da_missing": BlockingRule(
         code="da_missing",
@@ -229,7 +225,7 @@ def get_triggered_blocking_rules(cross_check_results: list[CrossCheckResult]) ->
         "da_date_vs_cession_date": "dates_vo_incoherentes",
         "cg_signatures_vs_cotitulaires": "cg_barree_signature_missing",
         "cession_signature_vendeur": "cg_barree_signature_missing",
-        "ct_validity_at_saisie_siv": "ct_too_old",
+        "cession_signature_acheteur": "cession_signature_acheteur_missing",
         # Adresse
         "address_cerfa_vs_domicile": "address_cerfa_domicile_mismatch",
         # COC / Cerfa technique

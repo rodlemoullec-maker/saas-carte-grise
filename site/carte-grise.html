@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carte Grise Pro — AutoDoc Pro</title>
+    <meta name="description" content="Automatisez vos demandes de carte grise VN et VO. OCR, diagnostic, Cerfa en 1 clic. 5 minutes par dossier.">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- HEADER -->
+    <header class="header">
+        <nav class="nav">
+            <a href="index.html" class="logo">
+                <span class="logo-icon">&#9670;</span> AutoDoc <span class="logo-accent">Pro</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="index.html">Accueil</a></li>
+                <li><a href="index.html#services">Services</a></li>
+                <li><a href="#details">Fonctionnalites</a></li>
+                <li><a href="#parcours">Parcours</a></li>
+                <li><a href="index.html#contact" class="btn btn-nav">Nous contacter</a></li>
+            </ul>
+            <button class="menu-toggle" aria-label="Menu">&#9776;</button>
+        </nav>
+    </header>
+
+    <!-- HERO SERVICE -->
+    <section class="hero hero-service">
+        <div class="hero-content">
+            <div class="hero-badge">Service disponible</div>
+            <h1>Carte Grise Pro</h1>
+            <p class="hero-sub">Automatisez vos demandes d'immatriculation VN et VO.<br>5 minutes par dossier. Zero saisie. Cerfa officiel en 1 clic.</p>
+            <div class="hero-actions">
+                <a href="index.html#contact" class="btn btn-primary btn-lg">Demander une demo</a>
+                <a href="index.html#tarifs" class="btn btn-outline btn-lg">Voir les tarifs</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- LE PROBLEME -->
+    <section class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Le probleme que vous connaissez</h2>
+                <p>Chaque dossier de carte grise vous coute du temps, de l'energie et des erreurs</p>
+            </div>
+            <div class="avantages-grid">
+                <div class="avantage-card" style="border-color: var(--red);">
+                    <div class="avantage-icon">&#9203;</div>
+                    <h4>30 minutes par dossier</h4>
+                    <p>Collecter les docs, verifier a la main, remplir 15-20 champs sur service-public.gouv.fr, imprimer, cacheter, scanner...</p>
+                </div>
+                <div class="avantage-card" style="border-color: var(--red);">
+                    <div class="avantage-icon">&#10060;</div>
+                    <h4>Erreurs de saisie</h4>
+                    <p>Un VIN mal recopie, un nom mal orthographie, une date inversee — et c'est le rejet SIV. Correction, re-soumission, temps perdu.</p>
+                </div>
+                <div class="avantage-card" style="border-color: var(--red);">
+                    <div class="avantage-icon">&#128181;</div>
+                    <h4>0 EUR de revenu</h4>
+                    <p>Si vous envoyez le client sur Cartegrise.com ou Eplaque, il paie 25-40 EUR a un tiers. Vous ne gagnez rien.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- LA SOLUTION -->
+    <section id="details" class="section" style="background: var(--gray-100);">
+        <div class="container">
+            <div class="section-header">
+                <h2>Ce que Carte Grise Pro fait pour vous</h2>
+                <p>Tout est automatise. Vous ne saisissez rien.</p>
+            </div>
+            <div class="features-list">
+
+                <div class="feature-block">
+                    <div class="feature-icon">&#128196;</div>
+                    <div class="feature-text">
+                        <h4>OCR et extraction automatique</h4>
+                        <p>Deposez vos documents (COC, facture, CG barree). Le systeme lit, classe et extrait toutes les donnees automatiquement. Tesseract local + Google Document AI en fallback pour les documents de mauvaise qualite.</p>
+                    </div>
+                </div>
+
+                <div class="feature-block">
+                    <div class="feature-icon">&#128269;</div>
+                    <div class="feature-text">
+                        <h4>Diagnostic de coherence</h4>
+                        <p>Le systeme croise automatiquement VIN, noms, dates, expiration CNI entre tous les documents. Diagnostic VERT (pret) / ORANGE (avertissement) / ROUGE (correction requise) avant de soumettre au SIV.</p>
+                    </div>
+                </div>
+
+                <div class="feature-block">
+                    <div class="feature-icon">&#128203;</div>
+                    <div class="feature-text">
+                        <h4>Cerfa officiel en 1 clic</h4>
+                        <p>Le systeme remplit automatiquement le formulaire sur service-public.gouv.fr et genere le PDF Cerfa officiel (13749 VN / 13750 VO). Tous les champs techniques (D.1 a V.9), titulaire, adresse, personne morale, co-titulaire.</p>
+                    </div>
+                </div>
+
+                <div class="feature-block">
+                    <div class="feature-icon">&#9998;</div>
+                    <div class="feature-text">
+                        <h4>Cachet et signature automatiques</h4>
+                        <p>Vous uploadez votre signature et votre cachet une seule fois. Le systeme les appose automatiquement sur tous les documents (Cerfa, facture, CG barree, cession). Zero impression, zero scan.</p>
+                    </div>
+                </div>
+
+                <div class="feature-block">
+                    <div class="feature-icon">&#128241;</div>
+                    <div class="feature-text">
+                        <h4>Collecte client automatisee</h4>
+                        <p>Des que vous deposez vos documents vehicule, le systeme envoie un lien SMS/email au client. Il uploade CNI, permis, domicile depuis son telephone. Pas de compte, pas de login — un simple lien securise.</p>
+                    </div>
+                </div>
+
+                <div class="feature-block">
+                    <div class="feature-icon">&#128274;</div>
+                    <div class="feature-text">
+                        <h4>Signature numerique cession (VO)</h4>
+                        <p>Le client signe la cession 15776 au doigt sur son ecran + confirmation par code OTP SMS. Preuve conservee : signature, horodatage, IP, OTP. Co-titulaire gere automatiquement.</p>
+                    </div>
+                </div>
+
+                <div class="feature-block">
+                    <div class="feature-icon">&#128176;</div>
+                    <div class="feature-text">
+                        <h4>Estimation des taxes</h4>
+                        <p>Taxe regionale, malus CO2, taxe de gestion, redevance acheminement, malus au poids — tout est estime automatiquement a partir des donnees du vehicule.</p>
+                    </div>
+                </div>
+
+                <div class="feature-block">
+                    <div class="feature-icon">&#128202;</div>
+                    <div class="feature-text">
+                        <h4>Tableau de bord complet</h4>
+                        <p>Dossiers en cours (max 5 en batch), solde a payer, historique, export CSV/PDF. Tout dans votre espace admin.</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- PARCOURS -->
+    <section id="parcours" class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Le parcours en detail</h2>
+                <p>Ce que vous faites, ce que le client fait, ce que le systeme fait</p>
+            </div>
+
+            <div class="parcours-columns">
+                <!-- COLONNE PRO -->
+                <div class="parcours-col">
+                    <h3 class="parcours-title parcours-pro">Vous (le pro)</h3>
+                    <div class="parcours-step">
+                        <span class="parcours-time">30 sec</span>
+                        <p>Creez le dossier (VN/VO, VIN, infos client)</p>
+                    </div>
+                    <div class="parcours-step">
+                        <span class="parcours-time">30 sec</span>
+                        <p>Deposez vos documents vehicule (COC, facture/CG)</p>
+                    </div>
+                    <div class="parcours-step">
+                        <span class="parcours-time">10 sec</span>
+                        <p>Verifiez le diagnostic VERT/ORANGE/ROUGE</p>
+                    </div>
+                    <div class="parcours-step">
+                        <span class="parcours-time">1 clic</span>
+                        <p>Generez le Cerfa (15-45 sec automatique)</p>
+                    </div>
+                    <div class="parcours-step">
+                        <span class="parcours-time">—</span>
+                        <p>Soumettez au SIV + facturez votre client</p>
+                    </div>
+                    <div class="parcours-total">Total : ~5 minutes</div>
+                </div>
+
+                <!-- COLONNE CLIENT -->
+                <div class="parcours-col">
+                    <h3 class="parcours-title parcours-client">Votre client</h3>
+                    <div class="parcours-step">
+                        <span class="parcours-time">—</span>
+                        <p>Recoit un lien SMS/email automatiquement</p>
+                    </div>
+                    <div class="parcours-step">
+                        <span class="parcours-time">2 min</span>
+                        <p>Uploade CNI, permis, justificatif de domicile</p>
+                    </div>
+                    <div class="parcours-step">
+                        <span class="parcours-time">30 sec</span>
+                        <p>(VO) Signe la cession au doigt + code OTP</p>
+                    </div>
+                    <div class="parcours-step">
+                        <span class="parcours-time">—</span>
+                        <p>C'est termine. Pas de compte, pas de login.</p>
+                    </div>
+                    <div class="parcours-total">Total : ~2-3 minutes</div>
+                </div>
+
+                <!-- COLONNE SYSTEME -->
+                <div class="parcours-col">
+                    <h3 class="parcours-title parcours-systeme">Le systeme</h3>
+                    <div class="parcours-step">
+                        <span class="parcours-time">auto</span>
+                        <p>Envoie le lien au client</p>
+                    </div>
+                    <div class="parcours-step">
+                        <span class="parcours-time">auto</span>
+                        <p>OCR + classification + extraction sur chaque document</p>
+                    </div>
+                    <div class="parcours-step">
+                        <span class="parcours-time">auto</span>
+                        <p>Croisement VIN, noms, dates, CNI, CG barree</p>
+                    </div>
+                    <div class="parcours-step">
+                        <span class="parcours-time">auto</span>
+                        <p>Genere le Cerfa officiel + cachet/signature</p>
+                    </div>
+                    <div class="parcours-step">
+                        <span class="parcours-time">auto</span>
+                        <p>Estimation taxes + messages admin</p>
+                    </div>
+                    <div class="parcours-total">100% automatique</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- DOCUMENTS GERES -->
+    <section class="section" style="background: var(--gray-100);">
+        <div class="container">
+            <div class="section-header">
+                <h2>Documents geres</h2>
+                <p>9 types de documents reconnus, extraits et verifies automatiquement</p>
+            </div>
+            <div class="docs-grid">
+                <div class="doc-item">
+                    <strong>CNI / Passeport</strong>
+                    <span>Nom, date naissance, expiration, MRZ</span>
+                </div>
+                <div class="doc-item">
+                    <strong>Permis de conduire</strong>
+                    <span>Categories, date obtention</span>
+                </div>
+                <div class="doc-item">
+                    <strong>Justificatif de domicile</strong>
+                    <span>Nom, adresse, code postal</span>
+                </div>
+                <div class="doc-item">
+                    <strong>COC</strong>
+                    <span>15+ champs techniques vehicule</span>
+                </div>
+                <div class="doc-item">
+                    <strong>Carte grise barree (VO)</strong>
+                    <span>25 champs (cases A a Y), signatures</span>
+                </div>
+                <div class="doc-item">
+                    <strong>Facture de vente (VN)</strong>
+                    <span>VIN, prix, SIRET, date, couleur</span>
+                </div>
+                <div class="doc-item">
+                    <strong>Kbis</strong>
+                    <span>SIREN, raison sociale (personne morale)</span>
+                </div>
+                <div class="doc-item">
+                    <strong>Attestation formation moto</strong>
+                    <span>125cc / L5e</span>
+                </div>
+                <div class="doc-item">
+                    <strong>Attestation d'assurance</strong>
+                    <span>Collecte optionnelle</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CAS GERES -->
+    <section class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Tous les cas geres</h2>
+            </div>
+            <div class="avantages-grid">
+                <div class="avantage-card">
+                    <h4>VN — Vehicule neuf</h4>
+                    <p>Cerfa 13749. Certificat de vente pre-rempli depuis la facture d'achat. Zero signature client.</p>
+                </div>
+                <div class="avantage-card">
+                    <h4>VO — Vehicule occasion</h4>
+                    <p>Cerfa 13750. CG barree verifiee. Cession 15776 signee numeriquement par le client.</p>
+                </div>
+                <div class="avantage-card">
+                    <h4>Personne morale</h4>
+                    <p>Detection automatique si Kbis present. SIREN et raison sociale remplis sur le Cerfa. Permis non requis.</p>
+                </div>
+                <div class="avantage-card">
+                    <h4>Co-titulaire</h4>
+                    <p>Lien d'upload et signature separes pour le co-titulaire. Multi-propriete cochee automatiquement.</p>
+                </div>
+                <div class="avantage-card">
+                    <h4>Moto + Voiture</h4>
+                    <p>Moto (attestation formation 125cc gere) et voiture. Tarifs adaptes selon le type.</p>
+                </div>
+                <div class="avantage-card">
+                    <h4>Recto/verso et re-upload</h4>
+                    <p>Fusion automatique recto/verso. Remplacement sans doublon en cas de re-upload.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA FINAL -->
+    <section class="section" style="background: var(--primary); color: var(--white); text-align: center;">
+        <div class="container">
+            <h2 style="color: var(--white); margin-bottom: 16px;">Pret a automatiser vos cartes grises ?</h2>
+            <p style="color: rgba(255,255,255,0.8); margin-bottom: 32px; font-size: 1.1rem;">5 minutes par dossier. Zero saisie. Tarif fixe de 12 EUR (moto) / 14 EUR (voiture).</p>
+            <a href="index.html#contact" class="btn btn-lg" style="background: var(--white); color: var(--primary); border-color: var(--white);">Demander une demo</a>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <a href="index.html" class="logo">
+                        <span class="logo-icon">&#9670;</span> AutoDoc <span class="logo-accent">Pro</span>
+                    </a>
+                    <p>Solutions digitales pour professionnels de l'automobile.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Services</h4>
+                    <ul>
+                        <li><a href="carte-grise.html">Carte Grise Pro</a></li>
+                        <li><a href="validation-import.html">Validation Import</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Navigation</h4>
+                    <ul>
+                        <li><a href="index.html#avantages">Avantages</a></li>
+                        <li><a href="index.html#tarifs">Tarifs</a></li>
+                        <li><a href="index.html#contact">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Legal</h4>
+                    <ul>
+                        <li><a href="#">Mentions legales</a></li>
+                        <li><a href="#">Politique de confidentialite</a></li>
+                        <li><a href="#">CGV</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 AutoDoc Pro. Tous droits reserves.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.querySelector('.menu-toggle').addEventListener('click', function() {
+            document.querySelector('.nav-links').classList.toggle('open');
+        });
+        window.addEventListener('scroll', function() {
+            document.querySelector('.header').classList.toggle('scrolled', window.scrollY > 50);
+        });
+    </script>
+
+</body>
+</html>

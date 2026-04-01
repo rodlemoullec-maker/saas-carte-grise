@@ -5,11 +5,8 @@ Règles implémentées :
   C-11 — Chaîne de propriété : vendeur DA = titulaire CG barrée
   C-12 — Cohérence des dates : CG barrée ≤ DA ≤ cession, DA enregistrée < 15j
   C-13 — Signatures ↔ co-titulaires : signatures CG + cession ≥ nb co-titulaires
-  C-14 — CT vs date saisie SIV : délégue à CTDateValidator
 """
 from __future__ import annotations
-
-from datetime import date
 
 from engine.cross_checks.base import BaseCrossCheck
 from engine.models.decision import CrossCheckResult, CrossCheckStatus
@@ -236,12 +233,16 @@ class DatesCGBarreeCheck(BaseCrossCheck):
 
 class SignaturesCotitulaireCheck(BaseCrossCheck):
     """
-    C-13 — Le nombre de signatures sur la CG barrée et la cession doit couvrir
-    tous les co-titulaires.
+    C-13 — Vérification des signatures selon le type de transaction.
 
-    Règles :
-    - CG barrée : signatures_count ≥ max(1, co_titulaires_count)
-    - Cession : signatures_vendeur = True (au moins une)
+    Règles de signature (pro = toujours le vendeur) :
+    - VN : aucune signature client requise (pro soumet comme vendeur professionnel)
+    - VO — CG barrée : signatures_count ≥ max(1, co_titulaires_count) côté pro
+    - VO — Cession : signatures_vendeur = True (pro, côté vendeur)
+    - VO — Cession : signature_acheteur = True (client, seule signature requise)
+    - VO — Cession : tampon_siret = True (cachet pro, apposé automatiquement)
+
+    Le mandat 13757 n'est PAS nécessaire quand le pro est le vendeur.
     """
 
     @property
@@ -256,6 +257,7 @@ class SignaturesCotitulaireCheck(BaseCrossCheck):
         results = []
         nb_required = max(1, cg.co_titulaires_count)
 
+        # VO — CG barrée : signature(s) du pro (ancien titulaire)
         if cg.signatures_count >= nb_required:
             results.append(CrossCheckResult(
                 rule_name="cg_signatures_vs_cotitulaires",
@@ -280,6 +282,7 @@ class SignaturesCotitulaireCheck(BaseCrossCheck):
             ))
 
         if cession:
+            # VO — Cession : signature vendeur (pro) — BLOQUANT
             if cession.signatures_vendeur:
                 results.append(CrossCheckResult(
                     rule_name="cession_signature_vendeur",
@@ -297,9 +300,32 @@ class SignaturesCotitulaireCheck(BaseCrossCheck):
                     field="signatures_vendeur",
                     value_a="False", value_b="True",
                     confidence=0.0,
-                    detail="Cerfa cession non signé par le(s) vendeur(s)",
+                    detail="Cerfa cession non signé par le vendeur (pro)",
                 ))
 
+            # VO — Cession : signature acquéreur (client) — BLOQUANT
+            # C'est la SEULE signature requise du client dans tout le parcours
+            if cession.signature_acheteur:
+                results.append(CrossCheckResult(
+                    rule_name="cession_signature_acheteur",
+                    status=CrossCheckStatus.PASS,
+                    source_a="CERFA_CESSION", source_b="CERFA_CESSION",
+                    field="signature_acheteur",
+                    value_a="True", value_b="True",
+                    confidence=1.0,
+                ))
+            else:
+                results.append(CrossCheckResult(
+                    rule_name="cession_signature_acheteur",
+                    status=CrossCheckStatus.FAIL,
+                    source_a="CERFA_CESSION", source_b="CERFA_CESSION",
+                    field="signature_acheteur",
+                    value_a="False", value_b="True",
+                    confidence=0.0,
+                    detail="Cerfa cession non signé par l'acquéreur (client)",
+                ))
+
+            # VO — Cession : tampon SIRET (cachet pro, appos�� automatiquement)
             if cession.tampon_siret:
                 results.append(CrossCheckResult(
                     rule_name="cession_tampon_siret",
@@ -317,59 +343,9 @@ class SignaturesCotitulaireCheck(BaseCrossCheck):
                     field="tampon_siret",
                     value_a="False", value_b="True",
                     confidence=0.7,
-                    detail="Tampon SIRET pro absent sur le Cerfa cession",
+                    detail="Tampon SIRET pro absent sur le Cerfa cession (sera apposé automatiquement)",
                 ))
 
         return results
 
 
-class CTSaisieCheck(BaseCrossCheck):
-    """
-    C-14 — Vérifie que le CT est valide à la date de saisie SIV prévue.
-
-    Délègue à CTDateValidator — ce cross-check centralise la règle dans le
-    pipeline de cross-checks pour qu'elle apparaisse dans le rapport de décision.
-    """
-
-    @property
-    def name(self) -> str:
-        return "ct_saisie_siv"
-
-    def run(
-        self,
-        date_ct: date,
-        saisie_siv_date: date | None = None,
-    ) -> list[CrossCheckResult]:
-        from engine.validators.dates import CTDateValidator
-        val_result = CTDateValidator().validate(date_ct, saisie_siv_date)
-        results = []
-
-        if not val_result.errors:
-            results.append(CrossCheckResult(
-                rule_name="ct_validity_at_saisie_siv",
-                status=CrossCheckStatus.PASS,
-                source_a="CONTROLE_TECHNIQUE", source_b="SYSTEM",
-                field="date_ct",
-                value_a=str(date_ct),
-                value_b=str(saisie_siv_date or date.today()),
-                confidence=1.0,
-            ))
-        else:
-            for err in val_result.errors:
-                status = (
-                    CrossCheckStatus.WARNING
-                    if err.level.value == "WARNING"
-                    else CrossCheckStatus.FAIL
-                )
-                results.append(CrossCheckResult(
-                    rule_name="ct_validity_at_saisie_siv",
-                    status=status,
-                    source_a="CONTROLE_TECHNIQUE", source_b="SYSTEM",
-                    field="date_ct",
-                    value_a=str(date_ct),
-                    value_b=str(saisie_siv_date or date.today()),
-                    confidence=0.0 if status == CrossCheckStatus.FAIL else 0.6,
-                    detail=err.message,
-                ))
-
-        return results

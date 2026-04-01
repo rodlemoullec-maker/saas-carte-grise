@@ -179,6 +179,10 @@ class CerfaGenerator:
             data.puissance_cv = str(docs.coc.puissance_fiscale_cv or "")
             data.type_mine = docs.coc.cnit or ""
 
+        # CNIT saisi manuellement (prioritaire sur l'extraction COC)
+        if hasattr(docs, "cnit_manuel") and docs.cnit_manuel:
+            data.type_mine = docs.cnit_manuel
+
         if docs.cg_barree:
             data.immatriculation = docs.cg_barree.immatriculation or ""
 

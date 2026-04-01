@@ -11,22 +11,22 @@ from pydantic import BaseModel
 
 class Diagnostic(str, Enum):
     """
-    Diagnostic tri-couleur — logique binaire, pas de score.
+    Diagnostic binaire — pas d'etat intermediaire.
 
-    ROUGE  = au moins 1 verrouillage V-XX declenche (blocage)
-    ORANGE = zero verrouillage mais au moins 1 warning
-    VERT   = zero verrouillage, zero warning — pret pour GO/NO-GO
+    VERT  = tout est conforme, Cerfa generable
+    ROUGE = au moins 1 blocage (document manquant, illisible, incoherence, reglementaire)
+
+    Les verifications sont faites en temps reel dans la checklist.
+    Quand la checklist est 100% verte, le diagnostic est VERT.
     """
     VERT = "VERT"
-    ORANGE = "ORANGE"
     ROUGE = "ROUGE"
 
 
 class DecisionStatus(str, Enum):
-    ACCEPTE = "ACCEPTE"         # VERT → pret pour Phase 2
+    ACCEPTE = "ACCEPTE"         # VERT → Cerfa generable
     CORRECTION = "CORRECTION"   # ROUGE → corrections requises
     FRAUDE = "FRAUDE"           # Fraude detectee → blocage + alerte
-    REVUE_AGENT = "REVUE_AGENT" # ORANGE → le pro decide (ou escalade)
 
 
 class IssueSeverity(str, Enum):

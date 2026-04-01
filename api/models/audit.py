@@ -32,7 +32,7 @@ class AuditLog(Base):
 
     # Détail
     detail: Mapped[str | None] = mapped_column(Text, nullable=True)
-    metadata: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    extra_data: Mapped[dict | None] = mapped_column("metadata", JSONB, nullable=True)
 
     # IP / user-agent (pour les actions API)
     ip_address: Mapped[str | None] = mapped_column(String(45), nullable=True)
