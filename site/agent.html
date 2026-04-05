@@ -134,7 +134,11 @@ document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
     <div class="container">
         <div class="section-header">
             <h2>Voyez la différence en temps réel</h2>
-            <p class="subtitle">Un client arrive via votre URL permanente — VO entre particuliers avec hébergement.</p>
+            <p class="subtitle" id="demoSubtitle">Un client arrive via votre URL permanente — VO entre particuliers avec hébergement.</p>
+        </div>
+        <div style="display:flex;gap:8px;justify-content:center;margin-bottom:24px;">
+            <button onclick="switchMode('direct')" id="modeDirect" class="btn btn-cta" style="font-size:0.82rem;padding:10px 24px;">Client direct</button>
+            <button onclick="switchMode('vendeur')" id="modeVendeur" class="btn btn-outline" style="font-size:0.82rem;padding:10px 24px;">Dossier vendeur</button>
         </div>
         <div class="demo-live fade-in">
           <div class="demo-split">
@@ -565,11 +569,17 @@ const observer = new IntersectionObserver((entries) => {
 }, { threshold: 0.1 });
 document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
 
-// ─── Simulation agent SIV ───
-const SIM_START=10*3600+32*60,SIM_END=10*3600+44*60,SIM_DURATION=SIM_END-SIM_START,REAL_DURATION=45000;
+// ─── Simulation agent SIV — deux modes ───
 const T=(h,m,s)=>h*3600+m*60+(s||0);
-const demoPhases=[{label:'Client dépose véhicule',start:T(10,32,0),end:T(10,34,0)},{label:'Client dépose identité',start:T(10,34,10),end:T(10,36,30)},{label:'Hébergement détecté',start:T(10,37,0),end:T(10,39,0)},{label:'Cerfa généré',start:T(10,42,0),end:T(10,43,0)}];
-const demoLines=[
+const REAL_DURATION=45000;
+let currentMode='direct';
+
+// MODE 1 : Client direct via URL permanente
+const directConfig={
+SIM_START:10*3600+32*60, SIM_END:10*3600+44*60,
+subtitle:'Un client arrive via votre URL permanente — VO entre particuliers avec hébergement.',
+phases:[{label:'Docs véhicule',start:T(10,32,0),end:T(10,34,0)},{label:'Identité',start:T(10,34,10),end:T(10,36,30)},{label:'Hébergement',start:T(10,37,0),end:T(10,39,0)},{label:'Cerfa',start:T(10,42,0),end:T(10,43,0)}],
+lines:[
 {t:T(10,32,0),html:'<span class="demo-dim">── Client via URL permanente</span> <span class="demo-phase-timer" data-phase="0"></span>',phase:0},
 {t:T(10,32,5),html:'<span class="demo-dim">▸</span> <span class="demo-highlight">Client a déposé</span> <span class="demo-dim">— cg_barree_leclerc.pdf</span>'},
 {t:T(10,32,15),html:'<span class="demo-tag demo-tag-ocr">OCR</span> <span class="demo-check">✓</span> CG barrée · <span class="demo-highlight">AB-123-CD</span> · VIN : VF3LC9HZXJS67890'},
@@ -603,46 +613,97 @@ const demoLines=[
 {t:T(10,42,20),html:'<span class="demo-tag demo-tag-cerfa">CERFA</span> <span class="demo-check">✓</span> Cerfa pré-rempli · cachet numérique Garage Central SIV + signature apposés'},
 {t:T(10,42,40),html:''},
 {t:T(10,42,50),html:'<span class="demo-tag demo-tag-done">PRÊT</span> <span class="demo-highlight" style="color:#34d399;">Dossier complet — hébergement validé — contrôlez, téléchargez et soumettez au SIV.</span>'},
-];
+],
+mockupUpdate: function(simTime, S) {
+    if(simTime>=T(10,32,0)&&S<1){document.getElementById('demoMockupPlaceholder').style.display='none';document.getElementById('demoScreenClient').style.display='block';window._demoMockupState=1;}
+    if(simTime>=T(10,32,25)){const e=document.getElementById('mockCg');e.className='demo-screen-doc demo-screen-ok';e.querySelector('span').textContent='✓';}
+    if(simTime>=T(10,33,20)){const e=document.getElementById('mockCession');e.className='demo-screen-doc demo-screen-ok';e.querySelector('span').textContent='✓';}
+    if(simTime>=T(10,34,30)){const e=document.getElementById('mockCni');e.className='demo-screen-doc demo-screen-ok';e.querySelector('span').textContent='✓';}
+    if(simTime>=T(10,35,10)){const e=document.getElementById('mockPermis');e.className='demo-screen-doc demo-screen-ok';e.querySelector('span').textContent='✓';}
+    if(simTime>=T(10,35,40)){const e=document.getElementById('mockDomicile');e.className='demo-screen-doc demo-screen-ok';e.querySelector('span').textContent='✓';}
+    if(simTime>=T(10,36,20)&&S<2){document.getElementById('mockHebergSection').style.display='block';document.getElementById('mockAttest').style.display='block';document.getElementById('mockCniHeb').style.display='block';const m=document.getElementById('mockClientMsg');m.style.display='block';m.className='demo-screen-msg demo-screen-msg-err';m.textContent='Hébergement détecté — documents supplémentaires requis';window._demoMockupState=2;}
+    if(simTime>=T(10,37,20)){const e=document.getElementById('mockAttest');e.className='demo-screen-doc demo-screen-ok';e.querySelector('span').textContent='✓';}
+    if(simTime>=T(10,37,50)){const e=document.getElementById('mockCniHeb');e.className='demo-screen-doc demo-screen-ok';e.querySelector('span').textContent='✓';}
+    if(simTime>=T(10,38,10)&&S<3){const m=document.getElementById('mockClientMsg');m.style.display='block';m.className='demo-screen-msg demo-screen-msg-ok';m.textContent='✓ Tous les documents vérifiés — hébergement validé !';window._demoMockupState=3;}
+    if(simTime>=T(10,42,0)&&S<4){document.getElementById('demoScreenClient').style.display='none';document.getElementById('demoScreenCerfa').style.display='block';window._demoMockupState=4;}
+    if(simTime>=T(10,42,5))document.getElementById('cerfaImmat').textContent='AB-123-CD';
+    if(simTime>=T(10,42,8))document.getElementById('cerfaMarque').textContent='PEUGEOT';
+    if(simTime>=T(10,42,11))document.getElementById('cerfaVin').textContent='VF3LC9HZXJS67890';
+    if(simTime>=T(10,42,14))document.getElementById('cerfaTit').textContent='LECLERC Sophie';
+    if(simTime>=T(10,42,17))document.getElementById('cerfaAddr').textContent='Chez MOREAU Paul, 8 rue Voltaire, 93100 Montreuil';
+    if(simTime>=T(10,42,20))document.getElementById('cerfaStamp').style.display='block';
+    if(simTime>=T(10,42,40)&&S<5){const m=document.getElementById('mockCerfaMsg');m.style.display='block';m.textContent='Dossier complet — contrôlez, téléchargez et soumettez au SIV.';window._demoMockupState=5;}
+}};
+
+// MODE 2 : Dossier reçu d'un vendeur non habilité
+const vendeurConfig={
+SIM_START:10*3600+32*60, SIM_END:10*3600+36*60,
+subtitle:'Un vendeur non habilité vous transmet un dossier déjà vérifié avec mandats signés.',
+phases:[{label:'Réception ZIP',start:T(10,32,0),end:T(10,33,0)},{label:'Contrôle agent',start:T(10,33,10),end:T(10,34,30)},{label:'Soumission',start:T(10,35,0),end:T(10,35,30)}],
+lines:[
+{t:T(10,32,0),html:'<span class="demo-dim">── Dossier reçu de Moto Center</span> <span class="demo-phase-timer" data-phase="0"></span>',phase:0},
+{t:T(10,32,5),html:'<span class="demo-tag demo-tag-done">ZIP</span> Dossier_CG-2026-63241_MARTIN.zip reçu <span class="demo-dim">— 4.2 MB</span>'},
+{t:T(10,32,10),html:'<span class="demo-tag demo-tag-check">VERIF</span> <span class="demo-check">✓</span> Cerfa 13749 pré-rempli présent'},
+{t:T(10,32,15),html:'<span class="demo-tag demo-tag-check">VERIF</span> <span class="demo-check">✓</span> Mandat client → Moto Center (13757) — <span class="demo-highlight">signé numériquement</span>'},
+{t:T(10,32,20),html:'<span class="demo-tag demo-tag-check">VERIF</span> <span class="demo-check">✓</span> Mandat client → Garage Central SIV (13757) — <span class="demo-highlight">signé numériquement</span>'},
+{t:T(10,32,30),html:'<span class="demo-tag demo-tag-check">VERIF</span> <span class="demo-check">✓</span> COC · HONDA CB125R · VIN : JMZKECW105SJ08739 · CNIT : MH01-01-001-0'},
+{t:T(10,32,40),html:'<span class="demo-tag demo-tag-check">VERIF</span> <span class="demo-check">✓</span> Facture · VIN cohérent'},
+{t:T(10,32,50),html:'<span class="demo-tag demo-tag-check">VERIF</span> <span class="demo-check">✓</span> Passeport · MARTIN Jean · Non expiré'},
+{t:T(10,33,0),html:'<span class="demo-tag demo-tag-check">VERIF</span> <span class="demo-check">✓</span> Permis B adapté · Formation 7h · Domicile OK'},
+{t:T(10,33,5),html:''},
+{t:T(10,33,10),html:'<span class="demo-dim">── Votre contrôle</span> <span class="demo-phase-timer" data-phase="1"></span>',phase:1},
+{t:T(10,33,15),html:'<span class="demo-tag demo-tag-extract">INFO</span> Tous les documents ont été vérifiés par AutoDoc Pro'},
+{t:T(10,33,25),html:'<span class="demo-tag demo-tag-extract">INFO</span> 200+ contrôles passés — 0 alerte'},
+{t:T(10,33,40),html:'<span class="demo-tag demo-tag-extract">INFO</span> <span class="demo-dim">Vous restez responsable de la conformité du dossier</span>'},
+{t:T(10,34,0),html:'<span class="demo-tag demo-tag-check">AGENT</span> <span class="demo-highlight">Contrôle visuel OK — identité vérifiée en face-à-face</span>'},
+{t:T(10,34,30),html:''},
+{t:T(10,35,0),html:'<span class="demo-dim">── Soumission</span> <span class="demo-phase-timer" data-phase="2"></span>',phase:2},
+{t:T(10,35,10),html:'<span class="demo-tag demo-tag-cerfa">CERFA</span> Cerfa 13749 · cachet numérique Garage Central SIV · signature apposée'},
+{t:T(10,35,20),html:'<span class="demo-tag demo-tag-done">PRÊT</span> <span class="demo-highlight" style="color:#34d399;">Dossier complet — mandats signés — soumettez au SIV.</span>'},
+],
+mockupUpdate: function(simTime, S) {
+    // Pas de mockup client pour ce mode — on montre le Cerfa directement
+    if(simTime>=T(10,32,0)&&S<1){document.getElementById('demoMockupPlaceholder').style.display='none';document.getElementById('demoScreenCerfa').style.display='block';window._demoMockupState=1;}
+    if(simTime>=T(10,32,30))document.getElementById('cerfaMarque').textContent='HONDA CB125R';
+    if(simTime>=T(10,32,40))document.getElementById('cerfaVin').textContent='JMZKECW105SJ08739';
+    if(simTime>=T(10,32,50))document.getElementById('cerfaTit').textContent='MARTIN Jean';
+    if(simTime>=T(10,33,0))document.getElementById('cerfaImmat').textContent='En attente SIV';
+    if(simTime>=T(10,33,0))document.getElementById('cerfaAddr').textContent='15 avenue Foch, 75016 Paris';
+    if(simTime>=T(10,35,10))document.getElementById('cerfaStamp').style.display='block';
+    if(simTime>=T(10,35,20)&&S<2){const m=document.getElementById('mockCerfaMsg');m.style.display='block';m.textContent='Dossier vérifié par AutoDoc Pro — mandats signés — soumettez au SIV.';window._demoMockupState=2;}
+}};
+
+function switchMode(mode) {
+    currentMode = mode;
+    document.getElementById('modeDirect').className = mode==='direct' ? 'btn btn-cta' : 'btn btn-outline';
+    document.getElementById('modeVendeur').className = mode==='vendeur' ? 'btn btn-cta' : 'btn btn-outline';
+    document.getElementById('demoSubtitle').textContent = (mode==='direct' ? directConfig : vendeurConfig).subtitle;
+    runDemo();
+}
+
 let demoTimeout=[],demoTimerRAF=null,demoPaused=false,demoPauseTime=0,demoStartTime=0,demoPausedTotal=0,updateDemoTimer;
 function togglePause(){const btn=document.getElementById('demoPauseLabel'),icon=document.getElementById('demoPauseIcon');if(!demoPaused){demoPaused=true;demoPauseTime=performance.now();btn.textContent='Reprendre';icon.innerHTML='<polygon points="5 3 19 12 5 21 5 3"/>';if(demoTimerRAF)cancelAnimationFrame(demoTimerRAF);}else{demoPaused=false;demoPausedTotal+=performance.now()-demoPauseTime;btn.textContent='Pause';icon.innerHTML='<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';demoTimerRAF=requestAnimationFrame(updateDemoTimer);}}
 function runDemo(){
+const cfg=currentMode==='direct'?directConfig:vendeurConfig;
 const el=document.getElementById('demoTerminal'),timerEl=document.getElementById('demoTimer');
 el.innerHTML='';demoTimeout.forEach(t=>clearTimeout(t));demoTimeout=[];if(demoTimerRAF)cancelAnimationFrame(demoTimerRAF);
 demoPaused=false;demoPausedTotal=0;document.getElementById('demoPauseLabel').textContent='Pause';
 window._demoNextLine=0;window._demoCursorAdded=false;window._demoMockupState=0;
 document.getElementById('demoMockupPlaceholder').style.display='flex';
 ['demoScreenClient','demoScreenCerfa'].forEach(id=>document.getElementById(id).style.display='none');
-['mockCg','mockCession','mockCni','mockPermis','mockDomicile'].forEach(id=>{const e=document.getElementById(id);e.className='demo-screen-doc';e.querySelector('span').textContent='○';});
-['mockAttest','mockCniHeb'].forEach(id=>{const e=document.getElementById(id);e.style.display='none';e.className='demo-screen-doc';e.querySelector('span').textContent='○';});
-document.getElementById('mockHebergSection').style.display='none';
-['mockClientMsg','mockCerfaMsg','cerfaStamp'].forEach(id=>document.getElementById(id).style.display='none');
-['cerfaImmat','cerfaMarque','cerfaVin','cerfaTit','cerfaAddr'].forEach(id=>document.getElementById(id).textContent='');
+['mockCg','mockCession','mockCni','mockPermis','mockDomicile'].forEach(id=>{try{const e=document.getElementById(id);e.className='demo-screen-doc';e.querySelector('span').textContent='○';}catch(x){}});
+['mockAttest','mockCniHeb'].forEach(id=>{try{const e=document.getElementById(id);e.style.display='none';e.className='demo-screen-doc';e.querySelector('span').textContent='○';}catch(x){}});
+try{document.getElementById('mockHebergSection').style.display='none';}catch(x){}
+['mockClientMsg','mockCerfaMsg','cerfaStamp'].forEach(id=>{try{document.getElementById(id).style.display='none';}catch(x){}});
+['cerfaImmat','cerfaMarque','cerfaVin','cerfaTit','cerfaAddr'].forEach(id=>{try{document.getElementById(id).textContent='';}catch(x){}});
+const SIM_S=cfg.SIM_START,SIM_D=cfg.SIM_END-cfg.SIM_START;
 demoStartTime=performance.now();
-updateDemoTimer=function(){if(demoPaused)return;const elapsed=performance.now()-demoStartTime-demoPausedTotal,progress=Math.min(elapsed/REAL_DURATION,1),simTime=SIM_START+progress*SIM_DURATION;
-while(window._demoNextLine<demoLines.length){const line=demoLines[window._demoNextLine];if(simTime<line.t)break;if(line.html==='')el.innerHTML+='<div style="height:6px;"></div>';else{const div=document.createElement('div');div.className='demo-line';div.innerHTML=line.html;el.appendChild(div);}el.scrollTop=el.scrollHeight;window._demoNextLine++;}
+updateDemoTimer=function(){if(demoPaused)return;const elapsed=performance.now()-demoStartTime-demoPausedTotal,progress=Math.min(elapsed/REAL_DURATION,1),simTime=SIM_S+progress*SIM_D;
+while(window._demoNextLine<cfg.lines.length){const line=cfg.lines[window._demoNextLine];if(simTime<line.t)break;if(line.html==='')el.innerHTML+='<div style="height:6px;"></div>';else{const div=document.createElement('div');div.className='demo-line';div.innerHTML=line.html;el.appendChild(div);}el.scrollTop=el.scrollHeight;window._demoNextLine++;}
 if(progress>=1&&!window._demoCursorAdded){el.appendChild(Object.assign(document.createElement('span'),{className:'demo-cursor'}));window._demoCursorAdded=true;}
-const S=window._demoMockupState;
-if(simTime>=T(10,32,0)&&S<1){document.getElementById('demoMockupPlaceholder').style.display='none';document.getElementById('demoScreenClient').style.display='block';window._demoMockupState=1;}
-if(simTime>=T(10,32,25)){const e=document.getElementById('mockCg');e.className='demo-screen-doc demo-screen-ok';e.querySelector('span').textContent='✓';}
-if(simTime>=T(10,33,20)){const e=document.getElementById('mockCession');e.className='demo-screen-doc demo-screen-ok';e.querySelector('span').textContent='✓';}
-if(simTime>=T(10,34,30)){const e=document.getElementById('mockCni');e.className='demo-screen-doc demo-screen-ok';e.querySelector('span').textContent='✓';}
-if(simTime>=T(10,35,10)){const e=document.getElementById('mockPermis');e.className='demo-screen-doc demo-screen-ok';e.querySelector('span').textContent='✓';}
-if(simTime>=T(10,35,40)){const e=document.getElementById('mockDomicile');e.className='demo-screen-doc demo-screen-ok';e.querySelector('span').textContent='✓';}
-if(simTime>=T(10,36,20)&&S<2){document.getElementById('mockHebergSection').style.display='block';document.getElementById('mockAttest').style.display='block';document.getElementById('mockCniHeb').style.display='block';const m=document.getElementById('mockClientMsg');m.style.display='block';m.className='demo-screen-msg demo-screen-msg-err';m.textContent='Hébergement détecté — documents supplémentaires requis';window._demoMockupState=2;}
-if(simTime>=T(10,37,20)){const e=document.getElementById('mockAttest');e.className='demo-screen-doc demo-screen-ok';e.querySelector('span').textContent='✓';}
-if(simTime>=T(10,37,50)){const e=document.getElementById('mockCniHeb');e.className='demo-screen-doc demo-screen-ok';e.querySelector('span').textContent='✓';}
-if(simTime>=T(10,38,10)&&S<3){const m=document.getElementById('mockClientMsg');m.style.display='block';m.className='demo-screen-msg demo-screen-msg-ok';m.textContent='✓ Tous les documents vérifiés — hébergement validé !';window._demoMockupState=3;}
-if(simTime>=T(10,42,0)&&S<4){document.getElementById('demoScreenClient').style.display='none';document.getElementById('demoScreenCerfa').style.display='block';window._demoMockupState=4;}
-if(simTime>=T(10,42,5))document.getElementById('cerfaImmat').textContent='AB-123-CD';
-if(simTime>=T(10,42,8))document.getElementById('cerfaMarque').textContent='PEUGEOT';
-if(simTime>=T(10,42,11))document.getElementById('cerfaVin').textContent='VF3LC9HZXJS67890';
-if(simTime>=T(10,42,14))document.getElementById('cerfaTit').textContent='LECLERC Sophie';
-if(simTime>=T(10,42,17))document.getElementById('cerfaAddr').textContent='Chez MOREAU Paul, 8 rue Voltaire, 93100 Montreuil';
-if(simTime>=T(10,42,20))document.getElementById('cerfaStamp').style.display='block';
-if(simTime>=T(10,42,40)&&S<5){const m=document.getElementById('mockCerfaMsg');m.style.display='block';m.textContent='Dossier complet — contrôlez, téléchargez et soumettez au SIV.';window._demoMockupState=5;}
-demoPhases.forEach((phase,i)=>{const pe=el.querySelector(`[data-phase="${i}"]`);if(!pe)return;if(simTime<phase.start)pe.textContent='';else if(simTime<=phase.end){const d=simTime-phase.start;pe.textContent=`${Math.floor(d/60)}:${String(Math.floor(d%60)).padStart(2,'0')}`;pe.style.color='#34d399';pe.style.background='rgba(5,150,105,0.15)';}else{const d=phase.end-phase.start;pe.textContent=`✓ ${Math.floor(d/60)}:${String(Math.floor(d%60)).padStart(2,'0')}`;pe.style.color='rgba(255,255,255,0.4)';pe.style.background='rgba(255,255,255,0.06)';}});
-const te=simTime-SIM_START;timerEl.textContent=`${Math.floor(te/60)}:${String(Math.floor(te%60)).padStart(2,'0')}`;
+cfg.mockupUpdate(simTime,window._demoMockupState);
+cfg.phases.forEach((phase,i)=>{const pe=el.querySelector(`[data-phase="${i}"]`);if(!pe)return;if(simTime<phase.start)pe.textContent='';else if(simTime<=phase.end){const d=simTime-phase.start;pe.textContent=`${Math.floor(d/60)}:${String(Math.floor(d%60)).padStart(2,'0')}`;pe.style.color='#34d399';pe.style.background='rgba(5,150,105,0.15)';}else{const d=phase.end-phase.start;pe.textContent=`✓ ${Math.floor(d/60)}:${String(Math.floor(d%60)).padStart(2,'0')}`;pe.style.color='rgba(255,255,255,0.4)';pe.style.background='rgba(255,255,255,0.06)';}});
+const te=simTime-SIM_S;timerEl.textContent=`${Math.floor(te/60)}:${String(Math.floor(te%60)).padStart(2,'0')}`;
 if(progress<1)demoTimerRAF=requestAnimationFrame(updateDemoTimer);};
 demoTimerRAF=requestAnimationFrame(updateDemoTimer);}
 const demoObs=new IntersectionObserver(e=>{e.forEach(en=>{if(en.isIntersecting){runDemo();demoObs.unobserve(en.target);}});},{threshold:0.3});
