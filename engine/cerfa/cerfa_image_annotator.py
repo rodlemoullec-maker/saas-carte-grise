@@ -54,63 +54,66 @@ def annotate_cerfa_vn(
     Retourne le chemin de l'image annotée.
     """
     font, font_big, font_stamp = _get_fonts()
+    black = (0, 0, 0)
     blue = (0, 51, 153)
     gray = (100, 100, 100)
 
     img = Image.open(image_path)
     draw = ImageDraw.Draw(img)
 
-    # Certificat de conformité — Je soussigné (y=460)
+    # Certificat de conformité — Je soussigné (sur la ligne pointillée, y=478)
     if vendeur_nom:
-        draw.text((168, 460), vendeur_nom, fill=blue, font=font)
+        draw.text((168, 478), vendeur_nom, fill=black, font=font)
 
-    # Certificat de vente — Je soussigné (y=1000, après le label)
+    # Certificat de vente — Je soussigné : (sous le label, y=1016, x=130)
     if vendeur_nom:
-        # Extraire juste le nom commercial (pas le complément)
         nom_court = vendeur_nom.split(" - ")[0] if " - " in vendeur_nom else vendeur_nom
-        draw.text((220, 1000), nom_court, fill=blue, font=font_big)
+        draw.text((130, 1016), nom_court, fill=black, font=font_big)
 
-    # Date de vente (JJ/MM/AAAA) — cases individuelles après "désignée ci-dessous le"
-    # 8 cases : J J / M M / A A A A
-    # Première case à x≈340, y≈1155, espacement ~22px entre cases, séparateur / ajoute ~8px
+    # Date de vente — un chiffre par case après "désignée ci-dessous le"
+    # Cases: J1 J2 | M1 M2 | A1 A2 A3 A4
     if date_vente and "/" in date_vente:
         parts = date_vente.split("/")
         if len(parts) == 3:
             jj, mm, aaaa = parts[0].zfill(2), parts[1].zfill(2), parts[2].zfill(4)
             date_chars = list(jj) + list(mm) + list(aaaa)
-            # Positions X de chaque case (mesurées sur l'image 200dpi)
-            case_x = [347, 367, 395, 415, 443, 463, 483, 503]
+            # X centré dans chaque case (image 200dpi)
+            case_x = [338, 358, 388, 408, 436, 456, 476, 496]
             for i, ch in enumerate(date_chars):
                 if i < len(case_x):
-                    draw.text((case_x[i], 1161), ch, fill=blue, font=font)
+                    draw.text((case_x[i], 1163), ch, fill=black, font=font)
 
-    # USAGE — X dans OUI (case à droite du label USAGE)
-    draw.text((1225, 1018), 'X', fill=blue, font=font_big)
+    # USAGE — X dans case OUI
+    draw.text((1245, 1020), 'X', fill=black, font=font_big)
 
     # COULEUR — cocher la bonne case
     if couleur:
         couleur_lower = couleur.lower()
         couleur_cases = {
-            "noir": (1177, 1050),
-            "blanc": (1177, 1100),
-            "gris": (1177, 1075),
-            "bleu": (1350, 1050),
-            "rouge": (1350, 1075),
-            "vert": (1350, 1100),
+            "noir": (1177, 1055),
+            "blanc": (1177, 1105),
+            "gris": (1177, 1080),
+            "bleu": (1350, 1055),
+            "rouge": (1350, 1080),
+            "vert": (1350, 1105),
         }
         pos = couleur_cases.get(couleur_lower)
         if pos:
-            draw.text(pos, 'V', fill=blue, font=font)
+            draw.text(pos, 'V', fill=black, font=font)
 
-    # CACHET et SIGNATURE — sous le label "CACHET et SIGNATURE" (y=1015)
+    # CACHET et SIGNATURE (sous le label, y=1020)
     if cachet_nom:
-        draw.rectangle([(660, 1015), (870, 1070)], outline=blue, width=2)
-        draw.text((668, 1018), cachet_nom, fill=blue, font=font_stamp)
+        draw.rectangle([(660, 1020), (880, 1080)], outline=blue, width=2)
+        draw.text((668, 1023), cachet_nom, fill=blue, font=font_stamp)
         if cachet_adresse:
-            draw.text((668, 1032), cachet_adresse, fill=blue, font=font_stamp)
+            draw.text((668, 1037), cachet_adresse, fill=blue, font=font_stamp)
         if cachet_siret:
-            draw.text((668, 1046), f"SIRET {cachet_siret}", fill=blue, font=font_stamp)
-        draw.text((668, 1058), "~ signature numérique ~", fill=gray, font=font_stamp)
+            draw.text((668, 1051), f"SIRET {cachet_siret}", fill=blue, font=font_stamp)
+        draw.text((668, 1065), "Signature :", fill=blue, font=font_stamp)
+        # Dessiner une signature manuscrite stylisée
+        for offset in range(3):
+            draw.arc([(730+offset, 1060+offset), (850+offset, 1078+offset)], 0, 180, fill=blue, width=1)
+            draw.arc([(750+offset, 1062+offset), (820+offset, 1076+offset)], 180, 360, fill=blue, width=1)
 
     out = output_path or image_path
     img.save(out, "PNG")
