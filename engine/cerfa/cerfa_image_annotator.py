@@ -60,50 +60,51 @@ def annotate_cerfa_vn(
     img = Image.open(image_path)
     draw = ImageDraw.Draw(img)
 
-    # Certificat de conformité — Je soussigné
+    # Certificat de conformité — Je soussigné (y=460)
     if vendeur_nom:
-        draw.text((168, 458), vendeur_nom, fill=blue, font=font)
+        draw.text((168, 460), vendeur_nom, fill=blue, font=font)
 
-    # Certificat de vente — Je soussigné
+    # Certificat de vente — Je soussigné (y=1000, après le label)
     if vendeur_nom:
-        draw.text((215, 995), vendeur_nom, fill=blue, font=font_big)
+        # Extraire juste le nom commercial (pas le complément)
+        nom_court = vendeur_nom.split(" - ")[0] if " - " in vendeur_nom else vendeur_nom
+        draw.text((220, 1000), nom_court, fill=blue, font=font_big)
 
-    # Date de vente (JJ/MM/AAAA)
+    # Date de vente (JJ/MM/AAAA) — cases y=1072
     if date_vente and "/" in date_vente:
         parts = date_vente.split("/")
         if len(parts) == 3:
-            draw.text((148, 1065), parts[0], fill=blue, font=font)
-            draw.text((228, 1065), parts[1], fill=blue, font=font)
-            draw.text((325, 1065), parts[2], fill=blue, font=font)
+            draw.text((148, 1072), parts[0], fill=blue, font=font)
+            draw.text((228, 1072), parts[1], fill=blue, font=font)
+            draw.text((325, 1072), parts[2], fill=blue, font=font)
 
-    # USAGE — X dans OUI
-    draw.text((1220, 1000), 'X', fill=blue, font=font_big)
+    # USAGE — X dans OUI (case à droite du label USAGE)
+    draw.text((1225, 1018), 'X', fill=blue, font=font_big)
 
     # COULEUR — cocher la bonne case
     if couleur:
         couleur_lower = couleur.lower()
-        # Positions des cases couleur dans la grille (approximatives)
         couleur_cases = {
-            "noir": (1177, 1042),
-            "blanc": (1177, 1092),
-            "gris": (1177, 1067),
-            "bleu": (1350, 1042),
-            "rouge": (1350, 1067),
-            "vert": (1350, 1092),
+            "noir": (1177, 1050),
+            "blanc": (1177, 1100),
+            "gris": (1177, 1075),
+            "bleu": (1350, 1050),
+            "rouge": (1350, 1075),
+            "vert": (1350, 1100),
         }
         pos = couleur_cases.get(couleur_lower)
         if pos:
             draw.text(pos, 'V', fill=blue, font=font)
 
-    # CACHET et SIGNATURE
+    # CACHET et SIGNATURE — sous le label "CACHET et SIGNATURE" (y=1015)
     if cachet_nom:
-        draw.rectangle([(660, 992), (870, 1052)], outline=blue, width=2)
-        draw.text((668, 995), cachet_nom, fill=blue, font=font_stamp)
+        draw.rectangle([(660, 1015), (870, 1070)], outline=blue, width=2)
+        draw.text((668, 1018), cachet_nom, fill=blue, font=font_stamp)
         if cachet_adresse:
-            draw.text((668, 1009), cachet_adresse, fill=blue, font=font_stamp)
+            draw.text((668, 1032), cachet_adresse, fill=blue, font=font_stamp)
         if cachet_siret:
-            draw.text((668, 1023), f"SIRET {cachet_siret}", fill=blue, font=font_stamp)
-        draw.text((668, 1037), "~ signature numérique ~", fill=gray, font=font_stamp)
+            draw.text((668, 1046), f"SIRET {cachet_siret}", fill=blue, font=font_stamp)
+        draw.text((668, 1058), "~ signature numérique ~", fill=gray, font=font_stamp)
 
     out = output_path or image_path
     img.save(out, "PNG")
