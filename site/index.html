@@ -166,7 +166,7 @@
                     <span class="demo-dot demo-dot-yellow"></span>
                     <span class="demo-dot demo-dot-green"></span>
                     <span class="demo-terminal-title">AutoDoc Pro — Dossier CG-2026-48721</span>
-                    <span class="demo-timer" id="demoTimer">10:32:00</span>
+                    <span class="demo-timer" id="demoTimer">0:00</span>
                 </div>
                 <div class="demo-terminal-body" id="demoTerminal">
                     <!-- Les lignes s'ajoutent en JS -->
@@ -668,7 +668,11 @@ function runDemo() {
         const elapsed = performance.now() - startTime;
         const progress = Math.min(elapsed / REAL_DURATION, 1);
         const simTime = SIM_START + progress * SIM_DURATION;
-        timerEl.textContent = formatTime(simTime);
+        // Timer global qui part de 0:00
+        const totalElapsed = simTime - SIM_START;
+        const tm = Math.floor(totalElapsed / 60);
+        const ts = Math.floor(totalElapsed % 60);
+        timerEl.textContent = `${tm}:${String(ts).padStart(2,'0')}`;
 
         // Mettre à jour chaque timer de phase dans le terminal
         demoPhases.forEach((phase, i) => {
