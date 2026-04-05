@@ -58,24 +58,28 @@ document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
             <h1>Vos clients déposent,<br><em>vous soumettez.</em></h1>
             <p class="hero-desc">Vos clients déposent leurs documents via votre URL permanente <strong>autodocpro.fr/votre-commerce</strong>. Le système vérifie la cohérence, la complétude et les dates de validité. Vous contrôlez, téléchargez le Cerfa pré-rempli et soumettez au SIV.<br><strong>5 min par dossier. Zéro saisie. URL permanente incluse.</strong></p>
             <div class="hero-actions">
-                <a href="#contact" class="btn btn-cta btn-lg">Tester sur mes prochains dossiers</a>
-                <a href="demo-agent.html" class="btn btn-ghost btn-lg">Voir la démo</a>
+                <a href="#contact" class="btn btn-cta btn-lg btn-glow">Traiter mon premier dossier</a>
+                <a href="comment-ca-marche.html" class="btn btn-ghost btn-lg">Comment ça marche</a>
             </div>
             <div class="hero-proof">
                 <div class="hero-proof-item">
                     <span class="hero-proof-num">5 min</span>
-                    <span class="hero-proof-label">par dossier</span>
+                    <span class="hero-proof-label">par dossier, tout compris</span>
                 </div>
                 <div class="hero-proof-item">
                     <span class="hero-proof-num">0</span>
-                    <span class="hero-proof-label">saisie manuelle</span>
+                    <span class="hero-proof-label">relance client</span>
                 </div>
                 <div class="hero-proof-item">
-                    <span class="hero-proof-num">URL</span>
-                    <span class="hero-proof-label">permanente incluse</span>
+                    <span class="hero-proof-num">QR</span>
+                    <span class="hero-proof-label">code + URL permanente</span>
                 </div>
             </div>
-            <p class="hero-small">5 premiers dossiers sans avance de frais. Facturés uniquement si vous continuez.</p>
+            <div class="hero-trust">
+                <div class="hero-trust-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Sans carte bancaire</div>
+                <div class="hero-trust-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Marque blanche</div>
+                <div class="hero-trust-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Aucun engagement</div>
+            </div>
         </div>
         <div class="hero-visual" style="padding: 0; overflow: hidden;">
             <!-- Mockup agent habilité — VO entre particuliers via URL permanente -->
@@ -148,12 +152,75 @@ document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
     </div>
 </section>
 
+<!-- ═══════════════════════════════════ AVANT / APRÈS ════════════════════ -->
+<section class="section">
+    <div class="container">
+        <div class="section-header">
+            <h2>Avant AutoDoc Pro vs. Après</h2>
+        </div>
+        <div class="before-after-grid fade-in">
+            <div class="ba-card ba-before">
+                <div class="ba-label">Avant</div>
+                <ul>
+                    <li><span class="ba-icon ba-bad">✗</span> Collecte par email — CNI en PDF, domicile en photo, CG par WhatsApp</li>
+                    <li><span class="ba-icon ba-bad">✗</span> Relances pour chaque pièce manquante ou illisible</li>
+                    <li><span class="ba-icon ba-bad">✗</span> Vérification à l'oeil — erreurs détectées au rejet SIV</li>
+                    <li><span class="ba-icon ba-bad">✗</span> Le client appelle pour savoir où en est son dossier</li>
+                    <li><span class="ba-icon ba-bad">✗</span> Cerfa rempli manuellement à chaque dossier</li>
+                </ul>
+            </div>
+            <div class="ba-card ba-after">
+                <div class="ba-label">Avec AutoDoc Pro</div>
+                <ul>
+                    <li><span class="ba-icon ba-good">✓</span> Le client dépose tout via votre URL ou un lien SMS</li>
+                    <li><span class="ba-icon ba-good">✓</span> Le système guide le client et demande les corrections</li>
+                    <li><span class="ba-icon ba-good">✓</span> 200+ vérifications automatiques à chaque dépôt</li>
+                    <li><span class="ba-icon ba-good">✓</span> Le client voit l'avancement — plus d'appels</li>
+                    <li><span class="ba-icon ba-good">✓</span> Cerfa pré-rempli avec votre cachet et signature</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════ CE QUE VOUS NE POUVEZ PAS FAIRE AILLEURS ═ -->
+<section class="section section-alt">
+    <div class="container">
+        <div class="section-header">
+            <h2>Ce qu'aucun logiciel SIV ne fait</h2>
+            <p class="subtitle">Les logiciels SIV transmettent au SIV. Ils ne collectent pas les documents du client, ne vérifient pas la cohérence, ne génèrent pas le Cerfa depuis les documents.</p>
+        </div>
+        <div class="unique-grid">
+            <div class="unique-card fade-in">
+                <div class="unique-num">01</div>
+                <h4>URL permanente en marque blanche</h4>
+                <p>Votre page, votre nom, votre QR code. Le client dépose tout en autonomie — CG barrée, cession, CNI, permis, domicile. Vous diffusez le lien partout.</p>
+            </div>
+            <div class="unique-card fade-in">
+                <div class="unique-num">02</div>
+                <h4>Hébergement détecté automatiquement</h4>
+                <p>Si le nom sur le domicile ne correspond pas à la CNI, le système demande automatiquement l'attestation d'hébergement et la CNI de l'hébergeant.</p>
+            </div>
+            <div class="unique-card fade-in">
+                <div class="unique-num">03</div>
+                <h4>Vérifications croisées en temps réel</h4>
+                <p>VIN, noms, dates d'expiration, catégorie de permis, cohérence CG/cession. Chaque erreur est signalée immédiatement avec la correction à apporter.</p>
+            </div>
+            <div class="unique-card fade-in">
+                <div class="unique-num">04</div>
+                <h4>Cerfa généré, pas rempli</h4>
+                <p>Le Cerfa est extrait des documents vérifiés — pas d'un formulaire que vous remplissez. Vous contrôlez, téléchargez et soumettez.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
 <!-- ═══════════════════════════════════ LA SOLUTION ═══════════════════════ -->
 <section id="solution" class="section">
     <div class="container">
         <div class="section-header">
-            <h2>Le client dépose. Le système vérifie. Vous soumettez.</h2>
-            <p class="subtitle">Chaque document est lu, vérifié et croisé dès qu'il est déposé. Quand tout est vert, le Cerfa est prêt.</p>
+            <h2>Comment ça fonctionne, concrètement</h2>
+            <p class="subtitle">Le client dépose. Le système vérifie. Vous contrôlez et soumettez.</p>
         </div>
         <div class="features-detail" style="grid-template-columns: repeat(2, 1fr);">
             <div class="feat-card fade-in">
@@ -314,52 +381,23 @@ document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
             <p class="subtitle">Inscription automatique — votre espace est prêt en quelques minutes</p>
         </div>
         <form class="contact-form" action="https://formspree.io/f/xwvwwnrw" method="POST">
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="nom">Nom *</label>
-                    <input type="text" id="nom" name="nom" required>
-                </div>
-                <div class="form-group">
-                    <label for="prenom">Prénom *</label>
-                    <input type="text" id="prenom" name="prenom" required>
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="email">Email *</label>
-                    <input type="email" id="email" name="email" required>
-                </div>
-                <div class="form-group">
-                    <label for="telephone">Téléphone</label>
-                    <input type="tel" id="telephone" name="telephone">
-                </div>
+            <input type="hidden" name="profil" value="agent_habilite">
+            <div class="form-group">
+                <label for="email">Email professionnel *</label>
+                <input type="email" id="email" name="email" required placeholder="vous@votrecommerce.fr">
             </div>
             <div class="form-group">
-                <label for="entreprise">Nom de votre commerce ou structure</label>
-                <input type="text" id="entreprise" name="entreprise">
+                <label for="entreprise">Nom de votre commerce *</label>
+                <input type="text" id="entreprise" name="entreprise" required placeholder="Ex: Garage Central SIV, Cabinet Martin...">
             </div>
             <div class="form-group">
-                <label for="profil">Votre profil *</label>
-                <select id="profil" name="profil" required>
-                    <option value="vendeur_habilite">Vendeur habilité SIV</option>
-                    <option value="vendeur_non_habilite">Vendeur non habilité</option>
-                    <option value="agent_habilite" selected>Agent habilité SIV</option>
-                </select>
+                <label for="habilitation">Numéro d'habilitation SIV</label>
+                <input type="text" id="habilitation" name="habilitation" placeholder="Optionnel — renseignable plus tard">
             </div>
-            <div class="form-group">
-                <label for="volume">Volume mensuel *</label>
-                <select id="volume" name="volume" required>
-                    <option value="">Sélectionnez</option>
-                    <option value="1-5">1 à 5 par mois</option>
-                    <option value="5-20">5 à 20 par mois</option>
-                    <option value="20-50">20 à 50 par mois</option>
-                    <option value="50+">Plus de 50 par mois</option>
-                </select>
-            </div>
-            <button type="submit" class="btn btn-cta btn-lg">Commencer mon essai</button>
+            <button type="submit" class="btn btn-cta btn-lg btn-glow">Traiter mon premier dossier</button>
             <div class="form-reassurance">
                 <div class="form-reassurance-item"><i data-lucide="credit-card"></i> Sans carte bancaire</div>
-                <div class="form-reassurance-item"><i data-lucide="clock"></i> Prêt en quelques minutes</div>
+                <div class="form-reassurance-item"><i data-lucide="zap"></i> URL permanente en 2 min</div>
                 <div class="form-reassurance-item"><i data-lucide="x-circle"></i> Aucun engagement</div>
             </div>
         </form>
