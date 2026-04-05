@@ -61,14 +61,14 @@ def annotate_cerfa_vn(
     img = Image.open(image_path)
     draw = ImageDraw.Draw(img)
 
-    # Certificat de conformité — Je soussigné (sur la ligne pointillée, y=478)
+    # Certificat de conformité — Je soussigné (sur la ligne pointillée, y=478, x=140)
     if vendeur_nom:
-        draw.text((168, 478), vendeur_nom, fill=black, font=font)
+        draw.text((140, 478), vendeur_nom, fill=black, font=font)
 
-    # Certificat de vente — Je soussigné : (sous le label, y=1016, x=130)
+    # Certificat de vente — Je soussigné : (bien en dessous du label, y=1022, x=110)
     if vendeur_nom:
         nom_court = vendeur_nom.split(" - ")[0] if " - " in vendeur_nom else vendeur_nom
-        draw.text((130, 1016), nom_court, fill=black, font=font_big)
+        draw.text((110, 1022), nom_court, fill=black, font=font_big)
 
     # Date de vente — un chiffre par case après "désignée ci-dessous le"
     # Cases: J1 J2 | M1 M2 | A1 A2 A3 A4
@@ -78,7 +78,7 @@ def annotate_cerfa_vn(
             jj, mm, aaaa = parts[0].zfill(2), parts[1].zfill(2), parts[2].zfill(4)
             date_chars = list(jj) + list(mm) + list(aaaa)
             # X centré dans chaque case (image 200dpi)
-            case_x = [338, 358, 388, 408, 436, 456, 476, 496]
+            case_x = [314, 334, 364, 384, 414, 434, 454, 474]
             for i, ch in enumerate(date_chars):
                 if i < len(case_x):
                     draw.text((case_x[i], 1163), ch, fill=black, font=font)
