@@ -592,7 +592,7 @@ document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
 const SIM_START = 10 * 3600 + 32 * 60; // 10:32:00 en secondes
 const SIM_END = 10 * 3600 + 44 * 60;   // 10:44:00
 const SIM_DURATION = SIM_END - SIM_START; // 720 secondes simulées
-const REAL_DURATION = 20000; // 20 secondes réelles
+const REAL_DURATION = 35000; // 35 secondes réelles
 
 function simTimeToReal(simSeconds) {
     return ((simSeconds - SIM_START) / SIM_DURATION) * REAL_DURATION;
