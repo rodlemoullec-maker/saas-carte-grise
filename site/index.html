@@ -173,11 +173,15 @@
                 </div>
             </div>
 
-            <!-- Bouton replay -->
-            <div style="text-align: center; margin-top: 16px;">
+            <!-- Boutons contrôle -->
+            <div style="text-align: center; margin-top: 16px; display: flex; gap: 8px; justify-content: center;">
+                <button onclick="togglePause()" id="demoPauseBtn" class="btn btn-outline" style="font-size: 0.8rem; padding: 8px 20px;">
+                    <svg id="demoPauseIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                    <span id="demoPauseLabel">Pause</span>
+                </button>
                 <button onclick="runDemo()" class="btn btn-outline" style="font-size: 0.8rem; padding: 8px 20px;">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                    Relancer la simulation
+                    Relancer
                 </button>
             </div>
         </div>
@@ -652,6 +656,30 @@ const demoPhases = [
 
 let demoTimeout = [];
 let demoTimerRAF = null;
+let demoPaused = false;
+let demoPauseTime = 0;
+let demoStartTime = 0;
+let demoPausedTotal = 0;
+
+function togglePause() {
+    const btn = document.getElementById('demoPauseLabel');
+    const icon = document.getElementById('demoPauseIcon');
+    if (!demoPaused) {
+        demoPaused = true;
+        demoPauseTime = performance.now();
+        btn.textContent = 'Reprendre';
+        icon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
+        if (demoTimerRAF) cancelAnimationFrame(demoTimerRAF);
+    } else {
+        demoPaused = false;
+        demoPausedTotal += performance.now() - demoPauseTime;
+        btn.textContent = 'Pause';
+        icon.innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
+        demoTimerRAF = requestAnimationFrame(updateDemoTimer);
+    }
+}
+
+let updateDemoTimer;
 
 function runDemo() {
     const el = document.getElementById('demoTerminal');
@@ -660,13 +688,40 @@ function runDemo() {
     demoTimeout.forEach(t => clearTimeout(t));
     demoTimeout = [];
     if (demoTimerRAF) cancelAnimationFrame(demoTimerRAF);
+    demoPaused = false;
+    demoPausedTotal = 0;
+    document.getElementById('demoPauseLabel').textContent = 'Pause';
+    document.getElementById('demoPauseIcon').innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
 
-    const startTime = performance.now();
+    demoStartTime = performance.now();
 
-    function updateTimer() {
-        const elapsed = performance.now() - startTime;
+    updateDemoTimer = function() {
+        if (demoPaused) return;
+        const elapsed = performance.now() - demoStartTime - demoPausedTotal;
         const progress = Math.min(elapsed / REAL_DURATION, 1);
         const simTime = SIM_START + progress * SIM_DURATION;
+        // Ajouter les lignes qui doivent apparaître
+        while (window._demoNextLine < demoLines.length) {
+            const line = demoLines[window._demoNextLine];
+            if (simTime < line.t) break;
+            if (line.html === '') { el.innerHTML += '<div style="height: 6px;"></div>'; }
+            else {
+                const div = document.createElement('div');
+                div.className = 'demo-line';
+                div.innerHTML = line.html;
+                el.appendChild(div);
+            }
+            el.scrollTop = el.scrollHeight;
+            window._demoNextLine++;
+        }
+        // Curseur à la fin
+        if (progress >= 1 && !window._demoCursorAdded) {
+            const cursor = document.createElement('span');
+            cursor.className = 'demo-cursor';
+            el.appendChild(cursor);
+            window._demoCursorAdded = true;
+        }
+
         // Timer global qui part de 0:00
         const totalElapsed = simTime - SIM_START;
         const tm = Math.floor(totalElapsed / 60);
@@ -720,30 +775,13 @@ function runDemo() {
             }
         });
 
-        if (progress < 1) demoTimerRAF = requestAnimationFrame(updateTimer);
-    }
-    demoTimerRAF = requestAnimationFrame(updateTimer);
+        if (progress < 1) demoTimerRAF = requestAnimationFrame(updateDemoTimer);
+    };
+    demoTimerRAF = requestAnimationFrame(updateDemoTimer);
 
-    // Lignes qui apparaissent au bon moment
-    demoLines.forEach((line) => {
-        const realDelay = simTimeToReal(line.t);
-        const t = setTimeout(() => {
-            if (line.html === '') { el.innerHTML += '<div style="height: 6px;"></div>'; return; }
-            const div = document.createElement('div');
-            div.className = 'demo-line';
-            div.innerHTML = line.html;
-            el.appendChild(div);
-            el.scrollTop = el.scrollHeight;
-        }, realDelay);
-        demoTimeout.push(t);
-    });
-
-    // Curseur à la fin
-    demoTimeout.push(setTimeout(() => {
-        const cursor = document.createElement('span');
-        cursor.className = 'demo-cursor';
-        el.appendChild(cursor);
-    }, REAL_DURATION + 500));
+    // Les lignes sont gérées dans updateDemoTimer via nextLineIndex
+    window._demoNextLine = 0;
+    window._demoCursorAdded = false;
 }
 
 // Lancer quand visible
