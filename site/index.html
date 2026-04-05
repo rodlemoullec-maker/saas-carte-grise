@@ -166,6 +166,7 @@
                     <span class="demo-dot demo-dot-yellow"></span>
                     <span class="demo-dot demo-dot-green"></span>
                     <span class="demo-terminal-title">AutoDoc Pro — Dossier CG-2026-48721</span>
+                    <span class="demo-phase-timer" id="demoPhaseTimer">0:00</span>
                     <span class="demo-timer" id="demoTimer">10:32:00</span>
                 </div>
                 <div class="demo-terminal-body" id="demoTerminal">
@@ -641,12 +642,21 @@ const demoLines = [
     { t: T(10,43,40), html: '<span class="demo-tag demo-tag-done">PRÊT</span> <span class="demo-highlight" style="color: #34d399;">Dossier complet — 0 alerte. Contrôlez, téléchargez et soumettez au SIV.</span>' },
 ];
 
+// Phases avec début/fin en temps simulé
+const demoPhases = [
+    { label: 'Documents vendeur', start: T(10,32,0), end: T(10,33,20) },
+    { label: 'SMS + dépôt client', start: T(10,34,0), end: T(10,36,30) },
+    { label: 'Correction client', start: T(10,41,0), end: T(10,42,50) },
+    { label: 'Génération Cerfa', start: T(10,43,0), end: T(10,43,40) },
+];
+
 let demoTimeout = [];
 let demoTimerRAF = null;
 
 function runDemo() {
     const el = document.getElementById('demoTerminal');
     const timerEl = document.getElementById('demoTimer');
+    const phaseTimerEl = document.getElementById('demoPhaseTimer');
     el.innerHTML = '';
     demoTimeout.forEach(t => clearTimeout(t));
     demoTimeout = [];
@@ -654,12 +664,47 @@ function runDemo() {
 
     const startTime = performance.now();
 
-    // Timer qui défile
     function updateTimer() {
         const elapsed = performance.now() - startTime;
         const progress = Math.min(elapsed / REAL_DURATION, 1);
         const simTime = SIM_START + progress * SIM_DURATION;
         timerEl.textContent = formatTime(simTime);
+
+        // Timer par phase — trouver la phase active
+        let phaseText = '';
+        let phaseColor = '#34d399';
+        for (const phase of demoPhases) {
+            if (simTime >= phase.start && simTime <= phase.end) {
+                const phaseElapsed = simTime - phase.start;
+                const m = Math.floor(phaseElapsed / 60);
+                const s = Math.floor(phaseElapsed % 60);
+                phaseText = `${m}:${String(s).padStart(2,'0')}`;
+                phaseColor = '#34d399';
+                break;
+            } else if (simTime > phase.end) {
+                // Phase terminée — afficher le total de cette phase
+                const phaseDuration = phase.end - phase.start;
+                const m = Math.floor(phaseDuration / 60);
+                const s = Math.floor(phaseDuration % 60);
+                phaseText = `${m}:${String(s).padStart(2,'0')}`;
+                phaseColor = '#34d399';
+            } else if (simTime < phase.start && phaseText) {
+                // Entre deux phases — afficher "attente" avec temps écoulé depuis fin de la phase précédente
+                const prevPhase = demoPhases[demoPhases.indexOf(phase) - 1];
+                if (prevPhase) {
+                    const waitTime = simTime - prevPhase.end;
+                    const m = Math.floor(waitTime / 60);
+                    const s = Math.floor(waitTime % 60);
+                    phaseText = `⏳ ${m}:${String(s).padStart(2,'0')}`;
+                    phaseColor = '#fbbf24';
+                }
+                break;
+            }
+        }
+        phaseTimerEl.textContent = phaseText || '0:00';
+        phaseTimerEl.style.color = phaseColor;
+        phaseTimerEl.style.background = phaseColor === '#fbbf24' ? 'rgba(217,119,6,0.15)' : 'rgba(5,150,105,0.15)';
+
         if (progress < 1) demoTimerRAF = requestAnimationFrame(updateTimer);
     }
     demoTimerRAF = requestAnimationFrame(updateTimer);
