@@ -1034,6 +1034,10 @@ ul { list-style: none; }
 .demo-check { color: #34d399; }
 .demo-error { color: #f87171; }
 .demo-dim { color: rgba(255,255,255,0.5); }
+.demo-timestamp {
+    color: #fbbf24;
+    font-weight: 700;
+}
 .demo-highlight { color: white; font-weight: 600; }
 .demo-cursor {
     display: inline-block;

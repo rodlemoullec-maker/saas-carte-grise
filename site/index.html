@@ -581,7 +581,7 @@ document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
 // ─── Simulation live ───
 const demoLines = [
     // ── Phase 1 : dépôt vendeur ──
-    { delay: 0, html: '<span class="demo-dim">── Documents vendeur ──</span>' },
+    { delay: 0, html: '<span class="demo-dim">── Documents vendeur ──────────────────────── <span class="demo-timestamp">10:32</span> ──</span>' },
     { delay: 400, html: '<span class="demo-dim">$</span> <span class="demo-highlight">Document reçu</span> <span class="demo-dim">— coc_honda_cb125r.pdf (2.1 MB)</span>' },
     { delay: 1000, html: '<span class="demo-tag demo-tag-ocr">OCR</span> <span class="demo-check">✓</span> 847 caractères extraits <span class="demo-dim">— confiance 94%</span>' },
     { delay: 1500, html: '<span class="demo-tag demo-tag-extract">IA</span> Classification : <span class="demo-highlight">COC</span> <span class="demo-dim">(Certificat de Conformité)</span>' },
@@ -591,7 +591,7 @@ const demoLines = [
     { delay: 3700, html: '<span class="demo-tag demo-tag-check">VERIF</span> <span class="demo-check">✓</span> VIN cohérent COC ↔ facture' },
     { delay: 4100, html: '' },
     // ── Phase 2 : SMS au client ──
-    { delay: 4300, html: '<span class="demo-dim">── Collecte client par SMS ──</span>' },
+    { delay: 4300, html: '<span class="demo-dim">── SMS envoyé au client ───────────────────── <span class="demo-timestamp">10:34</span> ──</span>' },
     { delay: 4700, html: '<span class="demo-tag demo-tag-ocr">SMS</span> Lien envoyé au 06 12 •• •• 78 <span class="demo-dim">— "Moto Center a choisi AutoDoc Pro..."</span>' },
     { delay: 5300, html: '<span class="demo-dim">$</span> <span class="demo-highlight">Client a déposé</span> <span class="demo-dim">— cni_dupont_recto.jpg</span>' },
     { delay: 5800, html: '<span class="demo-tag demo-tag-extract">IA</span> <span class="demo-check">✓</span> CNI · DUPONT Marie · Née le 14/05/1992' },
@@ -600,7 +600,7 @@ const demoLines = [
     { delay: 7400, html: '<span class="demo-tag demo-tag-error">→</span> <span class="demo-error">Le client est invité à déposer une pièce d\'identité valide</span>' },
     { delay: 7900, html: '' },
     // ── Phase 3 : correction client ──
-    { delay: 8200, html: '<span class="demo-dim">── Correction automatique ──</span>' },
+    { delay: 8200, html: '<span class="demo-dim">── Client corrige depuis son téléphone ────── <span class="demo-timestamp">10:41</span> ──</span>' },
     { delay: 8700, html: '<span class="demo-dim">$</span> <span class="demo-highlight">Client a déposé</span> <span class="demo-dim">— passeport_dupont.jpg</span>' },
     { delay: 9200, html: '<span class="demo-tag demo-tag-extract">IA</span> <span class="demo-check">✓</span> Passeport · DUPONT Marie · Expire le 15/11/2033 <span class="demo-check">✓</span>' },
     { delay: 9600, html: '<span class="demo-dim">$</span> <span class="demo-highlight">Client a déposé</span> <span class="demo-dim">— permis_dupont.jpg</span>' },
@@ -610,7 +610,7 @@ const demoLines = [
     { delay: 12000, html: '<span class="demo-tag demo-tag-check">VERIF</span> <span class="demo-check">✓</span> Domicile · Daté du 15/02/2026 · Nom = CNI <span class="demo-check">✓</span>' },
     { delay: 12500, html: '' },
     // ── Phase 4 : Cerfa ──
-    { delay: 12700, html: '<span class="demo-dim">── Tous les documents vérifiés ──</span>' },
+    { delay: 12700, html: '<span class="demo-dim">── Tous les documents vérifiés ─────────────── <span class="demo-timestamp">10:44</span> ──</span>' },
     { delay: 13200, html: '<span class="demo-tag demo-tag-cerfa">CERFA</span> Génération Cerfa 13749 (VN)...' },
     { delay: 13800, html: '<span class="demo-tag demo-tag-cerfa">CERFA</span> <span class="demo-check">✓</span> Cerfa pré-rempli · cachet Moto Center et signature enregistrée numériquement apposés automatiquement' },
     { delay: 14400, html: '' },
