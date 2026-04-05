@@ -44,27 +44,31 @@
     <div class="hero-inner">
         <div class="hero-text">
             <div class="hero-eyebrow">Pour les vendeurs auto et moto habilités SIV</div>
-            <h1>Le dossier carte grise,<br><em>automatisé.</em></h1>
-            <p class="hero-desc">Vous déposez vos documents véhicule. Le système lit, extrait, croise et vérifie tout. Il collecte les pièces du client par SMS. Et il génère le Cerfa avec votre cachet et signature.<br><strong>5 min par dossier. Zéro saisie. Zéro rejet.</strong></p>
+            <h1>Vos dossiers carte grise en <em>5 minutes</em> au lieu de 30.</h1>
+            <p class="hero-desc">OCR + IA : le système lit vos documents, vérifie 200+ points, collecte les pièces du client par SMS, et génère le Cerfa avec votre cachet. <strong>Zéro saisie. Zéro rejet.</strong></p>
             <div class="hero-actions">
-                <a href="#contact" class="btn btn-cta btn-lg">Tester sur mes prochains dossiers</a>
-                <a href="demo.html" class="btn btn-ghost btn-lg">Voir la démo</a>
+                <a href="#contact" class="btn btn-cta btn-lg btn-glow">Essayer gratuitement</a>
+                <a href="comment-ca-marche.html" class="btn btn-ghost btn-lg">Comment ça marche</a>
             </div>
             <div class="hero-proof">
                 <div class="hero-proof-item">
-                    <span class="hero-proof-num">5 min</span>
-                    <span class="hero-proof-label">par dossier au lieu de 30</span>
+                    <span class="hero-proof-num" data-count="200">200+</span>
+                    <span class="hero-proof-label">vérifications automatiques</span>
                 </div>
                 <div class="hero-proof-item">
-                    <span class="hero-proof-num">0</span>
-                    <span class="hero-proof-label">saisie manuelle</span>
+                    <span class="hero-proof-num" data-count="5">5 min</span>
+                    <span class="hero-proof-label">par dossier, tout compris</span>
                 </div>
                 <div class="hero-proof-item">
-                    <span class="hero-proof-num">100%</span>
-                    <span class="hero-proof-label">votre client, votre tarif</span>
+                    <span class="hero-proof-num">0 €</span>
+                    <span class="hero-proof-label">pour vos 5 premiers dossiers</span>
                 </div>
             </div>
-            <p class="hero-small">5 premiers dossiers sans avance de frais. Facturés uniquement si vous continuez.</p>
+            <div class="hero-trust">
+                <div class="hero-trust-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Sans carte bancaire</div>
+                <div class="hero-trust-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Prêt en 2 minutes</div>
+                <div class="hero-trust-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Aucun engagement</div>
+            </div>
             <!-- Version mobile du mockup -->
             <div class="hero-visual-mobile" style="display: none; margin-top: 24px; padding: 14px; background: var(--navy-800); border-radius: 12px; border: 1px solid rgba(255,255,255,0.06);">
                 <div style="font-size: 0.75rem; font-weight: 700; color: white; margin-bottom: 8px;">CG-2026-47085 · <span style="color: #c084fc;">VO</span> · DUPONT Marie</div>
@@ -114,6 +118,34 @@
                     Télécharger le Cerfa
                 </div>
             </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════ SOCIAL PROOF ═══════════════════════ -->
+<section class="social-proof">
+    <div class="container">
+        <div class="proof-grid">
+            <div class="proof-stat fade-in">
+                <div class="proof-stat-num" data-count="200">200+</div>
+                <div class="proof-stat-label">contrôles par dossier</div>
+            </div>
+            <div class="proof-stat fade-in">
+                <div class="proof-stat-num"><span data-count="12">12</span>–<span data-count="14">14</span>€</div>
+                <div class="proof-stat-label">par dossier, prix fixe</div>
+            </div>
+            <div class="proof-stat fade-in">
+                <div class="proof-stat-num" data-count="0">0</div>
+                <div class="proof-stat-label">saisie manuelle</div>
+            </div>
+            <div class="proof-stat fade-in">
+                <div class="proof-stat-num">100%</div>
+                <div class="proof-stat-label">votre marque, votre tarif</div>
+            </div>
+        </div>
+        <div class="proof-quote fade-in">
+            <blockquote>"On testait avec 3 dossiers pour voir. Au bout du deuxième, on a compris qu'on ne reviendrait pas en arrière."</blockquote>
+            <cite>— Gérant, concession moto Île-de-France</cite>
         </div>
     </div>
 </section>
@@ -475,6 +507,26 @@ const observer = new IntersectionObserver((entries) => {
     });
 }, { threshold: 0.1 });
 document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+// Compteurs animés
+const countObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            const el = entry.target;
+            const target = parseInt(el.dataset.count);
+            if (!target) return;
+            let current = 0;
+            const step = Math.ceil(target / 40);
+            const timer = setInterval(() => {
+                current += step;
+                if (current >= target) { current = target; clearInterval(timer); }
+                el.textContent = current + (el.textContent.includes('+') ? '+' : '') + (el.textContent.includes(' min') ? ' min' : '');
+            }, 30);
+            countObserver.unobserve(el);
+        }
+    });
+}, { threshold: 0.5 });
+document.querySelectorAll('[data-count]').forEach(el => countObserver.observe(el));
 </script>
 
 </body>

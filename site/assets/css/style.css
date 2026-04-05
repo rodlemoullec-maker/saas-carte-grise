@@ -297,8 +297,53 @@ ul { list-style: none; }
 }
 .hero h1 em {
     font-style: normal;
-    color: var(--emerald);
+    background: linear-gradient(135deg, #34d399, #06b6d4);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
+
+/* Hero entrance animation */
+.hero-text { animation: heroSlideIn 0.8s ease-out; }
+.hero-visual { animation: heroSlideIn 0.8s ease-out 0.2s both; }
+@keyframes heroSlideIn {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Glow button */
+.btn-glow {
+    position: relative;
+    overflow: hidden;
+}
+.btn-glow::after {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 60%);
+    animation: btnGlow 3s ease-in-out infinite;
+}
+@keyframes btnGlow {
+    0%, 100% { transform: translate(-30%, -30%); }
+    50% { transform: translate(30%, 30%); }
+}
+
+/* Hero trust badges */
+.hero-trust {
+    display: flex;
+    gap: 20px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+.hero-trust-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    color: var(--slate-400);
+}
+.hero-trust-item svg { color: var(--emerald); flex-shrink: 0; }
 .hero-desc {
     font-size: 1.05rem;
     color: var(--slate-400);
@@ -818,6 +863,107 @@ ul { list-style: none; }
     margin-top: 4px;
 }
 
+/* --- SOCIAL PROOF --- */
+.social-proof {
+    padding: 60px 24px;
+    background: linear-gradient(180deg, var(--navy) 0%, var(--navy-800) 100%);
+    border-top: 1px solid rgba(255,255,255,0.04);
+}
+.proof-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+    margin-bottom: 40px;
+}
+.proof-stat {
+    text-align: center;
+    padding: 24px 16px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: var(--radius);
+    transition: all 0.3s ease;
+}
+.proof-stat:hover {
+    background: rgba(255,255,255,0.06);
+    border-color: rgba(5,150,105,0.3);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 32px rgba(5,150,105,0.1);
+}
+.proof-stat-num {
+    font-family: 'Outfit', sans-serif;
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: white;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    margin-bottom: 4px;
+}
+.proof-stat-label {
+    font-size: 0.8rem;
+    color: var(--slate-400);
+}
+.proof-quote {
+    max-width: 640px;
+    margin: 0 auto;
+    text-align: center;
+    padding: 32px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: var(--radius);
+    position: relative;
+}
+.proof-quote::before {
+    content: '"';
+    position: absolute;
+    top: -10px;
+    left: 24px;
+    font-size: 4rem;
+    font-family: 'Outfit', serif;
+    color: var(--emerald);
+    opacity: 0.3;
+    line-height: 1;
+}
+.proof-quote blockquote {
+    font-size: 1.05rem;
+    color: rgba(255,255,255,0.85);
+    font-style: italic;
+    line-height: 1.7;
+    border: none;
+    padding: 0;
+    margin: 0;
+}
+.proof-quote cite {
+    display: block;
+    margin-top: 12px;
+    font-size: 0.8rem;
+    color: var(--slate-500);
+    font-style: normal;
+}
+
+/* --- IMPROVED FADE-IN --- */
+.fade-in {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.fade-in.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* --- CARD HOVER GLOW --- */
+.pain-card, .feat-card, .price-card {
+    transition: all 0.3s ease;
+}
+.pain-card:hover, .feat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.08);
+}
+.price-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 16px 48px rgba(0,0,0,0.1);
+}
+
 /* --- FOOTER --- */
 .footer {
     background: var(--navy);
@@ -1254,6 +1400,8 @@ ul { list-style: none; }
     .footer-grid { grid-template-columns: 1fr 1fr; }
     .parcours-columns { grid-template-columns: 1fr; }
     .docs-grid { grid-template-columns: repeat(2, 1fr); }
+    .proof-grid { grid-template-columns: repeat(2, 1fr); }
+    .hero-trust { flex-direction: column; gap: 8px; }
 }
 @media (max-width: 640px) {
     .nav-links { display: none;
