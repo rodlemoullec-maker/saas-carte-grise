@@ -576,9 +576,9 @@ let currentMode='direct';
 
 // MODE 1 : Client direct via URL permanente
 const directConfig={
-SIM_START:10*3600+32*60, SIM_END:10*3600+44*60,
+SIM_START:10*3600+32*60, SIM_END:10*3600+39*60+10,
 subtitle:'Un client arrive via votre URL permanente — VO entre particuliers avec hébergement.',
-phases:[{label:'Docs véhicule',start:T(10,32,0),end:T(10,34,0)},{label:'Identité',start:T(10,34,10),end:T(10,36,30)},{label:'Hébergement',start:T(10,37,0),end:T(10,39,0)},{label:'Cerfa',start:T(10,42,0),end:T(10,43,0)}],
+phases:[{label:'Docs véhicule',start:T(10,32,0),end:T(10,34,0)},{label:'Identité',start:T(10,34,10),end:T(10,36,30)},{label:'Hébergement',start:T(10,37,0),end:T(10,38,10)},{label:'Cerfa',start:T(10,38,25),end:T(10,39,0)}],
 lines:[
 {t:T(10,32,0),html:'<span class="demo-dim">── Client via URL permanente</span> <span class="demo-phase-timer" data-phase="0"></span>',phase:0},
 {t:T(10,32,5),html:'<span class="demo-dim">▸</span> <span class="demo-highlight">Client a déposé</span> <span class="demo-dim">— cg_barree_leclerc.pdf</span>'},
@@ -609,12 +609,12 @@ lines:[
 {t:T(10,37,50),html:'<span class="demo-tag demo-tag-check">VERIF</span> <span class="demo-check">✓</span> CNI hébergeant · MOREAU Paul · Non expirée <span class="demo-check">✓</span>'},
 {t:T(10,38,0),html:'<span class="demo-tag demo-tag-check">VERIF</span> <span class="demo-check">✓</span> Nom hébergeant = nom domicile (MOREAU) <span class="demo-check">✓</span>'},
 {t:T(10,38,10),html:'<span class="demo-tag demo-tag-done">OK</span> <span class="demo-check">✓</span> Hébergement validé — chaîne complète'},
-{t:T(10,39,0),html:''},
-{t:T(10,42,0),html:'<span class="demo-dim">── Cerfa</span> <span class="demo-phase-timer" data-phase="3"></span>',phase:3},
-{t:T(10,42,10),html:'<span class="demo-tag demo-tag-cerfa">CERFA</span> Génération Cerfa 13750 (VO)...'},
-{t:T(10,42,20),html:'<span class="demo-tag demo-tag-cerfa">CERFA</span> <span class="demo-check">✓</span> Cerfa pré-rempli · cachet numérique Garage Central SIV + signature apposés'},
-{t:T(10,42,40),html:''},
-{t:T(10,42,50),html:'<span class="demo-tag demo-tag-done">PRÊT</span> <span class="demo-highlight" style="color:#34d399;">Dossier complet — hébergement validé — contrôlez, téléchargez et soumettez au SIV.</span>'},
+{t:T(10,38,20),html:''},
+{t:T(10,38,25),html:'<span class="demo-dim">── Cerfa</span> <span class="demo-phase-timer" data-phase="3"></span>',phase:3},
+{t:T(10,38,30),html:'<span class="demo-tag demo-tag-cerfa">CERFA</span> Génération Cerfa 13750 (VO)...'},
+{t:T(10,38,40),html:'<span class="demo-tag demo-tag-cerfa">CERFA</span> <span class="demo-check">✓</span> Cerfa pré-rempli · cachet numérique Garage Central SIV + signature apposés'},
+{t:T(10,38,50),html:''},
+{t:T(10,39,0),html:'<span class="demo-tag demo-tag-done">PRÊT</span> <span class="demo-highlight" style="color:#34d399;">Dossier complet — hébergement validé — contrôlez, téléchargez et soumettez au SIV.</span>'},
 ],
 mockupUpdate: function(simTime, S) {
     if(simTime>=T(10,32,0)&&S<1){document.getElementById('demoMockupPlaceholder').style.display='none';document.getElementById('demoScreenClient').style.display='block';window._demoMockupState=1;}
@@ -627,14 +627,14 @@ mockupUpdate: function(simTime, S) {
     if(simTime>=T(10,37,20)){const e=document.getElementById('mockAttest');e.className='demo-screen-doc demo-screen-ok';e.querySelector('span').textContent='✓';}
     if(simTime>=T(10,37,50)){const e=document.getElementById('mockCniHeb');e.className='demo-screen-doc demo-screen-ok';e.querySelector('span').textContent='✓';}
     if(simTime>=T(10,38,10)&&S<3){const m=document.getElementById('mockClientMsg');m.style.display='block';m.className='demo-screen-msg demo-screen-msg-ok';m.textContent='✓ Tous les documents vérifiés — hébergement validé !';window._demoMockupState=3;}
-    if(simTime>=T(10,42,0)&&S<4){document.getElementById('demoScreenClient').style.display='none';document.getElementById('demoScreenCerfa').style.display='block';window._demoMockupState=4;}
-    if(simTime>=T(10,42,5))document.getElementById('cerfaImmat').textContent='AB-123-CD';
-    if(simTime>=T(10,42,8))document.getElementById('cerfaMarque').textContent='PEUGEOT';
-    if(simTime>=T(10,42,11))document.getElementById('cerfaVin').textContent='VF3LC9HZXJS67890';
-    if(simTime>=T(10,42,14))document.getElementById('cerfaTit').textContent='LECLERC Sophie';
-    if(simTime>=T(10,42,17))document.getElementById('cerfaAddr').textContent='Chez MOREAU Paul, 8 rue Voltaire, 93100 Montreuil';
-    if(simTime>=T(10,42,20))document.getElementById('cerfaStamp').style.display='block';
-    if(simTime>=T(10,42,40)&&S<5){const m=document.getElementById('mockCerfaMsg');m.style.display='block';m.textContent='Dossier complet — contrôlez, téléchargez et soumettez au SIV.';window._demoMockupState=5;}
+    if(simTime>=T(10,38,25)&&S<4){document.getElementById('demoScreenClient').style.display='none';document.getElementById('demoScreenCerfa').style.display='block';window._demoMockupState=4;}
+    if(simTime>=T(10,38,28))document.getElementById('cerfaImmat').textContent='AB-123-CD';
+    if(simTime>=T(10,38,31))document.getElementById('cerfaMarque').textContent='PEUGEOT';
+    if(simTime>=T(10,38,34))document.getElementById('cerfaVin').textContent='VF3LC9HZXJS67890';
+    if(simTime>=T(10,38,37))document.getElementById('cerfaTit').textContent='LECLERC Sophie';
+    if(simTime>=T(10,38,40))document.getElementById('cerfaAddr').textContent='Chez MOREAU Paul, 8 rue Voltaire, 93100 Montreuil';
+    if(simTime>=T(10,38,43))document.getElementById('cerfaStamp').style.display='block';
+    if(simTime>=T(10,38,50)&&S<5){const m=document.getElementById('mockCerfaMsg');m.style.display='block';m.textContent='Dossier complet — contrôlez, téléchargez et soumettez au SIV.';window._demoMockupState=5;}
 }};
 
 // MODE 2 : Dossier reçu d'un vendeur non habilité
