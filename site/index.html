@@ -689,7 +689,7 @@ const demoLines = [
     { t: T(10,32,25), html: '<span class="demo-tag demo-tag-extract">IA</span> <span class="demo-check">✓</span> HONDA CB125R · VIN : <span class="demo-highlight">JMZKECW105SJ08739</span> · 11 kW · L3e-A1E' },
     { t: T(10,32,35), html: '<span class="demo-tag demo-tag-extract">IA</span> <span class="demo-check">✓</span> CNIT : <span class="demo-highlight">MH01-01-001-0</span> <span class="demo-dim">— champ D.2.1 détecté sur le COC</span>' },
     { t: T(10,33,0),  html: '<span class="demo-dim">▸</span> <span class="demo-highlight">Document reçu</span> <span class="demo-dim">— facture_honda.pdf</span>' },
-    { t: T(10,33,10), html: '<span class="demo-tag demo-tag-extract">IA</span> <span class="demo-check">✓</span> Facture · VIN identique · Date : 28/03/2026 · Vendeur : Moto Center' },
+    { t: T(10,33,10), html: '<span class="demo-tag demo-tag-extract">IA</span> <span class="demo-check">✓</span> Facture · VIN identique · Date : 28/03/2026 · Acheteur : <span class="demo-highlight">DUPONT Marie</span>' },
     { t: T(10,33,15), html: '<span class="demo-tag demo-tag-check">VERIF</span> <span class="demo-check">✓</span> VIN cohérent COC ↔ facture' },
     { t: T(10,33,20), html: '' },
     // Phase 2 : SMS (10:34)
@@ -707,6 +707,7 @@ const demoLines = [
     { t: T(10,41,0),  html: '<span class="demo-dim">── Correction client</span> <span class="demo-phase-timer" data-phase="2"></span>', phase: 2 },
     { t: T(10,41,10), html: '<span class="demo-dim">▸</span> <span class="demo-highlight">Client a déposé</span> <span class="demo-dim">— passeport_dupont.jpg</span>' },
     { t: T(10,41,18), html: '<span class="demo-tag demo-tag-extract">IA</span> <span class="demo-check">✓</span> Passeport · DUPONT Marie · Expire le 15/11/2033 <span class="demo-check">✓</span>' },
+    { t: T(10,41,28), html: '<span class="demo-tag demo-tag-check">VERIF</span> <span class="demo-check">✓</span> Acheteur facture (DUPONT) = passeport (DUPONT) <span class="demo-check">✓</span>' },
     { t: T(10,41,40), html: '<span class="demo-dim">▸</span> <span class="demo-highlight">Client a déposé</span> <span class="demo-dim">— permis_dupont.jpg</span>' },
     { t: T(10,41,50), html: '<span class="demo-tag demo-tag-check">VERIF</span> <span class="demo-check">✓</span> Permis B · véhicule L3e-A1E ≤ 11 kW — permis adapté <span class="demo-check">✓</span>' },
     { t: T(10,42,0),  html: '<span class="demo-tag demo-tag-check">VERIF</span> <span class="demo-check">✓</span> Permis B + 125cc → formation 7h requise — <span class="demo-highlight">attestation détectée</span> <span class="demo-check">✓</span>' },
