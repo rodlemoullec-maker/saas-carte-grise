@@ -974,10 +974,26 @@ ul { list-style: none; }
 }
 .demo-split {
     display: grid;
-    grid-template-columns: 1fr 320px;
-    gap: 20px;
+    grid-template-columns: 1fr 280px;
+    gap: 16px;
     align-items: start;
 }
+.demo-mockup-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.demo-mockup-mini {
+    transform: scale(1);
+    transform-origin: top right;
+}
+.demo-screen-mini {
+    font-size: 0.85em;
+}
+.demo-screen-mini .demo-screen-body { padding: 10px 12px; }
+.demo-screen-mini .demo-cerfa-field { padding: 3px 0; }
+.demo-screen-mini .demo-cerfa-label { font-size: 0.65rem; }
+.demo-screen-mini .demo-cerfa-val { font-size: 0.7rem; }
 .demo-terminal {
     background: #0f1219;
     border-radius: 16px;

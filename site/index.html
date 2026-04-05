@@ -176,6 +176,7 @@
 
             <!-- Mockup droite -->
             <div class="demo-mockup" id="demoMockup">
+              <div class="demo-mockup-stack">
                 <!-- Phase 1 : espace vendeur -->
                 <div class="demo-screen" id="demoScreenVendeur" style="display:none;">
                     <div class="demo-screen-bar">
@@ -216,7 +217,7 @@
                 </div>
 
                 <!-- Phase 4 : Cerfa -->
-                <div class="demo-screen" id="demoScreenCerfa" style="display:none;">
+                <div class="demo-screen demo-screen-mini" id="demoScreenCerfa" style="display:none;">
                     <div class="demo-screen-bar">
                         <span class="demo-screen-dot"></span>
                         <span class="demo-screen-title">Cerfa 13749*04 — Véhicule neuf</span>
@@ -241,6 +242,7 @@
                     </div>
                 </div>
 
+              </div><!-- /demo-mockup-stack -->
                 <!-- Placeholder initial -->
                 <div class="demo-mockup-placeholder" id="demoMockupPlaceholder">
                     <div style="color: rgba(255,255,255,0.3); font-size: 0.85rem; text-align: center;">
@@ -827,7 +829,7 @@ function runDemo() {
 
         // Phase 2 : espace client (10:34 → 10:42:50)
         if (simTime >= T(10,34,0) && S < 3) {
-            sv.style.display = 'none'; sc.style.display = 'block'; window._demoMockupState = 3;
+            sc.style.display = 'block'; window._demoMockupState = 3;
         }
         // Docs client
         if (simTime >= T(10,36,8) && simTime < T(10,36,18)) { const e=document.getElementById('mockCni'); e.className='demo-screen-doc demo-screen-ok'; e.querySelector('span').textContent='✓'; }
@@ -859,7 +861,7 @@ function runDemo() {
 
         // Phase 4 : Cerfa (10:43)
         if (simTime >= T(10,43,0) && S < 5) {
-            sc.style.display = 'none'; sf.style.display = 'block'; window._demoMockupState = 5;
+            sf.style.display = 'block'; window._demoMockupState = 5;
         }
         if (simTime >= T(10,43,4)) document.getElementById('cerfaMarque').textContent = 'HONDA';
         if (simTime >= T(10,43,5)) document.getElementById('cerfaDenom').textContent = 'CB125R';
