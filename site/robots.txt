@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://autodocpro.fr/sitemap.xml

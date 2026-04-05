@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AutoDoc Pro — Le dossier carte grise, automatisé</title>
-    <meta name="description" content="Vendeurs auto et moto habilités SIV — le système lit vos documents, vérifie tout, collecte les pièces du client par SMS, et génère le Cerfa. 5 min par dossier.">
+    <title>AutoDoc Pro — Agent habilité SIV : vos clients déposent, vous soumettez</title>
+    <meta name="description" content="Agents habilités SIV — vos clients déposent leurs documents via votre URL permanente autodocpro.fr/votre-commerce. Le système vérifie tout. Vous téléchargez le Cerfa et soumettez au SIV. 5 min par dossier.">
 
     <meta property="og:type" content="website">
-    <meta property="og:title" content="AutoDoc Pro — Le dossier carte grise, automatisé">
-    <meta property="og:description" content="OCR + IA, 200+ contrôles, collecte client par SMS, Cerfa automatique. 5 min par dossier au lieu de 30. Essai sans avance de frais.">
+    <meta property="og:title" content="AutoDoc Pro — Agent habilité SIV">
+    <meta property="og:description" content="Vos clients déposent leurs documents via votre lien permanent. OCR + IA, 200+ contrôles, Cerfa automatique. 5 min par dossier. Essai sans avance de frais.">
     <meta property="og:site_name" content="AutoDoc Pro">
     <meta property="og:locale" content="fr_FR">
 
@@ -16,7 +16,18 @@
     <link rel="stylesheet" href="assets/css/style.css?v=5">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/lucide@latest">
+// Fade-in au scroll
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            observer.unobserve(entry.target);
+        }
+    });
+}, { threshold: 0.1 });
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
 </head>
 <body>
 
@@ -43,100 +54,95 @@
 <section class="hero">
     <div class="hero-inner">
         <div class="hero-text">
-            <div class="hero-eyebrow">Pour les vendeurs auto et moto habilités SIV</div>
-            <h1>Le dossier carte grise,<br><em>automatisé.</em></h1>
-            <p class="hero-desc">Vous déposez vos documents véhicule. Le système lit, extrait, croise et vérifie tout. Il collecte les pièces du client par SMS. Et il génère le Cerfa avec votre cachet et signature.<br><strong>5 min par dossier. Zéro saisie. Zéro rejet.</strong></p>
+            <div class="hero-eyebrow">Pour les agents habilités SIV</div>
+            <h1>Vos clients déposent,<br><em>vous soumettez.</em></h1>
+            <p class="hero-desc">Vos clients viennent chez vous pour leur carte grise. Avec AutoDoc Pro, ils déposent leurs documents via votre URL permanente <strong>autodocpro.fr/votre-commerce</strong>. Le système vérifie tout. Vous téléchargez le Cerfa et soumettez au SIV.<br><strong>5 min par dossier. Zéro saisie. URL permanente incluse.</strong></p>
             <div class="hero-actions">
                 <a href="#contact" class="btn btn-cta btn-lg">Tester sur mes prochains dossiers</a>
-                <a href="demo.html" class="btn btn-ghost btn-lg">Voir la démo</a>
+                <a href="demo-agent.html" class="btn btn-ghost btn-lg">Voir la démo</a>
             </div>
             <div class="hero-proof">
                 <div class="hero-proof-item">
                     <span class="hero-proof-num">5 min</span>
-                    <span class="hero-proof-label">par dossier au lieu de 30</span>
+                    <span class="hero-proof-label">par dossier</span>
                 </div>
                 <div class="hero-proof-item">
                     <span class="hero-proof-num">0</span>
                     <span class="hero-proof-label">saisie manuelle</span>
                 </div>
                 <div class="hero-proof-item">
-                    <span class="hero-proof-num">100%</span>
-                    <span class="hero-proof-label">votre client, votre tarif</span>
+                    <span class="hero-proof-num">URL</span>
+                    <span class="hero-proof-label">permanente incluse</span>
                 </div>
             </div>
             <p class="hero-small">5 premiers dossiers sans avance de frais. Facturés uniquement si vous continuez.</p>
-            <!-- Version mobile du mockup -->
-            <div class="hero-visual-mobile" style="display: none; margin-top: 24px; padding: 14px; background: var(--navy-800); border-radius: 12px; border: 1px solid rgba(255,255,255,0.06);">
-                <div style="font-size: 0.75rem; font-weight: 700; color: white; margin-bottom: 8px;">CG-2026-47085 · <span style="color: #c084fc;">VO</span> · DUPONT Marie</div>
-                <div style="font-size: 0.7rem; color: var(--slate-400); line-height: 1.8;">
-                    <span style="color: #34d399;">&#10003;</span> Véhicule verrouillé · <span style="color: #34d399;">&#10003;</span> Identité client verrouillée
-                </div>
-                <div style="margin-top: 8px; padding: 8px 10px; background: rgba(5,150,105,0.1); border: 1px solid rgba(5,150,105,0.2); border-radius: 8px; font-size: 0.7rem; color: #6ee7b7; line-height: 1.4;">
-                    "Nickel ! Cerfa prêt — téléchargez et soumettez au SIV."
-                </div>
-            </div>
         </div>
         <div class="hero-visual" style="padding: 0; overflow: hidden;">
-            <!-- Mockup vendeur habilité — VO moto, dossier complet -->
+            <!-- Mockup agent habilité — VO entre particuliers via URL permanente -->
             <div style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: rgba(255,255,255,0.06); border-bottom: 1px solid rgba(255,255,255,0.06);">
                 <div style="width: 24px; height: 24px; border-radius: 6px; background: linear-gradient(135deg, #1e40af, #059669); display: flex; align-items: center; justify-content: center;">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
                 </div>
                 <span style="font-size: 0.75rem; font-weight: 700; color: white;">AutoDoc Pro</span>
-                <span style="font-size: 0.6rem; padding: 2px 6px; background: rgba(30,64,175,0.2); color: #93c5fd; border-radius: 10px; border: 1px solid rgba(30,64,175,0.3);">Vendeur habilité</span>
+                <span style="font-size: 0.6rem; padding: 2px 6px; background: rgba(5,150,105,0.2); color: #6ee7b7; border-radius: 10px; border: 1px solid rgba(5,150,105,0.3);">Agent habilité SIV</span>
             </div>
             <div style="padding: 16px;">
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; padding: 10px 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px;">
                     <div>
-                        <div style="font-size: 0.85rem; font-weight: 700; color: white;">CG-2026-47085</div>
+                        <div style="font-size: 0.85rem; font-weight: 700; color: white;">CG-2026-91457</div>
                         <div style="display: flex; align-items: center; gap: 6px; margin-top: 3px;">
                             <span style="font-size: 0.6rem; padding: 1px 6px; background: rgba(147,51,234,0.15); color: #c084fc; border-radius: 10px;">VO</span>
-                            <span style="font-size: 0.65rem; color: var(--slate-400);">DUPONT Marie</span>
+                            <span style="font-size: 0.65rem; color: var(--slate-400);">LECLERC Sophie</span>
+                            <span style="font-size: 0.55rem; padding: 1px 5px; background: rgba(217,119,6,0.15); color: #fbbf24; border-radius: 8px;">Client public</span>
                         </div>
                     </div>
                     <span style="font-size: 0.6rem; padding: 3px 8px; background: rgba(5,150,105,0.15); color: #6ee7b7; border-radius: 10px;">Complet</span>
                 </div>
                 <div style="font-size: 0.6rem; font-weight: 600; color: var(--slate-500); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px;">Véhicule <span style="padding: 1px 6px; background: rgba(5,150,105,0.15); color: #6ee7b7; border-radius: 8px; text-transform: none; letter-spacing: 0;">Verrouillé</span></div>
                 <div style="font-size: 0.78rem; color: var(--slate-400); line-height: 1.9;">
-                    <div style="display: flex; align-items: center; gap: 6px;"><span style="color: #34d399;">&#10003;</span> CG barrée <span style="color: var(--slate-500); font-size: 0.65rem;">— cg_dupont.pdf</span> <span style="font-size: 0.5rem; padding: 1px 4px; background: rgba(30,64,175,0.15); color: #93c5fd; border-radius: 4px;">dép. pro</span></div>
-                    <div style="display: flex; align-items: center; gap: 6px;"><span style="color: #34d399;">&#10003;</span> Cession <span style="font-size: 0.5rem; padding: 1px 4px; background: rgba(30,64,175,0.15); color: #93c5fd; border-radius: 4px;">dép. pro</span> <span style="font-size: 0.5rem; padding: 1px 4px; background: rgba(217,119,6,0.15); color: #fbbf24; border-radius: 4px;">sig. client</span></div>
+                    <div style="display: flex; align-items: center; gap: 6px;"><span style="color: #34d399;">&#10003;</span> CG barrée <span style="color: var(--slate-500); font-size: 0.65rem;">— AB-123-CD</span> <span style="font-size: 0.5rem; padding: 1px 4px; background: rgba(217,119,6,0.15); color: #fbbf24; border-radius: 4px;">dép. client</span></div>
+                    <div style="display: flex; align-items: center; gap: 6px;"><span style="color: #34d399;">&#10003;</span> Cession 15776 <span style="color: var(--slate-500); font-size: 0.65rem;">— signée</span> <span style="font-size: 0.5rem; padding: 1px 4px; background: rgba(217,119,6,0.15); color: #fbbf24; border-radius: 4px;">dép. client</span></div>
                 </div>
                 <div style="font-size: 0.6rem; font-weight: 600; color: var(--slate-500); text-transform: uppercase; letter-spacing: 0.06em; margin: 10px 0 6px;">Identité client <span style="padding: 1px 6px; background: rgba(5,150,105,0.15); color: #6ee7b7; border-radius: 8px; text-transform: none; letter-spacing: 0;">Verrouillé</span></div>
                 <div style="font-size: 0.78rem; color: var(--slate-400); line-height: 1.9;">
                     <div style="display: flex; align-items: center; gap: 6px;"><span style="color: #34d399;">&#10003;</span> CNI <span style="color: var(--slate-500); font-size: 0.65rem;">— recto + verso</span> <span style="font-size: 0.5rem; padding: 1px 4px; background: rgba(217,119,6,0.15); color: #fbbf24; border-radius: 4px;">dép. client</span></div>
-                    <div style="display: flex; align-items: center; gap: 6px;"><span style="color: #34d399;">&#10003;</span> Permis <span style="color: var(--slate-500); font-size: 0.65rem;">— cat. A2</span> <span style="font-size: 0.5rem; padding: 1px 4px; background: rgba(217,119,6,0.15); color: #fbbf24; border-radius: 4px;">dép. client</span></div>
+                    <div style="display: flex; align-items: center; gap: 6px;"><span style="color: #34d399;">&#10003;</span> Permis <span style="color: var(--slate-500); font-size: 0.65rem;">— cat. B</span> <span style="font-size: 0.5rem; padding: 1px 4px; background: rgba(217,119,6,0.15); color: #fbbf24; border-radius: 4px;">dép. client</span></div>
                     <div style="display: flex; align-items: center; gap: 6px;"><span style="color: #34d399;">&#10003;</span> Domicile <span style="font-size: 0.5rem; padding: 1px 4px; background: rgba(217,119,6,0.15); color: #fbbf24; border-radius: 4px;">dép. client</span></div>
+                    <div style="display: flex; align-items: center; gap: 6px;"><span style="color: #34d399;">&#10003;</span> Attestation hébergement <span style="color: var(--slate-500); font-size: 0.65rem;">— détectée auto</span> <span style="font-size: 0.5rem; padding: 1px 4px; background: rgba(217,119,6,0.15); color: #fbbf24; border-radius: 4px;">dép. client</span></div>
+                    <div style="display: flex; align-items: center; gap: 6px;"><span style="color: #34d399;">&#10003;</span> CNI hébergeant <span style="color: var(--slate-500); font-size: 0.65rem;">— recto + verso</span> <span style="font-size: 0.5rem; padding: 1px 4px; background: rgba(217,119,6,0.15); color: #fbbf24; border-radius: 4px;">dép. client</span></div>
                 </div>
                 <div style="margin-top: 12px; padding: 10px 12px; background: rgba(5,150,105,0.1); border: 1px solid rgba(5,150,105,0.2); border-radius: 8px; font-size: 0.75rem; color: #6ee7b7; line-height: 1.5;">
-                    "Nickel, tous les documents sont là ! Cerfa prêt — téléchargez et soumettez au SIV."
+                    "Tous les documents sont vérifiés. Hébergement détecté et validé. Cerfa prêt — soumettez au SIV."
                 </div>
                 <div style="margin-top: 10px; padding: 8px; background: #1e40af; border-radius: 8px; text-align: center; font-size: 0.72rem; font-weight: 600; color: white;">
                     Télécharger le Cerfa
+                </div>
+                <div style="margin-top: 6px; padding: 8px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; text-align: center; font-size: 0.72rem; font-weight: 600; color: white;">
+                    Télécharger le dossier complet (ZIP)
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-<div class="section-auto-divider"></div>
 <!-- ═══════════════════════════════════ LE PROBLÈME ═══════════════════════ -->
 <section class="section section-alt">
     <div class="container">
         <div class="section-header">
-            <h2>Après chaque vente, c'est toujours la même chose</h2>
+            <h2>Collecter les documents, c'est le vrai problème</h2>
         </div>
         <div class="pain-grid">
             <div class="pain-card fade-in">
-                <h4><span class="dot"></span>30 minutes par dossier</h4>
-                <p>Remplir le Cerfa, vérifier chaque champ, croiser le VIN entre le COC, la facture et la CG. Du temps que vous ne passez pas à vendre.</p>
+                <h4><span class="dot"></span>Collecter par email, c'est lent</h4>
+                <p>Le client envoie ses documents un par un, en mauvais format, avec des allers-retours. Vous relancez pour la CNI verso, le justificatif de domicile, la CG barrée. Des jours perdus.</p>
             </div>
             <div class="pain-card fade-in">
-                <h4><span class="dot"></span>Des rejets SIV évitables</h4>
-                <p>Un 0 à la place d'un O dans le VIN, une CNI expirée, une signature oubliée. Des erreurs simples qui bloquent le dossier. Rejet, correction, renvoi.</p>
+                <h4><span class="dot"></span>Vérifier à l'oeil, c'est risqué</h4>
+                <p>CNI expirée, nom qui ne correspond pas entre la CNI et le domicile, cession mal remplie. Vous le découvrez après la soumission au SIV. Rejet, correction, renvoi.</p>
             </div>
             <div class="pain-card fade-in">
-                <h4><span class="dot"></span>Les services existants ne vérifient rien</h4>
-                <p>Vous uploadez et vous attendez. Un humain relit 12 à 24h plus tard. Et c'est le service qui facture votre client — pas vous.</p>
+                <h4><span class="dot"></span>Pas de visibilité pour le client</h4>
+                <p>Le client ne sait pas où en est son dossier. Il appelle, il envoie des messages. Vous perdez du temps à répondre au lieu de traiter.</p>
             </div>
         </div>
     </div>
@@ -146,142 +152,94 @@
 <section id="solution" class="section">
     <div class="container">
         <div class="section-header">
-            <h2>Déposez les documents. Le système fait le reste.</h2>
+            <h2>Le client dépose. Le système vérifie. Vous soumettez.</h2>
             <p class="subtitle">Chaque document est lu, vérifié et croisé dès qu'il est déposé. Quand tout est vert, le Cerfa est prêt.</p>
         </div>
         <div class="features-detail" style="grid-template-columns: repeat(2, 1fr);">
             <div class="feat-card fade-in">
-                <div class="feat-card-icon feat-card-icon-primary"><i data-lucide="scan-eye"></i></div>
-                <h4>OCR + IA — zéro saisie</h4>
-                <p>Le système lit chaque document et en extrait les données :</p>
+                <div class="feat-card-icon feat-card-icon-primary"><i data-lucide="globe"></i></div>
+                <h4>URL permanente — autodocpro.fr/votre-commerce</h4>
+                <p>Le client accède à votre page et dépose tout en autonomie :</p>
                 <ul>
-                    <li><strong>COC</strong> — VIN, marque, modèle, puissance, catégorie, énergie</li>
-                    <li><strong>Facture</strong> — montant, date, identité vendeur</li>
-                    <li><strong>CG barrée</strong> — immatriculation, date de cession, nom acheteur</li>
-                    <li><strong>CNI / Passeport</strong> — nom, prénom, date de naissance, expiration</li>
-                    <li><strong>Permis</strong> — catégories, date d'obtention</li>
-                    <li><strong>Domicile</strong> — nom, adresse, date du document</li>
+                    <li>CG barrée et certificat de cession (VO)</li>
+                    <li>CNI ou passeport (recto + verso automatique)</li>
+                    <li>Permis de conduire</li>
+                    <li>Justificatif de domicile</li>
+                    <li>Le client voit votre nom de commerce, pas AutoDoc Pro</li>
+                    <li>Vous êtes notifié quand le dossier est complet</li>
                 </ul>
             </div>
             <div class="feat-card fade-in">
                 <div class="feat-card-icon feat-card-icon-emerald"><i data-lucide="shield-check"></i></div>
-                <h4>Vérification immédiate</h4>
-                <p>À chaque dépôt, le système croise et vérifie :</p>
+                <h4>Vérification automatique</h4>
+                <p>À chaque document déposé, le système croise et vérifie :</p>
                 <ul>
-                    <li>VIN identique sur le COC, la facture, la CG et la cession</li>
                     <li>CNI ou passeport non expiré</li>
-                    <li>Permis adapté à la puissance du véhicule (A1, A2, B)</li>
-                    <li>Formation 7h requise pour 125cc en permis B</li>
-                    <li>Nom CNI cohérent avec le domicile — hébergement détecté</li>
-                    <li>CG barrée avec date de vente et signatures</li>
+                    <li>Nom cohérent entre CNI et domicile</li>
+                    <li>Hébergement détecté automatiquement si noms divergent</li>
+                    <li>Cession correctement remplie et signée</li>
                     <li>Justificatif de domicile de moins de 6 mois</li>
+                    <li>Chaque problème expliqué avec la correction à apporter</li>
                 </ul>
-                <p style="margin-top: 8px; font-size: 0.78rem; color: var(--slate-400); font-style: italic;">Le système vérifie la cohérence et la complétude, pas l'authenticité — c'est votre responsabilité.</p>
             </div>
             <div class="feat-card fade-in">
                 <div class="feat-card-icon feat-card-icon-primary"><i data-lucide="smartphone"></i></div>
-                <h4>Collecte client par SMS</h4>
-                <p>Quand il manque des pièces du client :</p>
+                <h4>Lien SMS pour les corrections</h4>
+                <p>Un document est manquant ou invalide :</p>
                 <ul>
-                    <li>Un lien SMS sécurisé est envoyé au client</li>
-                    <li>Il dépose ses documents depuis son téléphone</li>
-                    <li>Il est guidé étape par étape (consentement, CPI, upload)</li>
-                    <li>Le système vérifie chaque document à la seconde</li>
-                    <li>Vous êtes notifié quand c'est complet</li>
-                    <li>Si un problème est détecté, le client est invité à corriger</li>
+                    <li>Envoyez un lien SMS au client en un clic</li>
+                    <li>Le client corrige depuis son téléphone</li>
+                    <li>Le système re-vérifie automatiquement</li>
+                    <li>Vous êtes notifié quand c'est corrigé</li>
+                    <li>Le client n'a pas besoin de se déplacer</li>
                 </ul>
             </div>
             <div class="feat-card fade-in">
                 <div class="feat-card-icon feat-card-icon-emerald"><i data-lucide="file-check"></i></div>
-                <h4>Cerfa généré automatiquement</h4>
+                <h4>Cerfa prêt</h4>
                 <p>Quand tout est vert :</p>
                 <ul>
-                    <li>Le Cerfa 13749 (VN) ou 13750 (VO) est pré-rempli</li>
-                    <li>Votre cachet commercial est apposé automatiquement</li>
-                    <li>Votre signature est apposée automatiquement</li>
+                    <li>Le Cerfa 13750 (VO) est pré-rempli automatiquement</li>
+                    <li>Votre cachet commercial est apposé</li>
+                    <li>Votre signature est apposée</li>
                     <li>Vous téléchargez le PDF prêt à soumettre</li>
-                    <li>Le dossier complet est disponible en ZIP</li>
-                    <li>VN, VO, moto, voiture, personne morale — le système s'adapte</li>
+                    <li>Dossier complet disponible en ZIP</li>
                 </ul>
             </div>
         </div>
     </div>
 </section>
 
-<!-- ═══════════════════════════ COMPARATIF ════════════════════════════════ -->
+<!-- ═══════════════════════════════ URL PERMANENTE ════════════════════════ -->
 <section class="section section-alt">
     <div class="container">
         <div class="section-header">
-            <h2>Ce que ça change concrètement</h2>
+            <h2>Une URL permanente pour recevoir les dossiers</h2>
+            <p class="subtitle">autodocpro.fr/votre-commerce — générée automatiquement à l'inscription</p>
         </div>
-        <div class="table-wrap">
-            <table class="cmp-table">
-                <thead>
-                    <tr>
-                        <th></th>
-                        <th>À la main</th>
-                        <th>Services existants</th>
-                        <th class="hl">AutoDoc Pro</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr><td><strong>Vérification</strong></td><td>Vous, à l'œil</td><td>Un humain, 12-24h après</td><td class="hl"><strong>Automatique, à la seconde</strong></td></tr>
-                    <tr><td><strong>Erreur détectée</strong></td><td>Au rejet SIV (trop tard)</td><td>Relance par messagerie</td><td class="hl"><strong>Au dépôt, immédiatement</strong></td></tr>
-                    <tr><td><strong>Saisie Cerfa</strong></td><td>Manuelle</td><td>Formulaire à remplir</td><td class="hl"><strong>Extraite des documents</strong></td></tr>
-                    <tr><td><strong>Temps</strong></td><td>30 min</td><td>10 min + attente</td><td class="hl"><strong>5 min</strong></td></tr>
-                    <tr><td><strong>Qui fixe le prix</strong></td><td>Vous</td><td>Le service</td><td class="hl"><strong>Vous</strong></td></tr>
-                    <tr><td><strong>Coût</strong></td><td>Votre temps</td><td>Commission</td><td class="hl"><strong>12-14 € par dossier</strong></td></tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-</section>
-
-<!-- ═══════════════════════════════ CÔTÉ CLIENT ═══════════════════════════ -->
-<section class="section">
-    <div class="container">
-        <div class="section-header">
-            <h2>Ce que voit votre client sur son téléphone</h2>
-            <p class="subtitle">Il reçoit un SMS, ouvre le lien, et dépose ses documents en 3 minutes.</p>
-        </div>
-        <div style="max-width: 320px; margin: 0 auto; background: white; border: 2px solid var(--slate-200); border-radius: 24px; padding: 16px; box-shadow: var(--shadow-lg);">
-            <!-- Barre statut mobile simulée -->
-            <div style="display: flex; justify-content: space-between; font-size: 0.6rem; color: var(--slate-400); margin-bottom: 12px; padding: 0 4px;">
-                <span>9:41</span>
-                <span style="display: flex; gap: 4px; align-items: center;">
-                    <span style="width: 14px; height: 8px; border: 1px solid var(--slate-300); border-radius: 2px; position: relative;"><span style="position: absolute; left: 1px; top: 1px; bottom: 1px; width: 8px; background: var(--emerald); border-radius: 1px;"></span></span>
-                </span>
+        <div class="features-detail" style="grid-template-columns: repeat(2, 1fr);">
+            <div class="feat-card fade-in">
+                <h4>Diffusez-la partout</h4>
+                <p>Sur votre site web, votre fiche Google, vos réseaux sociaux, un QR code en vitrine. Vos clients arrivent directement sur votre page de dépôt.</p>
             </div>
-            <!-- Header commerce -->
-            <div style="text-align: center; margin-bottom: 16px;">
-                <div style="width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, var(--primary), var(--emerald)); margin: 0 auto 8px; display: flex; align-items: center; justify-content: center;">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg>
-                </div>
-                <div style="font-size: 0.85rem; font-weight: 700; color: var(--navy);">Moto Center Paris</div>
-                <div style="font-size: 0.65rem; color: var(--slate-400);">12 rue de la Moto, 75011 Paris</div>
+            <div class="feat-card fade-in">
+                <h4>Le client dépose tout</h4>
+                <p>Documents d'identité (CNI, permis, domicile) et documents véhicule (CG barrée, cession déjà signée pour les VO entre particuliers). Guidé étape par étape.</p>
             </div>
-            <!-- Checklist docs -->
-            <div style="font-size: 0.72rem; color: var(--navy-700); margin-bottom: 12px;">
-                <div style="font-size: 0.6rem; font-weight: 600; color: var(--slate-400); text-transform: uppercase; margin-bottom: 6px;">Documents à déposer</div>
-                <div style="display: flex; align-items: center; gap: 6px; padding: 6px 0; border-bottom: 1px solid var(--slate-100);"><span style="color: var(--emerald);">&#10003;</span> <span style="font-weight: 600;">CNI</span> <span style="color: var(--slate-400); font-size: 0.6rem; margin-left: auto;">recto + verso</span></div>
-                <div style="display: flex; align-items: center; gap: 6px; padding: 6px 0; border-bottom: 1px solid var(--slate-100);"><span style="color: var(--emerald);">&#10003;</span> <span style="font-weight: 600;">Permis</span> <span style="color: var(--slate-400); font-size: 0.6rem; margin-left: auto;">cat. A2</span></div>
-                <div style="display: flex; align-items: center; gap: 6px; padding: 6px 0; border-bottom: 1px solid var(--slate-100);"><span style="color: var(--emerald);">&#10003;</span> <span style="font-weight: 600;">Domicile</span></div>
+            <div class="feat-card fade-in">
+                <h4>Mandats signés en ligne</h4>
+                <p>Le client signe les mandats directement depuis la page de dépôt. Pas de papier, pas de rendez-vous supplémentaire.</p>
             </div>
-            <!-- Message -->
-            <div style="padding: 8px 10px; background: var(--emerald-light); border-radius: 8px; font-size: 0.68rem; color: var(--emerald-dark); line-height: 1.4; margin-bottom: 10px;">
-                "Parfait, tous vos documents sont vérifiés ! Confirmez l'envoi pour transmettre le dossier."
-            </div>
-            <!-- Bouton -->
-            <div style="padding: 10px; background: var(--emerald); border-radius: 10px; text-align: center; font-size: 0.75rem; font-weight: 600; color: white;">
-                Envoyer mes documents
+            <div class="feat-card fade-in">
+                <h4>Dossier complet, vérifié</h4>
+                <p>Vous recevez un dossier où chaque document est lu, extrait et croisé. Plus de relance, plus de vérification manuelle. Chaque page pro est indexable par les moteurs de recherche.</p>
             </div>
         </div>
-        <p style="text-align: center; font-size: 0.78rem; color: var(--slate-400); margin-top: 16px;">Le client ne voit jamais "AutoDoc Pro" — seulement le nom de votre commerce.</p>
     </div>
 </section>
 
 <!-- ═══════════════════════════════ TARIFS ════════════════════════════════ -->
-<section id="tarifs" class="section section-alt">
+<section id="tarifs" class="section">
     <div class="container">
         <div class="section-header">
             <h2>Prix fixe. Vous facturez ce que vous voulez.</h2>
@@ -294,20 +252,19 @@
                 <div class="price-sub">par dossier traité</div>
                 <ul class="price-list">
                     <li>OCR + IA + vérification automatique</li>
-                    <li>Collecte client par SMS</li>
+                    <li>Collecte client par URL permanente</li>
                     <li>Cerfa généré avec cachet et signature</li>
                     <li>URL permanente incluse</li>
                 </ul>
                 <a href="#contact" class="btn btn-cta" style="width:100%">Commencer</a>
             </div>
-            <div class="price-card price-card-highlight">
-                <div class="price-badge">Le plus courant</div>
+            <div class="price-card">
                 <div class="price-label">Voiture</div>
                 <div class="price-amount">14 <span>&euro; HT</span></div>
                 <div class="price-sub">par dossier traité</div>
                 <ul class="price-list">
                     <li>OCR + IA + vérification automatique</li>
-                    <li>Collecte client par SMS</li>
+                    <li>Collecte client par URL permanente</li>
                     <li>Cerfa généré avec cachet et signature</li>
                     <li>URL permanente incluse</li>
                 </ul>
@@ -326,23 +283,23 @@
         </div>
         <div class="faq-list">
             <div class="faq-item">
-                <h4>Je dois envoyer un lien au client ou je peux tout déposer moi-même ?</h4>
-                <p>Les deux. Si vous avez tous les documents du client, déposez tout — le système vérifie immédiatement. S'il manque des pièces, envoyez un lien SMS au client : il dépose depuis son téléphone et vous êtes notifié quand c'est complet.</p>
+                <h4>Le client dépose aussi les docs véhicule ?</h4>
+                <p>Oui. Pour un agent habilité, le client apporte tout : CG barrée, cession déjà signée entre les parties, plus ses documents d'identité et justificatif de domicile. Le système vérifie chaque pièce automatiquement.</p>
             </div>
             <div class="faq-item">
-                <h4>Le client voit-il AutoDoc Pro ?</h4>
+                <h4>La cession est gérée par le système ?</h4>
+                <p>Non. Le client arrive avec sa cession déjà signée entre les parties (vendeur et acheteur). Le système la vérifie : numéro de formule, cohérence avec la CG, signatures présentes.</p>
+            </div>
+            <div class="faq-item">
+                <h4>L'URL permanente est gratuite ?</h4>
+                <p>Oui, elle est incluse dans votre compte. Générée automatiquement à l'inscription, elle est prête à diffuser immédiatement.</p>
+            </div>
+            <div class="faq-item">
+                <h4>Mon client voit AutoDoc Pro ?</h4>
                 <p>Non. Le client voit votre nom de commerce. Vous restez son unique interlocuteur.</p>
             </div>
             <div class="faq-item">
-                <h4>Je ne suis pas habilité SIV — je peux utiliser AutoDoc Pro ?</h4>
-                <p>Oui. Le système prépare votre dossier et vous le transmettez à votre agent habilité. <a href="vendeur.html" style="color: var(--primary);">En savoir plus →</a></p>
-            </div>
-            <div class="faq-item">
-                <h4>Je suis agent habilité, pas vendeur — ça marche aussi ?</h4>
-                <p>Oui. Le système s'adapte : vos clients déposent leurs docs via votre lien permanent, vous vérifiez et soumettez. <a href="agent.html" style="color: var(--primary);">En savoir plus →</a></p>
-            </div>
-            <div class="faq-item">
-                <h4>Je suis engagé si je m'inscris ?</h4>
+                <h4>Je suis engagé ?</h4>
                 <p>Non. 5 dossiers pour tester, sans rien avancer. Si vous continuez, vous réglez. Si vous arrêtez, vous ne devez rien.</p>
             </div>
         </div>
@@ -384,9 +341,9 @@
             <div class="form-group">
                 <label for="profil">Votre profil *</label>
                 <select id="profil" name="profil" required>
-                    <option value="vendeur_habilite" selected>Vendeur habilité SIV</option>
+                    <option value="vendeur_habilite">Vendeur habilité SIV</option>
                     <option value="vendeur_non_habilite">Vendeur non habilité</option>
-                    <option value="agent_habilite">Agent habilité SIV</option>
+                    <option value="agent_habilite" selected>Agent habilité SIV</option>
                 </select>
             </div>
             <div class="form-group">
@@ -418,7 +375,7 @@
                     <span class="logo-mark"><svg viewBox="0 0 24 24" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></span>
                     AutoDoc Pro
                 </a>
-                <p>La carte grise, automatisée. Pour les professionnels de l'automobile.</p>
+                <p>Le dossier carte grise, automatisée. Pour les professionnels de l'automobile.</p>
             </div>
             <div class="footer-col">
                 <h4>Profils</h4>
