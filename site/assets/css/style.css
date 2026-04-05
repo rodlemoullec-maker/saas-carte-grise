@@ -1055,6 +1055,24 @@ ul { list-style: none; }
 .demo-tag-error { background: rgba(220,38,38,0.3); color: #fca5a5; }
 .demo-tag-cerfa { background: rgba(217,119,6,0.3); color: #fde68a; }
 .demo-tag-done { background: rgba(5,150,105,0.4); color: #4ade80; }
+.demo-wait {
+    color: #fbbf24;
+    font-style: italic;
+}
+.demo-wait-timer {
+    display: inline-block;
+    font-style: normal;
+    font-weight: 700;
+    background: rgba(217,119,6,0.2);
+    padding: 1px 8px;
+    border-radius: 4px;
+    min-width: 40px;
+    text-align: center;
+}
+.demo-wait-done {
+    color: rgba(255,255,255,0.4);
+    background: rgba(255,255,255,0.06);
+}
 .demo-check { color: #34d399; }
 .demo-error { color: #f87171; }
 .demo-dim { color: rgba(255,255,255,0.5); }

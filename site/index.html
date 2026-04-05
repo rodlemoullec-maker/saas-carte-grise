@@ -616,14 +616,16 @@ const demoLines = [
     // Phase 2 : SMS (10:34)
     { t: T(10,34,0),  html: '<span class="demo-dim">── SMS + dépôt client</span> <span class="demo-phase-timer" data-phase="1"></span>', phase: 1 },
     { t: T(10,34,5),  html: '<span class="demo-tag demo-tag-ocr">SMS</span> Lien envoyé au 06 12 •• •• 78 <span class="demo-dim">— "Moto Center a choisi AutoDoc Pro..."</span>' },
+    { t: T(10,34,15), html: '<span class="demo-wait" data-wait-start="10:34:15" data-wait-end="10:36:00">⏳ En attente du client...</span>', wait: true },
     // Client dépose (10:36 — 2 min plus tard)
     { t: T(10,36,0),  html: '<span class="demo-dim">$</span> <span class="demo-highlight">Client a déposé</span> <span class="demo-dim">— cni_dupont_recto.jpg</span>' },
     { t: T(10,36,8),  html: '<span class="demo-tag demo-tag-extract">IA</span> <span class="demo-check">✓</span> CNI · DUPONT Marie · Née le 14/05/1992' },
     { t: T(10,36,14), html: '<span class="demo-tag demo-tag-check">VERIF</span> Vérification date d\'expiration...' },
     { t: T(10,36,18), html: '<span class="demo-tag demo-tag-error">BLOQUÉ</span> <span class="demo-error">✗ CNI expirée le 12/01/2026</span>' },
     { t: T(10,36,25), html: '<span class="demo-tag demo-tag-error">→</span> <span class="demo-error">Le client est invité à déposer une pièce d\'identité valide</span>' },
-    { t: T(10,36,30), html: '' },
-    // Phase 3 : correction (10:41 — 5 min plus tard, le client cherche son passeport)
+    { t: T(10,36,35), html: '<span class="demo-wait" data-wait-start="10:36:35" data-wait-end="10:41:00">⏳ Le client cherche son passeport...</span>', wait: true },
+    { t: T(10,40,55), html: '' },
+    // Phase 3 : correction (10:41 — 4 min 30 plus tard)
     { t: T(10,41,0),  html: '<span class="demo-dim">── Correction client</span> <span class="demo-phase-timer" data-phase="2"></span>', phase: 2 },
     { t: T(10,41,10), html: '<span class="demo-dim">$</span> <span class="demo-highlight">Client a déposé</span> <span class="demo-dim">— passeport_dupont.jpg</span>' },
     { t: T(10,41,18), html: '<span class="demo-tag demo-tag-extract">IA</span> <span class="demo-check">✓</span> Passeport · DUPONT Marie · Expire le 15/11/2033 <span class="demo-check">✓</span>' },
@@ -692,6 +694,26 @@ function runDemo() {
                 phaseEl.textContent = `✓ ${m}:${String(s).padStart(2,'0')}`;
                 phaseEl.style.color = 'rgba(255,255,255,0.4)';
                 phaseEl.style.background = 'rgba(255,255,255,0.06)';
+            }
+        });
+
+        // Mettre à jour les timers d'attente client
+        el.querySelectorAll('.demo-wait').forEach(waitEl => {
+            const ws = waitEl.dataset.waitStart.split(':').map(Number);
+            const we = waitEl.dataset.waitEnd.split(':').map(Number);
+            const waitStart = ws[0]*3600 + ws[1]*60 + (ws[2]||0);
+            const waitEnd = we[0]*3600 + we[1]*60 + (we[2]||0);
+
+            if (simTime >= waitStart && simTime < waitEnd) {
+                const waited = simTime - waitStart;
+                const m = Math.floor(waited / 60);
+                const s = Math.floor(waited % 60);
+                waitEl.innerHTML = `⏳ ${waitEl.dataset.waitEnd === '10:41:00' ? 'Le client cherche son passeport' : 'En attente du client'}... <span class="demo-wait-timer">${m}:${String(s).padStart(2,'0')}</span>`;
+            } else if (simTime >= waitEnd) {
+                const total = waitEnd - waitStart;
+                const m = Math.floor(total / 60);
+                const s = Math.floor(total % 60);
+                waitEl.innerHTML = `⏳ Attente client — <span class="demo-wait-timer demo-wait-done">${m}:${String(s).padStart(2,'0')}</span>`;
             }
         });
 
