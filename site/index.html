@@ -616,15 +616,14 @@ const demoLines = [
     // Phase 2 : SMS (10:34)
     { t: T(10,34,0),  html: '<span class="demo-dim">── SMS + dépôt client</span> <span class="demo-phase-timer" data-phase="1"></span>', phase: 1 },
     { t: T(10,34,5),  html: '<span class="demo-tag demo-tag-ocr">SMS</span> Lien envoyé au 06 12 •• •• 78 <span class="demo-dim">— "Moto Center a choisi AutoDoc Pro..."</span>' },
-    { t: T(10,34,15), html: '<span class="demo-wait" data-wait-start="10:34:15" data-wait-end="10:36:00">⏳ En attente du client...</span>', wait: true },
+    { t: T(10,34,15), html: '<span class="demo-wait" data-wait-start="10:34:15" data-wait-end="10:42:50">⏳ En attente du client...</span>', wait: true },
     // Client dépose (10:36 — 2 min plus tard)
     { t: T(10,36,0),  html: '<span class="demo-dim">$</span> <span class="demo-highlight">Client a déposé</span> <span class="demo-dim">— cni_dupont_recto.jpg</span>' },
     { t: T(10,36,8),  html: '<span class="demo-tag demo-tag-extract">IA</span> <span class="demo-check">✓</span> CNI · DUPONT Marie · Née le 14/05/1992' },
     { t: T(10,36,14), html: '<span class="demo-tag demo-tag-check">VERIF</span> Vérification date d\'expiration...' },
     { t: T(10,36,18), html: '<span class="demo-tag demo-tag-error">BLOQUÉ</span> <span class="demo-error">✗ CNI expirée le 12/01/2026</span>' },
     { t: T(10,36,25), html: '<span class="demo-tag demo-tag-error">→</span> <span class="demo-error">Le client est invité à déposer une pièce d\'identité valide</span>' },
-    { t: T(10,36,35), html: '<span class="demo-wait" data-wait-start="10:36:35" data-wait-end="10:41:00">⏳ Le client cherche son passeport...</span>', wait: true },
-    { t: T(10,40,55), html: '' },
+    { t: T(10,36,30), html: '' },
     // Phase 3 : correction (10:41 — 4 min 30 plus tard)
     { t: T(10,41,0),  html: '<span class="demo-dim">── Correction client</span> <span class="demo-phase-timer" data-phase="2"></span>', phase: 2 },
     { t: T(10,41,10), html: '<span class="demo-dim">$</span> <span class="demo-highlight">Client a déposé</span> <span class="demo-dim">— passeport_dupont.jpg</span>' },
