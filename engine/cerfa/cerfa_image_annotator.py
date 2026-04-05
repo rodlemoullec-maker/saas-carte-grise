@@ -65,7 +65,7 @@ def annotate_cerfa_vn(
 
     # Certificat de conformité — Je soussigné (y=487, x=112)
     if vendeur_nom:
-        draw.text((98, 491), nom_court, fill=black, font=font)
+        draw.text((97, 492), nom_court, fill=black, font=font)
 
     # Certificat de vente — Je soussigné : (y=1047, x=95)
     if vendeur_nom:
