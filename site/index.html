@@ -219,16 +219,20 @@
                 <div class="demo-screen" id="demoScreenCerfa" style="display:none;">
                     <div class="demo-screen-bar">
                         <span class="demo-screen-dot"></span>
-                        <span class="demo-screen-title">Cerfa 13749 — VN</span>
+                        <span class="demo-screen-title">Cerfa 13749*04 — Véhicule neuf</span>
                     </div>
                     <div class="demo-screen-body demo-screen-cerfa">
-                        <div class="demo-cerfa-field"><span class="demo-cerfa-label">A — Immatriculation</span><span class="demo-cerfa-val" id="cerfaImmat"></span></div>
-                        <div class="demo-cerfa-field"><span class="demo-cerfa-label">D.1 — Marque</span><span class="demo-cerfa-val" id="cerfaMarque"></span></div>
-                        <div class="demo-cerfa-field"><span class="demo-cerfa-label">D.2.1 — CNIT</span><span class="demo-cerfa-val" id="cerfaCnit"></span></div>
-                        <div class="demo-cerfa-field"><span class="demo-cerfa-label">E — VIN</span><span class="demo-cerfa-val" id="cerfaVin"></span></div>
-                        <div class="demo-cerfa-field"><span class="demo-cerfa-label">P.2 — Puissance</span><span class="demo-cerfa-val" id="cerfaPuiss"></span></div>
-                        <div class="demo-cerfa-field"><span class="demo-cerfa-label">C.1 — Titulaire</span><span class="demo-cerfa-val" id="cerfaTit"></span></div>
-                        <div class="demo-cerfa-field"><span class="demo-cerfa-label">C.3 — Adresse</span><span class="demo-cerfa-val" id="cerfaAddr"></span></div>
+                        <div class="demo-cerfa-section">Véhicule</div>
+                        <div class="demo-cerfa-field"><span class="demo-cerfa-label">D.1 Marque</span><span class="demo-cerfa-val" id="cerfaMarque"></span></div>
+                        <div class="demo-cerfa-field"><span class="demo-cerfa-label">D.3 Dénomination</span><span class="demo-cerfa-val" id="cerfaDenom"></span></div>
+                        <div class="demo-cerfa-field"><span class="demo-cerfa-label">D.2.1 CNIT</span><span class="demo-cerfa-val" id="cerfaCnit"></span></div>
+                        <div class="demo-cerfa-field"><span class="demo-cerfa-label">E VIN</span><span class="demo-cerfa-val" id="cerfaVin"></span></div>
+                        <div class="demo-cerfa-field"><span class="demo-cerfa-label">J Catégorie</span><span class="demo-cerfa-val" id="cerfaCat"></span></div>
+                        <div class="demo-cerfa-field"><span class="demo-cerfa-label">P.2 Puissance kW</span><span class="demo-cerfa-val" id="cerfaPuiss"></span></div>
+                        <div class="demo-cerfa-field"><span class="demo-cerfa-label">P.3 Énergie</span><span class="demo-cerfa-val" id="cerfaEnergie"></span></div>
+                        <div class="demo-cerfa-section" style="margin-top:8px;">Titulaire</div>
+                        <div class="demo-cerfa-field"><span class="demo-cerfa-label">C.1 Nom</span><span class="demo-cerfa-val" id="cerfaTit"></span></div>
+                        <div class="demo-cerfa-field"><span class="demo-cerfa-label">C.3 Adresse</span><span class="demo-cerfa-val" id="cerfaAddr"></span></div>
                         <div class="demo-cerfa-stamp" id="cerfaStamp" style="display:none;">
                             <div>🔏 Cachet numérique Moto Center</div>
                             <div>✍️ Signature numérique enregistrée</div>
@@ -857,14 +861,16 @@ function runDemo() {
         if (simTime >= T(10,43,0) && S < 5) {
             sc.style.display = 'none'; sf.style.display = 'block'; window._demoMockupState = 5;
         }
-        if (simTime >= T(10,43,5)) document.getElementById('cerfaMarque').textContent = 'HONDA';
-        if (simTime >= T(10,43,7)) document.getElementById('cerfaCnit').textContent = 'MH01-01-001-0';
-        if (simTime >= T(10,43,9)) document.getElementById('cerfaVin').textContent = 'JMZKECW105SJ08739';
-        if (simTime >= T(10,43,11)) document.getElementById('cerfaPuiss').textContent = '11 kW';
-        if (simTime >= T(10,43,13)) document.getElementById('cerfaTit').textContent = 'DUPONT Marie';
-        if (simTime >= T(10,43,15)) document.getElementById('cerfaAddr').textContent = '12 rue de la Paix, 75001 Paris';
-        if (simTime >= T(10,43,17)) document.getElementById('cerfaImmat').textContent = 'En attente SIV';
-        if (simTime >= T(10,43,20)) document.getElementById('cerfaStamp').style.display = 'block';
+        if (simTime >= T(10,43,4)) document.getElementById('cerfaMarque').textContent = 'HONDA';
+        if (simTime >= T(10,43,5)) document.getElementById('cerfaDenom').textContent = 'CB125R';
+        if (simTime >= T(10,43,6)) document.getElementById('cerfaCnit').textContent = 'MH01-01-001-0';
+        if (simTime >= T(10,43,7)) document.getElementById('cerfaVin').textContent = 'JMZKECW105SJ08739';
+        if (simTime >= T(10,43,8)) document.getElementById('cerfaCat').textContent = 'L3e-A1E';
+        if (simTime >= T(10,43,9)) document.getElementById('cerfaPuiss').textContent = '11 kW';
+        if (simTime >= T(10,43,10)) document.getElementById('cerfaEnergie').textContent = 'ES (essence)';
+        if (simTime >= T(10,43,12)) document.getElementById('cerfaTit').textContent = 'DUPONT Marie';
+        if (simTime >= T(10,43,14)) document.getElementById('cerfaAddr').textContent = '12 rue de la Paix, 75001 Paris';
+        if (simTime >= T(10,43,17)) document.getElementById('cerfaStamp').style.display = 'block';
         if (simTime >= T(10,43,30) && S < 6) {
             const m=document.getElementById('mockCerfaMsg'); m.style.display='block';
             m.textContent='Dossier complet — contrôlez, téléchargez et soumettez au SIV.';
@@ -950,7 +956,7 @@ function runDemo() {
     ['mockVendeurMsg','mockClientMsg','mockCerfaMsg','cerfaStamp'].forEach(id => {
         document.getElementById(id).style.display = 'none';
     });
-    ['cerfaImmat','cerfaMarque','cerfaCnit','cerfaVin','cerfaPuiss','cerfaTit','cerfaAddr'].forEach(id => {
+    ['cerfaMarque','cerfaDenom','cerfaCnit','cerfaVin','cerfaCat','cerfaPuiss','cerfaEnergie','cerfaTit','cerfaAddr'].forEach(id => {
         document.getElementById(id).textContent = '';
     });
 }

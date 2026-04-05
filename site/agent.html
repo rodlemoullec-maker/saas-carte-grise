@@ -169,13 +169,18 @@ document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
                     </div>
                 </div>
                 <div class="demo-screen" id="demoScreenCerfa" style="display:none;">
-                    <div class="demo-screen-bar"><span class="demo-screen-dot"></span><span class="demo-screen-title">Cerfa 13750 — VO</span></div>
+                    <div class="demo-screen-bar"><span class="demo-screen-dot"></span><span class="demo-screen-title" id="cerfaTitle">Cerfa 13750*07 — Véhicule d'occasion</span></div>
                     <div class="demo-screen-body demo-screen-cerfa">
-                        <div class="demo-cerfa-field"><span class="demo-cerfa-label">A — Immatriculation</span><span class="demo-cerfa-val" id="cerfaImmat"></span></div>
-                        <div class="demo-cerfa-field"><span class="demo-cerfa-label">D.1 — Marque</span><span class="demo-cerfa-val" id="cerfaMarque"></span></div>
-                        <div class="demo-cerfa-field"><span class="demo-cerfa-label">E — VIN</span><span class="demo-cerfa-val" id="cerfaVin"></span></div>
-                        <div class="demo-cerfa-field"><span class="demo-cerfa-label">C.1 — Titulaire</span><span class="demo-cerfa-val" id="cerfaTit"></span></div>
-                        <div class="demo-cerfa-field"><span class="demo-cerfa-label">C.3 — Adresse</span><span class="demo-cerfa-val" id="cerfaAddr"></span></div>
+                        <div class="demo-cerfa-section">Véhicule</div>
+                        <div class="demo-cerfa-field"><span class="demo-cerfa-label">A Immatriculation</span><span class="demo-cerfa-val" id="cerfaImmat"></span></div>
+                        <div class="demo-cerfa-field"><span class="demo-cerfa-label">B Mise en circulation</span><span class="demo-cerfa-val" id="cerfaDateCirc"></span></div>
+                        <div class="demo-cerfa-field"><span class="demo-cerfa-label">D.1 Marque</span><span class="demo-cerfa-val" id="cerfaMarque"></span></div>
+                        <div class="demo-cerfa-field"><span class="demo-cerfa-label">D.2.1 CNIT</span><span class="demo-cerfa-val" id="cerfaCnit"></span></div>
+                        <div class="demo-cerfa-field"><span class="demo-cerfa-label">E VIN</span><span class="demo-cerfa-val" id="cerfaVin"></span></div>
+                        <div class="demo-cerfa-field"><span class="demo-cerfa-label">J.1 Genre</span><span class="demo-cerfa-val" id="cerfaGenre"></span></div>
+                        <div class="demo-cerfa-section" style="margin-top:8px;">Nouveau titulaire</div>
+                        <div class="demo-cerfa-field"><span class="demo-cerfa-label">C.1 Nom</span><span class="demo-cerfa-val" id="cerfaTit"></span></div>
+                        <div class="demo-cerfa-field"><span class="demo-cerfa-label">C.3 Adresse</span><span class="demo-cerfa-val" id="cerfaAddr"></span></div>
                         <div class="demo-cerfa-stamp" id="cerfaStamp" style="display:none;"><div>🔏 Cachet numérique Garage Central SIV</div><div>✍️ Signature numérique enregistrée</div></div>
                         <div class="demo-screen-msg demo-screen-msg-ok" id="mockCerfaMsg" style="display:none;"></div>
                     </div>
@@ -628,12 +633,15 @@ mockupUpdate: function(simTime, S) {
     if(simTime>=T(10,37,50)){const e=document.getElementById('mockCniHeb');e.className='demo-screen-doc demo-screen-ok';e.querySelector('span').textContent='✓';}
     if(simTime>=T(10,38,10)&&S<3){const m=document.getElementById('mockClientMsg');m.style.display='block';m.className='demo-screen-msg demo-screen-msg-ok';m.textContent='✓ Tous les documents vérifiés — hébergement validé !';window._demoMockupState=3;}
     if(simTime>=T(10,38,25)&&S<4){document.getElementById('demoScreenClient').style.display='none';document.getElementById('demoScreenCerfa').style.display='block';window._demoMockupState=4;}
-    if(simTime>=T(10,38,28))document.getElementById('cerfaImmat').textContent='AB-123-CD';
-    if(simTime>=T(10,38,31))document.getElementById('cerfaMarque').textContent='PEUGEOT';
-    if(simTime>=T(10,38,34))document.getElementById('cerfaVin').textContent='VF3LC9HZXJS67890';
-    if(simTime>=T(10,38,37))document.getElementById('cerfaTit').textContent='LECLERC Sophie';
-    if(simTime>=T(10,38,40))document.getElementById('cerfaAddr').textContent='Chez MOREAU Paul, 8 rue Voltaire, 93100 Montreuil';
-    if(simTime>=T(10,38,43))document.getElementById('cerfaStamp').style.display='block';
+    if(simTime>=T(10,38,27))document.getElementById('cerfaImmat').textContent='AB-123-CD';
+    if(simTime>=T(10,38,28)){try{document.getElementById('cerfaDateCirc').textContent='15/03/2019';}catch(x){}}
+    if(simTime>=T(10,38,29))document.getElementById('cerfaMarque').textContent='PEUGEOT';
+    if(simTime>=T(10,38,30)){try{document.getElementById('cerfaCnit').textContent='M10PGTVP000K091';}catch(x){}}
+    if(simTime>=T(10,38,31))document.getElementById('cerfaVin').textContent='VF3LC9HZXJS67890';
+    if(simTime>=T(10,38,32)){try{document.getElementById('cerfaGenre').textContent='VP';}catch(x){}}
+    if(simTime>=T(10,38,34))document.getElementById('cerfaTit').textContent='LECLERC Sophie';
+    if(simTime>=T(10,38,36))document.getElementById('cerfaAddr').textContent='Chez MOREAU Paul, 8 rue Voltaire, 93100 Montreuil';
+    if(simTime>=T(10,38,40))document.getElementById('cerfaStamp').style.display='block';
     if(simTime>=T(10,38,50)&&S<5){const m=document.getElementById('mockCerfaMsg');m.style.display='block';m.textContent='Dossier complet — contrôlez, téléchargez et soumettez au SIV.';window._demoMockupState=5;}
 }};
 
@@ -669,11 +677,14 @@ lines:[
 ],
 mockupUpdate: function(simTime, S) {
     if(simTime>=T(10,32,0)&&S<1){document.getElementById('demoMockupPlaceholder').style.display='none';document.getElementById('demoScreenCerfa').style.display='block';window._demoMockupState=1;}
-    if(simTime>=T(10,33,10))document.getElementById('cerfaMarque').textContent='HONDA CB125R';
-    if(simTime>=T(10,33,18))document.getElementById('cerfaVin').textContent='JMZKECW105SJ08739';
-    if(simTime>=T(10,33,25))document.getElementById('cerfaTit').textContent='MARTIN Jean';
-    if(simTime>=T(10,33,35))document.getElementById('cerfaImmat').textContent='En attente SIV';
-    if(simTime>=T(10,33,45))document.getElementById('cerfaAddr').textContent='15 avenue Foch, 75016 Paris';
+    if(simTime>=T(10,32,0)){try{document.getElementById('cerfaTitle').textContent='Cerfa 13749*04 — Véhicule neuf';}catch(x){}}
+    if(simTime>=T(10,33,10))document.getElementById('cerfaMarque').textContent='HONDA';
+    if(simTime>=T(10,33,13)){try{document.getElementById('cerfaCnit').textContent='MH01-01-001-0';}catch(x){}}
+    if(simTime>=T(10,33,16))document.getElementById('cerfaVin').textContent='JMZKECW105SJ08739';
+    if(simTime>=T(10,33,19)){try{document.getElementById('cerfaGenre').textContent='MTL';}catch(x){}}
+    if(simTime>=T(10,33,22))document.getElementById('cerfaTit').textContent='MARTIN Jean';
+    if(simTime>=T(10,33,25))document.getElementById('cerfaAddr').textContent='15 avenue Foch, 75016 Paris';
+    if(simTime>=T(10,33,28))document.getElementById('cerfaImmat').textContent='En attente SIV';
     if(simTime>=T(10,34,40))document.getElementById('cerfaStamp').style.display='block';
     if(simTime>=T(10,35,5)&&S<2){const m=document.getElementById('mockCerfaMsg');m.style.display='block';m.textContent='2 mandats signés · 200+ contrôles · 0 alerte — soumettez au SIV.';window._demoMockupState=2;}
 }};
@@ -700,7 +711,7 @@ document.getElementById('demoMockupPlaceholder').style.display='flex';
 ['mockAttest','mockCniHeb'].forEach(id=>{try{const e=document.getElementById(id);e.style.display='none';e.className='demo-screen-doc';e.querySelector('span').textContent='○';}catch(x){}});
 try{document.getElementById('mockHebergSection').style.display='none';}catch(x){}
 ['mockClientMsg','mockCerfaMsg','cerfaStamp'].forEach(id=>{try{document.getElementById(id).style.display='none';}catch(x){}});
-['cerfaImmat','cerfaMarque','cerfaVin','cerfaTit','cerfaAddr'].forEach(id=>{try{document.getElementById(id).textContent='';}catch(x){}});
+['cerfaImmat','cerfaDateCirc','cerfaMarque','cerfaCnit','cerfaVin','cerfaGenre','cerfaTit','cerfaAddr'].forEach(id=>{try{document.getElementById(id).textContent='';}catch(x){}});
 const SIM_S=cfg.SIM_START,SIM_D=cfg.SIM_END-cfg.SIM_START;
 demoStartTime=performance.now();
 updateDemoTimer=function(){if(demoPaused)return;const elapsed=performance.now()-demoStartTime-demoPausedTotal,progress=Math.min(elapsed/REAL_DURATION,1),simTime=SIM_S+progress*SIM_D;

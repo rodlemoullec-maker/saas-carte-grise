@@ -1218,6 +1218,16 @@ ul { list-style: none; }
     border-bottom: 1px solid rgba(255,255,255,0.04);
     font-size: 0.75rem;
 }
+.demo-cerfa-section {
+    font-size: 0.6rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(255,255,255,0.3);
+    margin-bottom: 4px;
+    padding-bottom: 3px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+}
 .demo-cerfa-label { color: rgba(255,255,255,0.4); }
 .demo-cerfa-val {
     color: white;
