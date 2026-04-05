@@ -973,7 +973,7 @@ ul { list-style: none; }
     margin: 0 auto;
 }
 .demo-terminal {
-    background: #0c0e14;
+    background: #0f1219;
     border-radius: 16px;
     overflow: hidden;
     box-shadow: 0 24px 64px rgba(0,0,0,0.15), 0 0 0 1px rgba(255,255,255,0.05) inset;
@@ -1028,10 +1028,10 @@ ul { list-style: none; }
 .demo-terminal-body {
     padding: 24px 28px;
     min-height: 420px;
-    font-family: 'SF Mono', 'Fira Code', 'Courier New', monospace;
-    font-size: 0.88rem;
-    line-height: 2.1;
-    color: rgba(255,255,255,0.9);
+    font-family: 'Inter', -apple-system, sans-serif;
+    font-size: 0.92rem;
+    line-height: 2.2;
+    color: #f1f5f9;
 }
 .demo-line {
     opacity: 0;
@@ -1075,7 +1075,7 @@ ul { list-style: none; }
 }
 .demo-check { color: #34d399; }
 .demo-error { color: #f87171; }
-.demo-dim { color: rgba(255,255,255,0.5); }
+.demo-dim { color: rgba(255,255,255,0.6); }
 .demo-timestamp {
     color: #fbbf24;
     font-weight: 700;
