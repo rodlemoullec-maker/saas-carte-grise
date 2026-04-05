@@ -83,23 +83,7 @@ def annotate_cerfa_vn(
                 if i < len(case_x):
                     draw.text((case_x[i], 1163), ch, fill=black, font=font)
 
-    # USAGE — X dans case OUI
-    draw.text((1245, 1020), 'X', fill=black, font=font_big)
-
-    # COULEUR — cocher la bonne case
-    if couleur:
-        couleur_lower = couleur.lower()
-        couleur_cases = {
-            "noir": (1177, 1055),
-            "blanc": (1177, 1105),
-            "gris": (1177, 1080),
-            "bleu": (1350, 1055),
-            "rouge": (1350, 1080),
-            "vert": (1350, 1105),
-        }
-        pos = couleur_cases.get(couleur_lower)
-        if pos:
-            draw.text(pos, 'V', fill=black, font=font)
+    # USAGE et COULEUR — déjà cochés par Playwright, pas besoin d'annoter
 
     # CACHET et SIGNATURE (sous le label, y=1020)
     if cachet_nom:
