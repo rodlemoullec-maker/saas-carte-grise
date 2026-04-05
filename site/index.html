@@ -683,12 +683,12 @@ const T = (h, m, s) => h * 3600 + m * 60 + (s||0);
 const demoLines = [
     // Phase 1 : vendeur (10:32)
     { t: T(10,32,0),  html: '<span class="demo-dim">── Documents vendeur</span> <span class="demo-phase-timer" data-phase="0"></span>', phase: 0 },
-    { t: T(10,32,5),  html: '<span class="demo-dim">$</span> <span class="demo-highlight">Document reçu</span> <span class="demo-dim">— coc_honda_cb125r.pdf (2.1 MB)</span>' },
+    { t: T(10,32,5),  html: '<span class="demo-dim">▸</span> <span class="demo-highlight">Document reçu</span> <span class="demo-dim">— coc_honda_cb125r.pdf (2.1 MB)</span>' },
     { t: T(10,32,12), html: '<span class="demo-tag demo-tag-ocr">OCR</span> <span class="demo-check">✓</span> 847 caractères extraits <span class="demo-dim">— confiance 94%</span>' },
     { t: T(10,32,18), html: '<span class="demo-tag demo-tag-extract">IA</span> Classification : <span class="demo-highlight">COC</span> <span class="demo-dim">(Certificat de Conformité)</span>' },
     { t: T(10,32,25), html: '<span class="demo-tag demo-tag-extract">IA</span> <span class="demo-check">✓</span> HONDA CB125R · VIN : <span class="demo-highlight">JMZKECW105SJ08739</span> · 11 kW · L3e-A1E' },
     { t: T(10,32,35), html: '<span class="demo-tag demo-tag-extract">IA</span> <span class="demo-check">✓</span> CNIT : <span class="demo-highlight">MH01-01-001-0</span> <span class="demo-dim">— champ D.2.1 détecté sur le COC</span>' },
-    { t: T(10,33,0),  html: '<span class="demo-dim">$</span> <span class="demo-highlight">Document reçu</span> <span class="demo-dim">— facture_honda.pdf</span>' },
+    { t: T(10,33,0),  html: '<span class="demo-dim">▸</span> <span class="demo-highlight">Document reçu</span> <span class="demo-dim">— facture_honda.pdf</span>' },
     { t: T(10,33,10), html: '<span class="demo-tag demo-tag-extract">IA</span> <span class="demo-check">✓</span> Facture · VIN identique · Date : 28/03/2026 · Vendeur : Moto Center' },
     { t: T(10,33,15), html: '<span class="demo-tag demo-tag-check">VERIF</span> <span class="demo-check">✓</span> VIN cohérent COC ↔ facture' },
     { t: T(10,33,20), html: '' },
@@ -697,7 +697,7 @@ const demoLines = [
     { t: T(10,34,5),  html: '<span class="demo-tag demo-tag-ocr">SMS</span> Lien envoyé au 06 12 •• •• 78 <span class="demo-dim">— "Moto Center a choisi AutoDoc Pro..."</span>' },
     { t: T(10,34,15), html: '<span class="demo-wait" data-wait-start="10:34:15" data-wait-end="10:42:50">⏳ En attente du client...</span>', wait: true },
     // Client dépose (10:36 — 2 min plus tard)
-    { t: T(10,36,0),  html: '<span class="demo-dim">$</span> <span class="demo-highlight">Client a déposé</span> <span class="demo-dim">— cni_dupont_recto.jpg</span>' },
+    { t: T(10,36,0),  html: '<span class="demo-dim">▸</span> <span class="demo-highlight">Client a déposé</span> <span class="demo-dim">— cni_dupont_recto.jpg</span>' },
     { t: T(10,36,8),  html: '<span class="demo-tag demo-tag-extract">IA</span> <span class="demo-check">✓</span> CNI · DUPONT Marie · Née le 14/05/1992' },
     { t: T(10,36,14), html: '<span class="demo-tag demo-tag-check">VERIF</span> Vérification date d\'expiration...' },
     { t: T(10,36,18), html: '<span class="demo-tag demo-tag-error">BLOQUÉ</span> <span class="demo-error">✗ CNI expirée le 12/01/2026</span>' },
@@ -705,12 +705,12 @@ const demoLines = [
     { t: T(10,36,30), html: '' },
     // Phase 3 : correction (10:41 — 4 min 30 plus tard)
     { t: T(10,41,0),  html: '<span class="demo-dim">── Correction client</span> <span class="demo-phase-timer" data-phase="2"></span>', phase: 2 },
-    { t: T(10,41,10), html: '<span class="demo-dim">$</span> <span class="demo-highlight">Client a déposé</span> <span class="demo-dim">— passeport_dupont.jpg</span>' },
+    { t: T(10,41,10), html: '<span class="demo-dim">▸</span> <span class="demo-highlight">Client a déposé</span> <span class="demo-dim">— passeport_dupont.jpg</span>' },
     { t: T(10,41,18), html: '<span class="demo-tag demo-tag-extract">IA</span> <span class="demo-check">✓</span> Passeport · DUPONT Marie · Expire le 15/11/2033 <span class="demo-check">✓</span>' },
-    { t: T(10,41,40), html: '<span class="demo-dim">$</span> <span class="demo-highlight">Client a déposé</span> <span class="demo-dim">— permis_dupont.jpg</span>' },
+    { t: T(10,41,40), html: '<span class="demo-dim">▸</span> <span class="demo-highlight">Client a déposé</span> <span class="demo-dim">— permis_dupont.jpg</span>' },
     { t: T(10,41,50), html: '<span class="demo-tag demo-tag-check">VERIF</span> <span class="demo-check">✓</span> Permis B · véhicule L3e-A1E ≤ 11 kW — permis adapté <span class="demo-check">✓</span>' },
     { t: T(10,42,0),  html: '<span class="demo-tag demo-tag-check">VERIF</span> <span class="demo-check">✓</span> Permis B + 125cc → formation 7h requise — <span class="demo-highlight">attestation détectée</span> <span class="demo-check">✓</span>' },
-    { t: T(10,42,30), html: '<span class="demo-dim">$</span> <span class="demo-highlight">Client a déposé</span> <span class="demo-dim">— quittance_edf.pdf</span>' },
+    { t: T(10,42,30), html: '<span class="demo-dim">▸</span> <span class="demo-highlight">Client a déposé</span> <span class="demo-dim">— quittance_edf.pdf</span>' },
     { t: T(10,42,40), html: '<span class="demo-tag demo-tag-check">VERIF</span> <span class="demo-check">✓</span> Domicile · Daté du 15/02/2026 · Nom = passeport <span class="demo-check">✓</span>' },
     { t: T(10,42,50), html: '' },
     // Phase 4 : Cerfa (10:43)
