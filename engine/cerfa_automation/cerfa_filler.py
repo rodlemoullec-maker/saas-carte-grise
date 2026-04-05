@@ -216,11 +216,13 @@ class CerfaFiller:
             except: pass
 
     def _fill_vn_page2(self, page, data: dict):
-        """P2 VN: certificat de vente — SKIP.
-        Remplir ces champs empeche le formulaire de passer a la page suivante
-        (bug du site service-public.gouv.fr). Le pro remplira vendeur/date a la main.
-        """
-        pass
+        """P2 VN: certificat de vente."""
+        v = data.get("vehicule", {})
+        try:
+            self._fill(page, "#certificat_vente_soussignee", v.get("vendeur_nom"))
+            self._fill(page, "#certificat_vente_date", v.get("date_achat"))
+        except Exception as e:
+            logger.warning(f"P2 VN certificat de vente: {e} — certains champs non remplis")
 
     def _fill_vn_page3(self, page, data: dict):
         """P3 VN: titulaire + domicile."""
