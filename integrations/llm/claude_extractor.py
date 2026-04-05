@@ -18,6 +18,7 @@ Claude Opus FAIT :
 """
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 from typing import Any
@@ -102,16 +103,32 @@ Extrais en JSON :
   "modele": "... (champ 0.2.3 Commercial name, ou 0.2 Type si absent)",
   "vin": "... (champ 1.0, exactement 17 caractères, pas de I/O/Q)",
   "cnit": "... (champ D.2.1 ou 0.2.3 Commercial name code, format XXXX-XX-XXX-X, PAS le code moteur)",
+  "type_variante_version": "... (champ D.2 Type/Variant/Version, ex: MH01-01-001-0)",
   "categorie_j": "... (champ 0.3 Vehicle category, ex: L3e-A1E, M1)",
+  "genre_national": "... (champ J.1 si présent, ex: VP, MTL, MTT1, CL)",
+  "carrosserie_j2": "... (champ J.2 Carrosserie CE, ex: AA, AB, AC, BB)",
+  "carrosserie_j3": "... (champ J.3 Carte nationale, ex: BERLINE, BREAK, CABRIOLET, SOLO)",
   "energie": "... (essence, diesel, electrique, hybride)",
   "puissance_kw": nombre ou null,
   "puissance_cv": nombre ou null,
-  "cylindree_cc": nombre ou null,
+  "puissance_nette_p2": nombre ou null (champ P.2 puissance nette maximale en kW),
+  "cylindree_p1": nombre ou null (champ P.1 cylindrée en cm3),
   "co2_wltp": nombre ou null,
-  "places_assises": nombre ou null,
-  "masse_kg": nombre ou null,
+  "places_assises": nombre ou null (champ S.1),
+  "places_debout_s2": nombre ou null (champ S.2, souvent 0 ou absent),
+  "masse_f1": nombre ou null (champ F.1 masse en charge max techniquement admissible en kg),
+  "masse_f3": nombre ou null (champ F.3 masse en charge max de l'ensemble en kg),
+  "masse_g": nombre ou null (champ G masse du véhicule en service en kg),
+  "poids_vide_g1": nombre ou null (champ G.1 poids à vide en kg),
+  "ptac_kg": nombre ou null (champ F.2 PTAC en kg),
+  "niveau_sonore_u1": nombre ou null (champ U.1 niveau sonore en dB(A)),
+  "vitesse_moteur_u2": nombre ou null (champ U.2 vitesse moteur en tr/min),
+  "classe_env": "... (champ V.9 classe environnementale, ex: EURO5, EURO4)",
   "vitesse_max_kmh": nombre ou null,
   "date_premiere_immat": "JJ/MM/AAAA ou null",
+  "soussigne": "... (nom du constructeur/importateur qui signe le COC, ou null)",
+  "date_reception": "... (date de réception/homologation, ou null)",
+  "numero_k": "... (numéro de réception, champ K, ou null)",
   "debridable": true/false,
   "debridable_vers": ["A2", "A3"] ou []
 }
@@ -122,6 +139,7 @@ Les valeurs numériques sont souvent SÉPARÉES de leur label. Tu dois reconstit
 RÈGLES CRITIQUES pour la puissance :
 - puissance_kw = champ 3.3.3.4 "Maximum 30 minutes power [kW]" pour les véhicules électriques
 - puissance_kw = champ 3.3.2 "Maximum net power [kW]" pour les véhicules thermiques
+- puissance_nette_p2 = champ P.2 = puissance nette max en kW (souvent = puissance_kw)
 - ATTENTION : pour un véhicule électrique L3e-A1E, la puissance 30 min est souvent un petit nombre (ex: 9, 11, 15 kW)
 - NE PAS confondre avec le champ 1.8 "Maximum speed [km/h]" (souvent ~100-200) → va dans vitesse_max_kmh
 - NE PAS inventer une puissance — si tu ne trouves pas la valeur exacte après le label 3.3.3.4, retourne null
@@ -131,6 +149,13 @@ RÈGLES pour le CNIT :
 - Le CNIT (Code National d'Identification du Type) n'est PAS toujours présent — il est absent sur les COC européens purs
 - Chercher dans les champs D.2, D.2.1 uniquement. Si absent, retourner null
 - NE PAS confondre avec le "Electric motor code" (champ 3.1.2.2)
+
+RÈGLES pour les masses :
+- F.1 = masse en charge max techniquement admissible (MTMA)
+- F.2 = PTAC (masse max en charge)
+- F.3 = masse en charge max de l'ensemble (véhicule + remorque)
+- G = masse du véhicule en service avec carburant
+- G.1 = poids à vide national
 
 IMPORTANT : chercher "converting between subcategories" pour détecter si le véhicule est débridable.""",
 
@@ -264,6 +289,10 @@ Extrais en JSON :
 
 MODEL = "claude-opus-4-20250514"
 
+# Retry config
+MAX_RETRIES = 2
+RETRY_DELAY = 1.0  # secondes
+
 
 def _get_client():
     """Client Anthropic avec configuration securite RGPD."""
@@ -275,6 +304,44 @@ def _get_client():
     )
 
 
+async def _call_claude_with_retry(
+    system: str,
+    user_content: str,
+    max_tokens: int,
+    context: str = "",
+) -> str:
+    """
+    Appel Claude avec retry automatique sur erreurs transitoires.
+    Retourne le texte de la reponse.
+    Leve une exception si tous les retries echouent.
+    """
+    client = _get_client()
+    last_error = None
+
+    for attempt in range(MAX_RETRIES + 1):
+        try:
+            response = await asyncio.to_thread(
+                client.messages.create,
+                model=MODEL,
+                max_tokens=max_tokens,
+                system=system,
+                messages=[{"role": "user", "content": user_content}],
+            )
+            return response.content[0].text
+        except Exception as e:
+            last_error = e
+            error_str = str(e).lower()
+            # Ne pas retry sur les erreurs non-transitoires
+            if "invalid_api_key" in error_str or "authentication" in error_str:
+                raise
+            if attempt < MAX_RETRIES:
+                wait = RETRY_DELAY * (attempt + 1)
+                logger.warning(f"[Claude] {context} tentative {attempt+1} echouee: {e}, retry dans {wait}s")
+                await asyncio.sleep(wait)
+
+    raise last_error  # type: ignore[misc]
+
+
 CLASSIFY_PROMPT = """Identifie le type de ce document parmi :
 CNI, PASSEPORT, PERMIS, COC, CG_BARREE, FACTURE, DOMICILE, CERTIFICAT_CESSION, KBIS, ASSURANCE, ATTESTATION_FORMATION, ATTESTATION_HEBERGEMENT, CNI_HEBERGEANT, AUTRE
 
@@ -283,30 +350,25 @@ Retourne un JSON :
 
 
 async def claude_classify(ocr_text: str) -> dict:
-    """Classifie un document via Claude Opus."""
+    """Classifie un document via Claude Opus (avec retry)."""
     try:
-        client = _get_client()
-
-        response = client.messages.create(
-            model=MODEL,
-            max_tokens=200,
+        text = await _call_claude_with_retry(
             system=SYSTEM_PROMPT,
-            messages=[{"role": "user", "content": f"{CLASSIFY_PROMPT}\n\nTexte OCR :\n{ocr_text[:3000]}"}],
+            user_content=f"{CLASSIFY_PROMPT}\n\nTexte OCR :\n{ocr_text[:3000]}",
+            max_tokens=200,
+            context="classify",
         )
-
-        text = response.content[0].text
-        # Extraire le JSON de la réponse
         result = _parse_json(text)
         return result or {"type": "AUTRE", "confidence": 0.0}
 
     except Exception as e:
-        logger.error(f"[Claude] Classification echouee: {e}")
+        logger.error(f"[Claude] Classification echouee apres {MAX_RETRIES+1} tentatives: {e}")
         return {"type": "AUTRE", "confidence": 0.0}
 
 
 async def claude_extract(doc_type: str, ocr_text: str) -> dict:
     """
-    Extrait les champs structurés d'un document via Claude Opus.
+    Extrait les champs structurés d'un document via Claude Opus (avec retry).
 
     Args:
         doc_type: Type de document (CNI, PASSEPORT, PERMIS, COC, etc.)
@@ -317,73 +379,63 @@ async def claude_extract(doc_type: str, ocr_text: str) -> dict:
     """
     prompt = DOC_PROMPTS.get(doc_type, "")
     if not prompt:
-        # Type inconnu — demander une extraction générique
         prompt = f"Document de type {doc_type}. Extrais tous les champs pertinents en JSON."
 
     try:
-        client = _get_client()
-
-        response = client.messages.create(
-            model=MODEL,
-            max_tokens=1000,
+        text = await _call_claude_with_retry(
             system=SYSTEM_PROMPT,
-            messages=[{"role": "user", "content": f"{prompt}\n\nTexte OCR :\n{ocr_text[:4000]}"}],
+            user_content=f"{prompt}\n\nTexte OCR :\n{ocr_text[:4000]}",
+            max_tokens=1000,
+            context=f"extract({doc_type})",
         )
-
-        text = response.content[0].text
         result = _parse_json(text)
 
         if result:
             logger.info(f"[Claude] Extraction {doc_type} : {len(result)} champs")
             return result
         else:
-            logger.warning(f"[Claude] Extraction {doc_type} : pas de JSON valide")
+            logger.warning(f"[Claude] Extraction {doc_type} : pas de JSON valide dans la reponse")
             return {}
 
     except Exception as e:
-        logger.error(f"[Claude] Extraction echouee: {e}")
+        logger.error(f"[Claude] Extraction {doc_type} echouee apres {MAX_RETRIES+1} tentatives: {e}")
         return {}
 
 
 async def claude_verify(doc_a: dict, doc_b: dict, check_type: str) -> dict:
     """
-    Vérifie la cohérence entre deux documents via Claude Opus.
+    Vérifie la cohérence entre deux documents via Claude Opus (avec retry).
 
     Args:
         doc_a: Données extraites du document A
         doc_b: Données extraites du document B
-        check_type: Type de vérification (ex: "nom_coherence", "date_naissance")
+        check_type: Type de vérification (ex: "identite", "vehicule")
 
     Returns:
         {"coherent": True/False, "details": "...", "problemes": [...]}
     """
     try:
-        client = _get_client()
-
-        response = client.messages.create(
-            model=MODEL,
-            max_tokens=500,
+        text = await _call_claude_with_retry(
             system=SYSTEM_PROMPT,
-            messages=[{"role": "user", "content": (
+            user_content=(
                 f"Vérifie la cohérence entre ces deux documents ({check_type}).\n\n"
                 f"Document A :\n{json.dumps(doc_a, ensure_ascii=False, indent=2)}\n\n"
                 f"Document B :\n{json.dumps(doc_b, ensure_ascii=False, indent=2)}\n\n"
                 "Retourne un JSON :\n"
                 '{"coherent": true/false, "details": "explication", "problemes": ["..."]}'
-            )}],
+            ),
+            max_tokens=500,
+            context=f"verify({check_type})",
         )
-
-        text = response.content[0].text
         return _parse_json(text) or {"coherent": True, "details": "Verification impossible"}
 
     except Exception as e:
-        logger.error(f"[Claude] Verification echouee: {e}")
+        logger.error(f"[Claude] Verification {check_type} echouee: {e}")
         return {"coherent": True, "details": f"Erreur: {e}"}
 
 
 def _parse_json(text: str) -> dict | None:
     """Extrait le premier bloc JSON d'une réponse Claude."""
-    # Chercher un bloc JSON dans la réponse
     text = text.strip()
 
     # Si la réponse est directement du JSON
