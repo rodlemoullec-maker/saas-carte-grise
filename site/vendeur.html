@@ -58,24 +58,28 @@ document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
             <h1>Vous vendez. Le dossier arrive<br>chez votre agent, <em>complet.</em></h1>
             <p class="hero-desc">Votre client dépose ses pièces par SMS. Le système vérifie la cohérence, la complétude et les dates de validité. Votre agent reçoit un dossier propre, prêt à contrôler et soumettre.<br><strong>Aucune habilitation nécessaire de votre côté.</strong></p>
             <div class="hero-actions">
-                <a href="#contact" class="btn btn-cta btn-lg">Tester sur mes prochains dossiers</a>
-                <a href="demo-vendeur.html" class="btn btn-ghost btn-lg">Voir la démo</a>
+                <a href="#contact" class="btn btn-cta btn-lg btn-glow">Traiter mon premier dossier</a>
+                <a href="comment-ca-marche.html" class="btn btn-ghost btn-lg">Comment ça marche</a>
             </div>
             <div class="hero-proof">
                 <div class="hero-proof-item">
+                    <span class="hero-proof-num">2</span>
+                    <span class="hero-proof-label">mandats Cerfa 13757 auto-générés</span>
+                </div>
+                <div class="hero-proof-item">
                     <span class="hero-proof-num">5 min</span>
-                    <span class="hero-proof-label">par dossier</span>
+                    <span class="hero-proof-label">par dossier, tout compris</span>
                 </div>
                 <div class="hero-proof-item">
                     <span class="hero-proof-num">0</span>
-                    <span class="hero-proof-label">saisie manuelle</span>
-                </div>
-                <div class="hero-proof-item">
-                    <span class="hero-proof-num">12-14 &euro;</span>
-                    <span class="hero-proof-label">par dossier</span>
+                    <span class="hero-proof-label">aller-retour avec l'agent</span>
                 </div>
             </div>
-            <p class="hero-small">5 premiers dossiers sans avance de frais. Factur&eacute;s uniquement si vous continuez.</p>
+            <div class="hero-trust">
+                <div class="hero-trust-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Sans carte bancaire</div>
+                <div class="hero-trust-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Conforme DSR</div>
+                <div class="hero-trust-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Aucun engagement</div>
+            </div>
         </div>
         <div class="hero-visual" style="padding: 0; overflow: hidden;">
             <!-- Mockup vendeur non habilité — VN moto 125cc, formation 7h, double mandat -->
@@ -151,12 +155,75 @@ document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
     </div>
 </section>
 
+<!-- ═══════════════════════════════════ AVANT / APRÈS ════════════════════ -->
+<section class="section">
+    <div class="container">
+        <div class="section-header">
+            <h2>Avant AutoDoc Pro vs. Après</h2>
+        </div>
+        <div class="before-after-grid fade-in">
+            <div class="ba-card ba-before">
+                <div class="ba-label">Avant</div>
+                <ul>
+                    <li><span class="ba-icon ba-bad">✗</span> Vous envoyez les docs par email — l'agent trouve des erreurs</li>
+                    <li><span class="ba-icon ba-bad">✗</span> Allers-retours pour les pièces manquantes du client</li>
+                    <li><span class="ba-icon ba-bad">✗</span> Double mandat Cerfa 13757 à rédiger manuellement</li>
+                    <li><span class="ba-icon ba-bad">✗</span> Aucune visibilité — vous ne savez pas où en est le dossier</li>
+                    <li><span class="ba-icon ba-bad">✗</span> Le client attend et vous relance</li>
+                </ul>
+            </div>
+            <div class="ba-card ba-after">
+                <div class="ba-label">Avec AutoDoc Pro</div>
+                <ul>
+                    <li><span class="ba-icon ba-good">✓</span> Le système vérifie tout au dépôt — zéro surprise pour l'agent</li>
+                    <li><span class="ba-icon ba-good">✓</span> Le client dépose par SMS, guidé étape par étape</li>
+                    <li><span class="ba-icon ba-good">✓</span> Les 2 mandats sont pré-remplis et signés numériquement</li>
+                    <li><span class="ba-icon ba-good">✓</span> Diagnostic VERT / ORANGE / ROUGE en temps réel</li>
+                    <li><span class="ba-icon ba-good">✓</span> Dossier ZIP complet — votre agent contrôle et soumet</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════ CE QUE VOUS NE POUVEZ PAS FAIRE AILLEURS ═ -->
+<section class="section section-alt">
+    <div class="container">
+        <div class="section-header">
+            <h2>Ce que vous ne pouvez pas faire ailleurs</h2>
+            <p class="subtitle">Les logiciels SIV sont faits pour les habilités. Les services en ligne font le dossier à votre place (et facturent votre client). AutoDoc Pro vous laisse le contrôle.</p>
+        </div>
+        <div class="unique-grid">
+            <div class="unique-card fade-in">
+                <div class="unique-num">01</div>
+                <h4>Double mandat automatique</h4>
+                <p>Les deux Cerfa 13757 (client→vendeur + client→agent) sont pré-remplis avec les bonnes infos et signés par le client via SMS. Aucun document à rédiger.</p>
+            </div>
+            <div class="unique-card fade-in">
+                <div class="unique-num">02</div>
+                <h4>Collecte client sans friction</h4>
+                <p>Un SMS, un lien. Le client dépose CNI, permis, domicile et signe les mandats depuis son téléphone. Il ne voit que votre nom de commerce.</p>
+            </div>
+            <div class="unique-card fade-in">
+                <div class="unique-num">03</div>
+                <h4>Dossier vérifié avant transmission</h4>
+                <p>200+ contrôles : VIN croisé, CNI valide, permis adapté, formation 7h détectée. Votre agent reçoit un dossier propre — pas un puzzle à reconstituer.</p>
+            </div>
+            <div class="unique-card fade-in">
+                <div class="unique-num">04</div>
+                <h4>Vous gardez votre tarif</h4>
+                <p>Vous facturez votre client au prix que vous décidez. AutoDoc Pro vous facture 12-14 € par dossier. Votre marge, votre business.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
 <!-- ═══════════════════════════════════ LA SOLUTION ═══════════════════════ -->
 <section id="solution" class="section">
     <div class="container">
         <div class="section-header">
-            <h2>Pr&eacute;parez le dossier. Le syst&egrave;me v&eacute;rifie. Votre agent soumet.</h2>
-            <p class="subtitle">AutoDoc Pro fait le travail de v&eacute;rification et de mise en conformit&eacute;. Votre agent re&ccedil;oit un dossier pr&ecirc;t &agrave; soumettre.</p>
+            <h2>Comment ça fonctionne, concrètement</h2>
+            <p class="subtitle">Vous préparez, le système vérifie, votre agent contrôle et soumet.</p>
         </div>
         <div class="features-detail" style="grid-template-columns: repeat(2, 1fr);">
             <div class="feat-card fade-in">
@@ -307,52 +374,23 @@ document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
             <p class="subtitle">Inscription automatique — votre espace est prêt en quelques minutes</p>
         </div>
         <form class="contact-form" action="https://formspree.io/f/xwvwwnrw" method="POST">
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="nom">Nom *</label>
-                    <input type="text" id="nom" name="nom" required>
-                </div>
-                <div class="form-group">
-                    <label for="prenom">Pr&eacute;nom *</label>
-                    <input type="text" id="prenom" name="prenom" required>
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="email">Email *</label>
-                    <input type="email" id="email" name="email" required>
-                </div>
-                <div class="form-group">
-                    <label for="telephone">T&eacute;l&eacute;phone</label>
-                    <input type="tel" id="telephone" name="telephone">
-                </div>
+            <input type="hidden" name="profil" value="vendeur_non_habilite">
+            <div class="form-group">
+                <label for="email">Email professionnel *</label>
+                <input type="email" id="email" name="email" required placeholder="vous@votrecommerce.fr">
             </div>
             <div class="form-group">
-                <label for="entreprise">Nom de votre commerce ou structure</label>
-                <input type="text" id="entreprise" name="entreprise">
+                <label for="entreprise">Nom de votre commerce *</label>
+                <input type="text" id="entreprise" name="entreprise" required placeholder="Ex: Dupont Motos, Garage Martin...">
             </div>
             <div class="form-group">
-                <label for="profil">Votre profil *</label>
-                <select id="profil" name="profil" required>
-                    <option value="vendeur_habilite">Vendeur habilit&eacute; SIV</option>
-                    <option value="vendeur_non_habilite" selected>Vendeur non habilit&eacute;</option>
-                    <option value="agent_habilite">Agent habilit&eacute; SIV</option>
-                </select>
+                <label for="agent">Nom de votre agent habilité</label>
+                <input type="text" id="agent" name="agent" placeholder="Ex: Garage Central SIV (optionnel)">
             </div>
-            <div class="form-group">
-                <label for="volume">Volume mensuel *</label>
-                <select id="volume" name="volume" required>
-                    <option value="">S&eacute;lectionnez</option>
-                    <option value="1-5">1 &agrave; 5 par mois</option>
-                    <option value="5-20">5 &agrave; 20 par mois</option>
-                    <option value="20-50">20 &agrave; 50 par mois</option>
-                    <option value="50+">Plus de 50 par mois</option>
-                </select>
-            </div>
-            <button type="submit" class="btn btn-cta btn-lg">Commencer mon essai</button>
+            <button type="submit" class="btn btn-cta btn-lg btn-glow">Traiter mon premier dossier</button>
             <div class="form-reassurance">
                 <div class="form-reassurance-item"><i data-lucide="credit-card"></i> Sans carte bancaire</div>
-                <div class="form-reassurance-item"><i data-lucide="clock"></i> Prêt en quelques minutes</div>
+                <div class="form-reassurance-item"><i data-lucide="zap"></i> Prêt en 2 minutes</div>
                 <div class="form-reassurance-item"><i data-lucide="x-circle"></i> Aucun engagement</div>
             </div>
         </form>
