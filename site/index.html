@@ -174,11 +174,74 @@
     </div>
 </section>
 
+<!-- ═══════════════════════════════════ AVANT / APRÈS ════════════════════ -->
+<section class="section">
+    <div class="container">
+        <div class="section-header">
+            <h2>Avant AutoDoc Pro vs. Après</h2>
+        </div>
+        <div class="before-after-grid fade-in">
+            <div class="ba-card ba-before">
+                <div class="ba-label">Avant</div>
+                <ul>
+                    <li><span class="ba-icon ba-bad">✗</span> 30 min de saisie manuelle par dossier</li>
+                    <li><span class="ba-icon ba-bad">✗</span> Erreurs détectées au rejet SIV — trop tard</li>
+                    <li><span class="ba-icon ba-bad">✗</span> Relances client par email, WhatsApp, téléphone</li>
+                    <li><span class="ba-icon ba-bad">✗</span> Cerfa rempli à la main, risque de faute</li>
+                    <li><span class="ba-icon ba-bad">✗</span> Aucune visibilité sur l'avancement du dossier</li>
+                </ul>
+            </div>
+            <div class="ba-card ba-after">
+                <div class="ba-label">Avec AutoDoc Pro</div>
+                <ul>
+                    <li><span class="ba-icon ba-good">✓</span> 5 min — les documents sont lus automatiquement</li>
+                    <li><span class="ba-icon ba-good">✓</span> Erreurs détectées au dépôt — correction immédiate</li>
+                    <li><span class="ba-icon ba-good">✓</span> Le client dépose par SMS, guidé étape par étape</li>
+                    <li><span class="ba-icon ba-good">✓</span> Cerfa pré-rempli avec cachet et signature</li>
+                    <li><span class="ba-icon ba-good">✓</span> Diagnostic VERT / ORANGE / ROUGE en temps réel</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════ CE QU'AUCUN SERVICE NE FAIT ═════════════ -->
+<section class="section section-alt">
+    <div class="container">
+        <div class="section-header">
+            <h2>Ce qu'aucun autre service ne fait</h2>
+            <p class="subtitle">Les services carte grise en ligne sous-traitent. Les logiciels SIV transmettent. AutoDoc Pro vérifie <strong>avant</strong> la soumission.</p>
+        </div>
+        <div class="unique-grid">
+            <div class="unique-card fade-in">
+                <div class="unique-num">01</div>
+                <h4>Lecture intelligente des documents</h4>
+                <p>OCR + IA : le système comprend chaque document, corrige les erreurs OCR (0/O, 1/I dans les VIN) et structure les données. Pas de saisie, pas de formulaire.</p>
+            </div>
+            <div class="unique-card fade-in">
+                <div class="unique-num">02</div>
+                <h4>Vérification croisée en temps réel</h4>
+                <p>Le VIN du COC correspond à la facture ? La CNI est valide ? Le permis couvre la puissance ? 200+ contrôles à chaque dépôt de document.</p>
+            </div>
+            <div class="unique-card fade-in">
+                <div class="unique-num">03</div>
+                <h4>Collecte client autonome par SMS</h4>
+                <p>Un lien sécurisé, votre marque. Le client dépose CNI, permis, domicile depuis son téléphone. Il ne voit jamais "AutoDoc Pro".</p>
+            </div>
+            <div class="unique-card fade-in">
+                <div class="unique-num">04</div>
+                <h4>Cerfa généré, pas rempli</h4>
+                <p>Le Cerfa est extrait directement des documents vérifiés — pas d'un formulaire que vous remplissez. Cachet et signature apposés automatiquement.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
 <!-- ═══════════════════════════════════ LA SOLUTION ═══════════════════════ -->
 <section id="solution" class="section">
     <div class="container">
         <div class="section-header">
-            <h2>Déposez les documents. Le système fait le reste.</h2>
+            <h2>Comment ça fonctionne, concrètement</h2>
             <p class="subtitle">Chaque document est lu, vérifié et croisé dès qu'il est déposé. Quand tout est vert, le Cerfa est prêt.</p>
         </div>
         <div class="features-detail" style="grid-template-columns: repeat(2, 1fr);">
@@ -208,7 +271,7 @@
                     <li>CG barrée avec date de vente et signatures</li>
                     <li>Justificatif de domicile de moins de 6 mois</li>
                 </ul>
-                <p style="margin-top: 8px; font-size: 0.78rem; color: var(--slate-400); font-style: italic;">Le système vérifie la cohérence, la complétude et les dates de validité et la complétude, pas l'authenticité — c'est votre responsabilité.</p>
+                <p style="margin-top: 8px; font-size: 0.78rem; color: var(--slate-400); font-style: italic;">Le système vérifie la cohérence, la complétude et les dates de validité, pas l'authenticité — c'est votre responsabilité.</p>
             </div>
             <div class="feat-card fade-in">
                 <div class="feat-card-icon feat-card-icon-primary"><i data-lucide="smartphone"></i></div>
@@ -389,29 +452,13 @@
             <p class="subtitle">Inscription automatique — votre espace est prêt en quelques minutes</p>
         </div>
         <form class="contact-form" action="https://formspree.io/f/xwvwwnrw" method="POST">
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="nom">Nom *</label>
-                    <input type="text" id="nom" name="nom" required>
-                </div>
-                <div class="form-group">
-                    <label for="prenom">Prénom *</label>
-                    <input type="text" id="prenom" name="prenom" required>
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="email">Email *</label>
-                    <input type="email" id="email" name="email" required>
-                </div>
-                <div class="form-group">
-                    <label for="telephone">Téléphone</label>
-                    <input type="tel" id="telephone" name="telephone">
-                </div>
+            <div class="form-group">
+                <label for="email">Email professionnel *</label>
+                <input type="email" id="email" name="email" required placeholder="vous@votrecommerce.fr">
             </div>
             <div class="form-group">
-                <label for="entreprise">Nom de votre commerce ou structure</label>
-                <input type="text" id="entreprise" name="entreprise">
+                <label for="entreprise">Nom de votre commerce *</label>
+                <input type="text" id="entreprise" name="entreprise" required placeholder="Ex: Dupont Motos, Garage Central...">
             </div>
             <div class="form-group">
                 <label for="profil">Votre profil *</label>
@@ -421,20 +468,10 @@
                     <option value="agent_habilite">Agent habilité SIV</option>
                 </select>
             </div>
-            <div class="form-group">
-                <label for="volume">Volume mensuel *</label>
-                <select id="volume" name="volume" required>
-                    <option value="">Sélectionnez</option>
-                    <option value="1-5">1 à 5 par mois</option>
-                    <option value="5-20">5 à 20 par mois</option>
-                    <option value="20-50">20 à 50 par mois</option>
-                    <option value="50+">Plus de 50 par mois</option>
-                </select>
-            </div>
-            <button type="submit" class="btn btn-cta btn-lg">Commencer mon essai</button>
+            <button type="submit" class="btn btn-cta btn-lg btn-glow">Traiter mon premier dossier</button>
             <div class="form-reassurance">
                 <div class="form-reassurance-item"><i data-lucide="credit-card"></i> Sans carte bancaire</div>
-                <div class="form-reassurance-item"><i data-lucide="clock"></i> Prêt en quelques minutes</div>
+                <div class="form-reassurance-item"><i data-lucide="zap"></i> Prêt en 2 minutes</div>
                 <div class="form-reassurance-item"><i data-lucide="x-circle"></i> Aucun engagement</div>
             </div>
         </form>
