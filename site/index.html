@@ -189,6 +189,8 @@
                         <div class="demo-screen-doc" id="mockFacture"><span class="demo-screen-pending">○</span> Facture</div>
                         <div class="demo-screen-section" style="margin-top:12px;">Vérifications</div>
                         <div class="demo-screen-doc" id="mockVin"><span class="demo-screen-pending">○</span> VIN croisé COC ↔ facture</div>
+                        <div class="demo-screen-doc" id="mockCnit"><span class="demo-screen-pending">○</span> CNIT détecté (D.2.1)</div>
+                        <div class="demo-screen-doc" id="mockEnergie"><span class="demo-screen-pending">○</span> Énergie · puissance · catégorie</div>
                         <div class="demo-screen-msg" id="mockVendeurMsg" style="display:none;"></div>
                     </div>
                 </div>
@@ -204,6 +206,11 @@
                         <div class="demo-screen-doc" id="mockCni"><span class="demo-screen-pending">○</span> Pièce d'identité</div>
                         <div class="demo-screen-doc" id="mockPermis"><span class="demo-screen-pending">○</span> Permis de conduire</div>
                         <div class="demo-screen-doc" id="mockDomicile"><span class="demo-screen-pending">○</span> Justificatif de domicile</div>
+                        <div class="demo-screen-section" style="margin-top:12px;">Vérifications</div>
+                        <div class="demo-screen-doc" id="mockExpir"><span class="demo-screen-pending">○</span> Pièce d'identité non expirée</div>
+                        <div class="demo-screen-doc" id="mockPermisAdapt"><span class="demo-screen-pending">○</span> Permis adapté au véhicule</div>
+                        <div class="demo-screen-doc" id="mockFormation"><span class="demo-screen-pending">○</span> Formation 7h (125cc)</div>
+                        <div class="demo-screen-doc" id="mockNomCoher"><span class="demo-screen-pending">○</span> Nom identité = nom domicile</div>
                         <div class="demo-screen-msg" id="mockClientMsg" style="display:none;"></div>
                     </div>
                 </div>
@@ -803,8 +810,10 @@ function runDemo() {
         }
         if (simTime >= T(10,32,18)) { const e=document.getElementById('mockCoc'); e.className='demo-screen-doc demo-screen-ok'; e.querySelector('span').textContent='✓'; }
         if (simTime >= T(10,33,10)) { const e=document.getElementById('mockFacture'); e.className='demo-screen-doc demo-screen-ok'; e.querySelector('span').textContent='✓'; }
+        if (simTime >= T(10,32,35)) { const e=document.getElementById('mockCnit'); e.className='demo-screen-doc demo-screen-ok'; e.querySelector('span').textContent='✓'; }
+        if (simTime >= T(10,32,25)) { const e=document.getElementById('mockEnergie'); e.className='demo-screen-doc demo-screen-ok'; e.querySelector('span').textContent='✓'; }
         if (simTime >= T(10,33,15)) { const e=document.getElementById('mockVin'); e.className='demo-screen-doc demo-screen-ok'; e.querySelector('span').textContent='✓'; }
-        if (simTime >= T(10,33,15) && S < 2) {
+        if (simTime >= T(10,33,18) && S < 2) {
             const m=document.getElementById('mockVendeurMsg'); m.style.display='block';
             m.className='demo-screen-msg demo-screen-msg-ok'; m.textContent='✓ Documents vendeur vérifiés — envoyez le lien SMS au client';
             window._demoMockupState = 2;
@@ -814,21 +823,31 @@ function runDemo() {
         if (simTime >= T(10,34,0) && S < 3) {
             sv.style.display = 'none'; sc.style.display = 'block'; window._demoMockupState = 3;
         }
+        // Docs client
         if (simTime >= T(10,36,8) && simTime < T(10,36,18)) { const e=document.getElementById('mockCni'); e.className='demo-screen-doc demo-screen-ok'; e.querySelector('span').textContent='✓'; }
         if (simTime >= T(10,36,18)) {
             const e=document.getElementById('mockCni'); e.className='demo-screen-doc demo-screen-err'; e.querySelector('span').textContent='✗';
+            const ex=document.getElementById('mockExpir'); ex.className='demo-screen-doc demo-screen-err'; ex.querySelector('span').textContent='✗';
             const m=document.getElementById('mockClientMsg'); m.style.display='block';
             m.className='demo-screen-msg demo-screen-msg-err'; m.textContent='CNI expirée — déposez une pièce d\'identité valide';
         }
         if (simTime >= T(10,41,18)) {
             const e=document.getElementById('mockCni'); e.className='demo-screen-doc demo-screen-ok'; e.querySelector('span').textContent='✓';
+            const ex=document.getElementById('mockExpir'); ex.className='demo-screen-doc demo-screen-ok'; ex.querySelector('span').textContent='✓';
             const m=document.getElementById('mockClientMsg'); m.style.display='none';
         }
-        if (simTime >= T(10,41,50)) { const e=document.getElementById('mockPermis'); e.className='demo-screen-doc demo-screen-ok'; e.querySelector('span').textContent='✓'; }
-        if (simTime >= T(10,42,40)) { const e=document.getElementById('mockDomicile'); e.className='demo-screen-doc demo-screen-ok'; e.querySelector('span').textContent='✓'; }
+        if (simTime >= T(10,41,50)) {
+            const e=document.getElementById('mockPermis'); e.className='demo-screen-doc demo-screen-ok'; e.querySelector('span').textContent='✓';
+            const pa=document.getElementById('mockPermisAdapt'); pa.className='demo-screen-doc demo-screen-ok'; pa.querySelector('span').textContent='✓';
+        }
+        if (simTime >= T(10,42,0)) { const e=document.getElementById('mockFormation'); e.className='demo-screen-doc demo-screen-ok'; e.querySelector('span').textContent='✓'; }
+        if (simTime >= T(10,42,40)) {
+            const e=document.getElementById('mockDomicile'); e.className='demo-screen-doc demo-screen-ok'; e.querySelector('span').textContent='✓';
+            const nc=document.getElementById('mockNomCoher'); nc.className='demo-screen-doc demo-screen-ok'; nc.querySelector('span').textContent='✓';
+        }
         if (simTime >= T(10,42,50) && S < 4) {
             const m=document.getElementById('mockClientMsg'); m.style.display='block';
-            m.className='demo-screen-msg demo-screen-msg-ok'; m.textContent='✓ Tous vos documents sont vérifiés !';
+            m.className='demo-screen-msg demo-screen-msg-ok'; m.textContent='✓ Tous les documents et vérifications sont OK !';
             window._demoMockupState = 4;
         }
 
@@ -916,12 +935,12 @@ function runDemo() {
     document.getElementById('demoScreenVendeur').style.display = 'none';
     document.getElementById('demoScreenClient').style.display = 'none';
     document.getElementById('demoScreenCerfa').style.display = 'none';
-    ['mockCoc','mockFacture','mockVin'].forEach(id => {
+    ['mockCoc','mockFacture','mockVin','mockCnit','mockEnergie'].forEach(id => {
         const e = document.getElementById(id);
         e.className = 'demo-screen-doc';
         e.querySelector('span').textContent = '○';
     });
-    ['mockCni','mockPermis','mockDomicile'].forEach(id => {
+    ['mockCni','mockPermis','mockDomicile','mockExpir','mockPermisAdapt','mockFormation','mockNomCoher'].forEach(id => {
         const e = document.getElementById(id);
         e.className = 'demo-screen-doc';
         e.querySelector('span').textContent = '○';
