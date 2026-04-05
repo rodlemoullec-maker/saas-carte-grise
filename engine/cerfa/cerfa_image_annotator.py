@@ -68,7 +68,7 @@ def annotate_cerfa_vn(
     # Certificat de vente — Je soussigné : (y=1022, x=95)
     if vendeur_nom:
         nom_court = vendeur_nom.split(" - ")[0] if " - " in vendeur_nom else vendeur_nom
-        draw.text((95, 1022), nom_court, fill=black, font=font_big)
+        draw.text((95, 1051), nom_court, fill=black, font=font_big)
 
     # Date de vente — un chiffre par case après "désignée ci-dessous le"
     # Cases: J1 J2 | M1 M2 | A1 A2 A3 A4
