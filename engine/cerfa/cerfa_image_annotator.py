@@ -61,13 +61,14 @@ def annotate_cerfa_vn(
     img = Image.open(image_path)
     draw = ImageDraw.Draw(img)
 
-    # Certificat de conformité — Je soussigné (y=482, x=120)
-    if vendeur_nom:
-        draw.text((120, 482), vendeur_nom, fill=black, font=font)
+    nom_court = vendeur_nom.split(" - ")[0] if " - " in vendeur_nom else vendeur_nom
 
-    # Certificat de vente — Je soussigné : (y=1022, x=95)
+    # Certificat de conformité — Je soussigné (y=487, x=112)
     if vendeur_nom:
-        nom_court = vendeur_nom.split(" - ")[0] if " - " in vendeur_nom else vendeur_nom
+        draw.text((112, 487), nom_court, fill=black, font=font)
+
+    # Certificat de vente — Je soussigné : (y=1047, x=95)
+    if vendeur_nom:
         draw.text((95, 1047), nom_court, fill=black, font=font_big)
 
     # Date de vente — un chiffre par case après "désignée ci-dessous le"
