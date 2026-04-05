@@ -1002,17 +1002,18 @@ ul { list-style: none; }
     font-family: 'SF Mono', 'Fira Code', monospace;
 }
 .demo-phase-timer {
-    margin-left: auto;
-    font-size: 0.82rem;
+    display: inline-block;
+    font-size: 0.78rem;
     font-weight: 700;
     color: #34d399;
     font-family: 'SF Mono', 'Fira Code', monospace;
     letter-spacing: 0.05em;
     background: rgba(5,150,105,0.15);
-    padding: 2px 10px;
-    border-radius: 6px;
-    min-width: 48px;
+    padding: 1px 8px;
+    border-radius: 4px;
+    min-width: 40px;
     text-align: center;
+    margin-left: 8px;
 }
 .demo-timer {
     font-size: 0.82rem;
