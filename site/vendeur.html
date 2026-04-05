@@ -132,6 +132,88 @@ document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
     </div>
 </section>
 
+<!-- ═══════════════════════════ SIMULATION LIVE ══════════════════════════ -->
+<section class="section demo-live-section">
+    <div class="container">
+        <div class="section-header">
+            <h2>Voyez la différence en temps réel</h2>
+            <p class="subtitle">Un dossier vendeur non habilité — du dépôt au ZIP transmis à votre agent.</p>
+        </div>
+        <div class="demo-live fade-in">
+          <div class="demo-split">
+            <div class="demo-terminal">
+                <div class="demo-terminal-bar">
+                    <span class="demo-dot demo-dot-red"></span>
+                    <span class="demo-dot demo-dot-yellow"></span>
+                    <span class="demo-dot demo-dot-green"></span>
+                    <span class="demo-terminal-title">AutoDoc Pro — Dossier CG-2026-63241</span>
+                    <span class="demo-timer" id="demoTimer">0:00</span>
+                </div>
+                <div class="demo-terminal-body" id="demoTerminal"></div>
+            </div>
+            <div class="demo-mockup" id="demoMockup">
+                <div class="demo-screen" id="demoScreenVendeur" style="display:none;">
+                    <div class="demo-screen-bar"><span class="demo-screen-dot"></span><span class="demo-screen-title">Espace vendeur</span></div>
+                    <div class="demo-screen-body">
+                        <div class="demo-screen-header">Dossier CG-2026-63241</div>
+                        <div class="demo-screen-section">Documents véhicule</div>
+                        <div class="demo-screen-doc" id="mockCoc"><span class="demo-screen-pending">○</span> COC</div>
+                        <div class="demo-screen-doc" id="mockFacture"><span class="demo-screen-pending">○</span> Facture</div>
+                        <div class="demo-screen-section" style="margin-top:12px;">Vérifications</div>
+                        <div class="demo-screen-doc" id="mockVin"><span class="demo-screen-pending">○</span> VIN croisé COC ↔ facture</div>
+                        <div class="demo-screen-doc" id="mockCnit"><span class="demo-screen-pending">○</span> CNIT détecté (D.2.1)</div>
+                        <div class="demo-screen-msg" id="mockVendeurMsg" style="display:none;"></div>
+                    </div>
+                </div>
+                <div class="demo-screen demo-screen-mobile" id="demoScreenClient" style="display:none;">
+                    <div class="demo-screen-bar"><span class="demo-screen-dot"></span><span class="demo-screen-title">📱 Espace client — Moto Center</span></div>
+                    <div class="demo-screen-body">
+                        <div class="demo-screen-header">Vos documents</div>
+                        <div class="demo-screen-doc" id="mockCni"><span class="demo-screen-pending">○</span> Pièce d'identité</div>
+                        <div class="demo-screen-doc" id="mockPermis"><span class="demo-screen-pending">○</span> Permis de conduire</div>
+                        <div class="demo-screen-doc" id="mockDomicile"><span class="demo-screen-pending">○</span> Justificatif de domicile</div>
+                        <div class="demo-screen-section" style="margin-top:12px;">Mandats</div>
+                        <div class="demo-screen-doc" id="mockMandat1"><span class="demo-screen-pending">○</span> Mandat client → vendeur (13757)</div>
+                        <div class="demo-screen-doc" id="mockMandat2"><span class="demo-screen-pending">○</span> Mandat client → agent (13757)</div>
+                        <div class="demo-screen-msg" id="mockClientMsg" style="display:none;"></div>
+                    </div>
+                </div>
+                <div class="demo-screen" id="demoScreenZip" style="display:none;">
+                    <div class="demo-screen-bar"><span class="demo-screen-dot"></span><span class="demo-screen-title">Dossier complet — ZIP</span></div>
+                    <div class="demo-screen-body">
+                        <div class="demo-screen-header">Prêt pour votre agent</div>
+                        <div class="demo-screen-doc" id="zipCerfa"><span class="demo-screen-pending">○</span> Cerfa 13749 pré-rempli</div>
+                        <div class="demo-screen-doc" id="zipMandat1"><span class="demo-screen-pending">○</span> Mandat client → vendeur signé</div>
+                        <div class="demo-screen-doc" id="zipMandat2"><span class="demo-screen-pending">○</span> Mandat client → agent signé</div>
+                        <div class="demo-screen-doc" id="zipDocs"><span class="demo-screen-pending">○</span> Tous les documents vérifiés</div>
+                        <div class="demo-cerfa-stamp" id="zipStamp" style="display:none;">
+                            <div>🔏 Cachet numérique Moto Center</div>
+                            <div>✍️ Signature numérique enregistrée</div>
+                        </div>
+                        <div class="demo-screen-msg demo-screen-msg-ok" id="mockZipMsg" style="display:none;"></div>
+                    </div>
+                </div>
+                <div class="demo-mockup-placeholder" id="demoMockupPlaceholder">
+                    <div style="color:rgba(255,255,255,0.3);font-size:0.85rem;text-align:center;">
+                        <div style="font-size:2rem;margin-bottom:8px;">👁️</div>L'aperçu apparaît<br>pendant la simulation
+                    </div>
+                </div>
+            </div>
+          </div>
+          <div style="text-align:center;margin-top:16px;display:flex;gap:8px;justify-content:center;">
+              <button onclick="togglePause()" id="demoPauseBtn" class="btn btn-outline" style="font-size:0.8rem;padding:8px 20px;">
+                  <svg id="demoPauseIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                  <span id="demoPauseLabel">Pause</span>
+              </button>
+              <button onclick="runDemo()" class="btn btn-outline" style="font-size:0.8rem;padding:8px 20px;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                  Relancer
+              </button>
+          </div>
+        </div>
+    </div>
+</section>
+
 <!-- ═══════════════════════════════════ LE PROBL&Egrave;ME ═══════════════════════ -->
 <section class="section section-alt">
     <div class="container">
@@ -462,6 +544,94 @@ const observer = new IntersectionObserver((entries) => {
     });
 }, { threshold: 0.1 });
 document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+// ─── Simulation vendeur non habilité ───
+const SIM_START=10*3600+32*60,SIM_END=10*3600+46*60,SIM_DURATION=SIM_END-SIM_START,REAL_DURATION=45000;
+function simTimeToReal(s){return((s-SIM_START)/SIM_DURATION)*REAL_DURATION;}
+const T=(h,m,s)=>h*3600+m*60+(s||0);
+const demoPhases=[{label:'Docs vendeur',start:T(10,32,0),end:T(10,33,20)},{label:'SMS+client',start:T(10,34,0),end:T(10,37,0)},{label:'Correction+mandats',start:T(10,41,0),end:T(10,43,30)},{label:'ZIP agent',start:T(10,44,0),end:T(10,45,0)}];
+const demoLines=[
+{t:T(10,32,0),html:'<span class="demo-dim">── Documents vendeur</span> <span class="demo-phase-timer" data-phase="0"></span>',phase:0},
+{t:T(10,32,5),html:'<span class="demo-dim">▸</span> <span class="demo-highlight">Document reçu</span> <span class="demo-dim">— coc_honda_cb125r.pdf</span>'},
+{t:T(10,32,15),html:'<span class="demo-tag demo-tag-ocr">OCR</span> <span class="demo-check">✓</span> 847 caractères <span class="demo-dim">— confiance 94%</span>'},
+{t:T(10,32,22),html:'<span class="demo-tag demo-tag-extract">IA</span> <span class="demo-check">✓</span> HONDA CB125R · VIN : <span class="demo-highlight">JMZKECW105SJ08739</span> · 11 kW'},
+{t:T(10,32,32),html:'<span class="demo-tag demo-tag-extract">IA</span> <span class="demo-check">✓</span> CNIT : <span class="demo-highlight">MH01-01-001-0</span> <span class="demo-dim">— champ D.2.1</span>'},
+{t:T(10,33,0),html:'<span class="demo-dim">▸</span> <span class="demo-highlight">Document reçu</span> <span class="demo-dim">— facture_honda.pdf</span>'},
+{t:T(10,33,10),html:'<span class="demo-tag demo-tag-check">VERIF</span> <span class="demo-check">✓</span> VIN cohérent COC ↔ facture'},
+{t:T(10,33,20),html:''},
+{t:T(10,34,0),html:'<span class="demo-dim">── SMS + dépôt client</span> <span class="demo-phase-timer" data-phase="1"></span>',phase:1},
+{t:T(10,34,5),html:'<span class="demo-tag demo-tag-ocr">SMS</span> Lien envoyé au 06 12 •• •• 78'},
+{t:T(10,34,15),html:'<span class="demo-wait" data-wait-start="10:34:15" data-wait-end="10:43:30">⏳ En attente du client...</span>',wait:true},
+{t:T(10,36,0),html:'<span class="demo-dim">▸</span> <span class="demo-highlight">Client a déposé</span> <span class="demo-dim">— cni_martin.jpg</span>'},
+{t:T(10,36,10),html:'<span class="demo-tag demo-tag-extract">IA</span> <span class="demo-check">✓</span> CNI · MARTIN Jean'},
+{t:T(10,36,18),html:'<span class="demo-tag demo-tag-error">BLOQUÉ</span> <span class="demo-error">✗ CNI expirée le 03/02/2026</span>'},
+{t:T(10,36,25),html:'<span class="demo-tag demo-tag-error">→</span> <span class="demo-error">Le client est invité à déposer une pièce d\'identité valide</span>'},
+{t:T(10,37,0),html:''},
+{t:T(10,41,0),html:'<span class="demo-dim">── Correction + mandats</span> <span class="demo-phase-timer" data-phase="2"></span>',phase:2},
+{t:T(10,41,10),html:'<span class="demo-dim">▸</span> <span class="demo-highlight">Client a déposé</span> <span class="demo-dim">— passeport_martin.jpg</span>'},
+{t:T(10,41,20),html:'<span class="demo-tag demo-tag-extract">IA</span> <span class="demo-check">✓</span> Passeport · MARTIN Jean · Expire 2034 <span class="demo-check">✓</span>'},
+{t:T(10,41,40),html:'<span class="demo-dim">▸</span> <span class="demo-highlight">Client a déposé</span> <span class="demo-dim">— permis_martin.jpg</span>'},
+{t:T(10,41,50),html:'<span class="demo-tag demo-tag-check">VERIF</span> <span class="demo-check">✓</span> Permis B · L3e-A1E ≤ 11 kW — adapté <span class="demo-check">✓</span>'},
+{t:T(10,42,0),html:'<span class="demo-tag demo-tag-check">VERIF</span> <span class="demo-check">✓</span> Formation 7h — <span class="demo-highlight">attestation détectée</span> <span class="demo-check">✓</span>'},
+{t:T(10,42,20),html:'<span class="demo-dim">▸</span> <span class="demo-highlight">Client a déposé</span> <span class="demo-dim">— quittance_edf.pdf</span>'},
+{t:T(10,42,30),html:'<span class="demo-tag demo-tag-check">VERIF</span> <span class="demo-check">✓</span> Domicile · Nom = passeport <span class="demo-check">✓</span>'},
+{t:T(10,42,40),html:''},
+{t:T(10,42,45),html:'<span class="demo-tag demo-tag-cerfa">MANDAT</span> Génération des 2 mandats Cerfa 13757...'},
+{t:T(10,42,55),html:'<span class="demo-tag demo-tag-cerfa">MANDAT</span> <span class="demo-check">✓</span> Mandat client → Moto Center'},
+{t:T(10,43,5),html:'<span class="demo-tag demo-tag-cerfa">MANDAT</span> <span class="demo-check">✓</span> Mandat client → Garage Central SIV'},
+{t:T(10,43,15),html:'<span class="demo-tag demo-tag-ocr">OTP</span> Code envoyé → <span class="demo-highlight">mandats signés numériquement</span> <span class="demo-check">✓</span>'},
+{t:T(10,43,30),html:''},
+{t:T(10,44,0),html:'<span class="demo-dim">── ZIP pour agent</span> <span class="demo-phase-timer" data-phase="3"></span>',phase:3},
+{t:T(10,44,10),html:'<span class="demo-tag demo-tag-cerfa">CERFA</span> Cerfa 13749 pré-rempli · cachet + signature numériques'},
+{t:T(10,44,20),html:'<span class="demo-tag demo-tag-done">ZIP</span> <span class="demo-highlight" style="color:#34d399;">Dossier complet — Cerfa + mandats signés + documents vérifiés</span>'},
+{t:T(10,44,40),html:'<span class="demo-tag demo-tag-done">→</span> <span class="demo-highlight" style="color:#34d399;">Transmettez le ZIP à Garage Central SIV pour contrôle et soumission.</span>'},
+];
+let demoTimeout=[],demoTimerRAF=null,demoPaused=false,demoPauseTime=0,demoStartTime=0,demoPausedTotal=0,updateDemoTimer;
+function togglePause(){const btn=document.getElementById('demoPauseLabel'),icon=document.getElementById('demoPauseIcon');if(!demoPaused){demoPaused=true;demoPauseTime=performance.now();btn.textContent='Reprendre';icon.innerHTML='<polygon points="5 3 19 12 5 21 5 3"/>';if(demoTimerRAF)cancelAnimationFrame(demoTimerRAF);}else{demoPaused=false;demoPausedTotal+=performance.now()-demoPauseTime;btn.textContent='Pause';icon.innerHTML='<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';demoTimerRAF=requestAnimationFrame(updateDemoTimer);}}
+function runDemo(){
+const el=document.getElementById('demoTerminal'),timerEl=document.getElementById('demoTimer');
+el.innerHTML='';demoTimeout.forEach(t=>clearTimeout(t));demoTimeout=[];if(demoTimerRAF)cancelAnimationFrame(demoTimerRAF);
+demoPaused=false;demoPausedTotal=0;document.getElementById('demoPauseLabel').textContent='Pause';
+window._demoNextLine=0;window._demoCursorAdded=false;window._demoMockupState=0;
+document.getElementById('demoMockupPlaceholder').style.display='flex';
+['demoScreenVendeur','demoScreenClient','demoScreenZip'].forEach(id=>document.getElementById(id).style.display='none');
+['mockCoc','mockFacture','mockVin','mockCnit'].forEach(id=>{const e=document.getElementById(id);e.className='demo-screen-doc';e.querySelector('span').textContent='○';});
+['mockCni','mockPermis','mockDomicile','mockMandat1','mockMandat2'].forEach(id=>{const e=document.getElementById(id);e.className='demo-screen-doc';e.querySelector('span').textContent='○';});
+['zipCerfa','zipMandat1','zipMandat2','zipDocs'].forEach(id=>{const e=document.getElementById(id);e.className='demo-screen-doc';e.querySelector('span').textContent='○';});
+['mockVendeurMsg','mockClientMsg','mockZipMsg','zipStamp'].forEach(id=>document.getElementById(id).style.display='none');
+demoStartTime=performance.now();
+updateDemoTimer=function(){if(demoPaused)return;const elapsed=performance.now()-demoStartTime-demoPausedTotal,progress=Math.min(elapsed/REAL_DURATION,1),simTime=SIM_START+progress*SIM_DURATION;
+while(window._demoNextLine<demoLines.length){const line=demoLines[window._demoNextLine];if(simTime<line.t)break;if(line.html==='')el.innerHTML+='<div style="height:6px;"></div>';else{const div=document.createElement('div');div.className='demo-line';div.innerHTML=line.html;el.appendChild(div);}el.scrollTop=el.scrollHeight;window._demoNextLine++;}
+if(progress>=1&&!window._demoCursorAdded){el.appendChild(Object.assign(document.createElement('span'),{className:'demo-cursor'}));window._demoCursorAdded=true;}
+const S=window._demoMockupState;
+if(simTime>=T(10,32,0)&&S<1){document.getElementById('demoMockupPlaceholder').style.display='none';document.getElementById('demoScreenVendeur').style.display='block';window._demoMockupState=1;}
+if(simTime>=T(10,32,22)){const e=document.getElementById('mockCoc');e.className='demo-screen-doc demo-screen-ok';e.querySelector('span').textContent='✓';}
+if(simTime>=T(10,32,32)){const e=document.getElementById('mockCnit');e.className='demo-screen-doc demo-screen-ok';e.querySelector('span').textContent='✓';}
+if(simTime>=T(10,33,10)){document.getElementById('mockFacture').className='demo-screen-doc demo-screen-ok';document.getElementById('mockFacture').querySelector('span').textContent='✓';document.getElementById('mockVin').className='demo-screen-doc demo-screen-ok';document.getElementById('mockVin').querySelector('span').textContent='✓';}
+if(simTime>=T(10,33,15)&&S<2){const m=document.getElementById('mockVendeurMsg');m.style.display='block';m.className='demo-screen-msg demo-screen-msg-ok';m.textContent='✓ Documents vendeur vérifiés — envoyez le lien SMS';window._demoMockupState=2;}
+if(simTime>=T(10,34,0)&&S<3){document.getElementById('demoScreenVendeur').style.display='none';document.getElementById('demoScreenClient').style.display='block';window._demoMockupState=3;}
+if(simTime>=T(10,36,10)&&simTime<T(10,36,18)){document.getElementById('mockCni').className='demo-screen-doc demo-screen-ok';document.getElementById('mockCni').querySelector('span').textContent='✓';}
+if(simTime>=T(10,36,18)){document.getElementById('mockCni').className='demo-screen-doc demo-screen-err';document.getElementById('mockCni').querySelector('span').textContent='✗';const m=document.getElementById('mockClientMsg');m.style.display='block';m.className='demo-screen-msg demo-screen-msg-err';m.textContent='CNI expirée — déposez une pièce valide';}
+if(simTime>=T(10,41,20)){document.getElementById('mockCni').className='demo-screen-doc demo-screen-ok';document.getElementById('mockCni').querySelector('span').textContent='✓';document.getElementById('mockClientMsg').style.display='none';}
+if(simTime>=T(10,41,50)){document.getElementById('mockPermis').className='demo-screen-doc demo-screen-ok';document.getElementById('mockPermis').querySelector('span').textContent='✓';}
+if(simTime>=T(10,42,30)){document.getElementById('mockDomicile').className='demo-screen-doc demo-screen-ok';document.getElementById('mockDomicile').querySelector('span').textContent='✓';}
+if(simTime>=T(10,42,55)){document.getElementById('mockMandat1').className='demo-screen-doc demo-screen-ok';document.getElementById('mockMandat1').querySelector('span').textContent='✓';}
+if(simTime>=T(10,43,5)){document.getElementById('mockMandat2').className='demo-screen-doc demo-screen-ok';document.getElementById('mockMandat2').querySelector('span').textContent='✓';}
+if(simTime>=T(10,43,15)&&S<4){const m=document.getElementById('mockClientMsg');m.style.display='block';m.className='demo-screen-msg demo-screen-msg-ok';m.textContent='✓ Documents + mandats signés !';window._demoMockupState=4;}
+if(simTime>=T(10,44,0)&&S<5){document.getElementById('demoScreenClient').style.display='none';document.getElementById('demoScreenZip').style.display='block';window._demoMockupState=5;}
+if(simTime>=T(10,44,10)){document.getElementById('zipCerfa').className='demo-screen-doc demo-screen-ok';document.getElementById('zipCerfa').querySelector('span').textContent='✓';}
+if(simTime>=T(10,44,12)){document.getElementById('zipMandat1').className='demo-screen-doc demo-screen-ok';document.getElementById('zipMandat1').querySelector('span').textContent='✓';}
+if(simTime>=T(10,44,14)){document.getElementById('zipMandat2').className='demo-screen-doc demo-screen-ok';document.getElementById('zipMandat2').querySelector('span').textContent='✓';}
+if(simTime>=T(10,44,16)){document.getElementById('zipDocs').className='demo-screen-doc demo-screen-ok';document.getElementById('zipDocs').querySelector('span').textContent='✓';}
+if(simTime>=T(10,44,18)){document.getElementById('zipStamp').style.display='block';}
+if(simTime>=T(10,44,30)&&S<6){const m=document.getElementById('mockZipMsg');m.style.display='block';m.textContent='Transmettez le ZIP à Garage Central SIV';window._demoMockupState=6;}
+demoPhases.forEach((phase,i)=>{const pe=el.querySelector(`[data-phase="${i}"]`);if(!pe)return;if(simTime<phase.start)pe.textContent='';else if(simTime<=phase.end){const d=simTime-phase.start;pe.textContent=`${Math.floor(d/60)}:${String(Math.floor(d%60)).padStart(2,'0')}`;pe.style.color='#34d399';pe.style.background='rgba(5,150,105,0.15)';}else{const d=phase.end-phase.start;pe.textContent=`✓ ${Math.floor(d/60)}:${String(Math.floor(d%60)).padStart(2,'0')}`;pe.style.color='rgba(255,255,255,0.4)';pe.style.background='rgba(255,255,255,0.06)';}});
+el.querySelectorAll('.demo-wait').forEach(we=>{const ws=we.dataset.waitStart.split(':').map(Number),wst=ws[0]*3600+ws[1]*60+(ws[2]||0),wet=we.dataset.waitEnd.split(':').map(Number),wen=wet[0]*3600+wet[1]*60+(wet[2]||0);if(simTime>=wst&&simTime<wen){const d=simTime-wst;we.innerHTML=`⏳ En attente du client... <span class="demo-wait-timer">${Math.floor(d/60)}:${String(Math.floor(d%60)).padStart(2,'0')}</span>`;}else if(simTime>=wen){const d=wen-wst;we.innerHTML=`⏳ Attente client — <span class="demo-wait-timer demo-wait-done">${Math.floor(d/60)}:${String(Math.floor(d%60)).padStart(2,'0')}</span>`;}});
+const te=simTime-SIM_START;timerEl.textContent=`${Math.floor(te/60)}:${String(Math.floor(te%60)).padStart(2,'0')}`;
+if(progress<1)demoTimerRAF=requestAnimationFrame(updateDemoTimer);};
+demoTimerRAF=requestAnimationFrame(updateDemoTimer);}
+const demoObs=new IntersectionObserver(e=>{e.forEach(en=>{if(en.isIntersecting){runDemo();demoObs.unobserve(en.target);}});},{threshold:0.3});
+const demoEl=document.querySelector('.demo-live');if(demoEl)demoObs.observe(demoEl);
 </script>
 
 </body>
