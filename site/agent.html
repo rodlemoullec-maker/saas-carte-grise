@@ -129,6 +129,66 @@ document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
     </div>
 </section>
 
+<!-- ═══════════════════════════ SIMULATION LIVE ══════════════════════════ -->
+<section class="section demo-live-section">
+    <div class="container">
+        <div class="section-header">
+            <h2>Voyez la différence en temps réel</h2>
+            <p class="subtitle">Un client arrive via votre URL permanente — VO entre particuliers avec hébergement.</p>
+        </div>
+        <div class="demo-live fade-in">
+          <div class="demo-split">
+            <div class="demo-terminal">
+                <div class="demo-terminal-bar">
+                    <span class="demo-dot demo-dot-red"></span><span class="demo-dot demo-dot-yellow"></span><span class="demo-dot demo-dot-green"></span>
+                    <span class="demo-terminal-title">AutoDoc Pro — Dossier CG-2026-91457</span>
+                    <span class="demo-timer" id="demoTimer">0:00</span>
+                </div>
+                <div class="demo-terminal-body" id="demoTerminal"></div>
+            </div>
+            <div class="demo-mockup" id="demoMockup">
+                <div class="demo-screen demo-screen-mobile" id="demoScreenClient" style="display:none;">
+                    <div class="demo-screen-bar"><span class="demo-screen-dot"></span><span class="demo-screen-title">📱 Client — Garage Central SIV</span></div>
+                    <div class="demo-screen-body">
+                        <div class="demo-screen-header">Vos documents</div>
+                        <div class="demo-screen-section">Documents véhicule</div>
+                        <div class="demo-screen-doc" id="mockCg"><span class="demo-screen-pending">○</span> CG barrée</div>
+                        <div class="demo-screen-doc" id="mockCession"><span class="demo-screen-pending">○</span> Certificat de cession</div>
+                        <div class="demo-screen-section" style="margin-top:12px;">Identité</div>
+                        <div class="demo-screen-doc" id="mockCni"><span class="demo-screen-pending">○</span> Pièce d'identité</div>
+                        <div class="demo-screen-doc" id="mockPermis"><span class="demo-screen-pending">○</span> Permis de conduire</div>
+                        <div class="demo-screen-doc" id="mockDomicile"><span class="demo-screen-pending">○</span> Justificatif de domicile</div>
+                        <div class="demo-screen-section" id="mockHebergSection" style="margin-top:12px;display:none;">Hébergement (détecté auto)</div>
+                        <div class="demo-screen-doc" id="mockAttest" style="display:none;"><span class="demo-screen-pending">○</span> Attestation d'hébergement</div>
+                        <div class="demo-screen-doc" id="mockCniHeb" style="display:none;"><span class="demo-screen-pending">○</span> CNI de l'hébergeant</div>
+                        <div class="demo-screen-msg" id="mockClientMsg" style="display:none;"></div>
+                    </div>
+                </div>
+                <div class="demo-screen" id="demoScreenCerfa" style="display:none;">
+                    <div class="demo-screen-bar"><span class="demo-screen-dot"></span><span class="demo-screen-title">Cerfa 13750 — VO</span></div>
+                    <div class="demo-screen-body demo-screen-cerfa">
+                        <div class="demo-cerfa-field"><span class="demo-cerfa-label">A — Immatriculation</span><span class="demo-cerfa-val" id="cerfaImmat"></span></div>
+                        <div class="demo-cerfa-field"><span class="demo-cerfa-label">D.1 — Marque</span><span class="demo-cerfa-val" id="cerfaMarque"></span></div>
+                        <div class="demo-cerfa-field"><span class="demo-cerfa-label">E — VIN</span><span class="demo-cerfa-val" id="cerfaVin"></span></div>
+                        <div class="demo-cerfa-field"><span class="demo-cerfa-label">C.1 — Titulaire</span><span class="demo-cerfa-val" id="cerfaTit"></span></div>
+                        <div class="demo-cerfa-field"><span class="demo-cerfa-label">C.3 — Adresse</span><span class="demo-cerfa-val" id="cerfaAddr"></span></div>
+                        <div class="demo-cerfa-stamp" id="cerfaStamp" style="display:none;"><div>🔏 Cachet numérique Garage Central SIV</div><div>✍️ Signature numérique enregistrée</div></div>
+                        <div class="demo-screen-msg demo-screen-msg-ok" id="mockCerfaMsg" style="display:none;"></div>
+                    </div>
+                </div>
+                <div class="demo-mockup-placeholder" id="demoMockupPlaceholder">
+                    <div style="color:rgba(255,255,255,0.3);font-size:0.85rem;text-align:center;"><div style="font-size:2rem;margin-bottom:8px;">👁️</div>L'aperçu apparaît<br>pendant la simulation</div>
+                </div>
+            </div>
+          </div>
+          <div style="text-align:center;margin-top:16px;display:flex;gap:8px;justify-content:center;">
+              <button onclick="togglePause()" class="btn btn-outline" style="font-size:0.8rem;padding:8px 20px;"><svg id="demoPauseIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg><span id="demoPauseLabel">Pause</span></button>
+              <button onclick="runDemo()" class="btn btn-outline" style="font-size:0.8rem;padding:8px 20px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg> Relancer</button>
+          </div>
+        </div>
+    </div>
+</section>
+
 <!-- ═══════════════════════════════════ LE PROBLÈME ═══════════════════════ -->
 <section class="section section-alt">
     <div class="container">
@@ -504,6 +564,89 @@ const observer = new IntersectionObserver((entries) => {
     });
 }, { threshold: 0.1 });
 document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+// ─── Simulation agent SIV ───
+const SIM_START=10*3600+32*60,SIM_END=10*3600+44*60,SIM_DURATION=SIM_END-SIM_START,REAL_DURATION=45000;
+const T=(h,m,s)=>h*3600+m*60+(s||0);
+const demoPhases=[{label:'Client dépose véhicule',start:T(10,32,0),end:T(10,34,0)},{label:'Client dépose identité',start:T(10,34,10),end:T(10,36,30)},{label:'Hébergement détecté',start:T(10,37,0),end:T(10,39,0)},{label:'Cerfa généré',start:T(10,42,0),end:T(10,43,0)}];
+const demoLines=[
+{t:T(10,32,0),html:'<span class="demo-dim">── Client via URL permanente</span> <span class="demo-phase-timer" data-phase="0"></span>',phase:0},
+{t:T(10,32,5),html:'<span class="demo-dim">▸</span> <span class="demo-highlight">Client a déposé</span> <span class="demo-dim">— cg_barree_leclerc.pdf</span>'},
+{t:T(10,32,15),html:'<span class="demo-tag demo-tag-ocr">OCR</span> <span class="demo-check">✓</span> CG barrée · <span class="demo-highlight">AB-123-CD</span> · VIN : VF3LC9HZXJS67890'},
+{t:T(10,32,25),html:'<span class="demo-tag demo-tag-check">VERIF</span> <span class="demo-check">✓</span> CG barrée — date de vente + signature présentes'},
+{t:T(10,33,0),html:'<span class="demo-dim">▸</span> <span class="demo-highlight">Client a déposé</span> <span class="demo-dim">— cession_signee.pdf</span>'},
+{t:T(10,33,10),html:'<span class="demo-tag demo-tag-extract">IA</span> <span class="demo-check">✓</span> Cession 15776 · vendeur BERNARD → acheteur LECLERC'},
+{t:T(10,33,20),html:'<span class="demo-tag demo-tag-check">VERIF</span> <span class="demo-check">✓</span> VIN cession = VIN CG barrée <span class="demo-check">✓</span>'},
+{t:T(10,33,30),html:'<span class="demo-tag demo-tag-check">VERIF</span> <span class="demo-check">✓</span> Signatures vendeur + acheteur présentes <span class="demo-check">✓</span>'},
+{t:T(10,34,0),html:''},
+{t:T(10,34,10),html:'<span class="demo-dim">── Identité client</span> <span class="demo-phase-timer" data-phase="1"></span>',phase:1},
+{t:T(10,34,20),html:'<span class="demo-dim">▸</span> <span class="demo-highlight">Client a déposé</span> <span class="demo-dim">— cni_leclerc_recto.jpg</span>'},
+{t:T(10,34,30),html:'<span class="demo-tag demo-tag-extract">IA</span> <span class="demo-check">✓</span> CNI · LECLERC Sophie · Expire le 18/04/2031 <span class="demo-check">✓</span>'},
+{t:T(10,35,0),html:'<span class="demo-dim">▸</span> <span class="demo-highlight">Client a déposé</span> <span class="demo-dim">— permis_leclerc.jpg</span>'},
+{t:T(10,35,10),html:'<span class="demo-tag demo-tag-check">VERIF</span> <span class="demo-check">✓</span> Permis B — véhicule VP M1 <span class="demo-check">✓</span>'},
+{t:T(10,35,30),html:'<span class="demo-dim">▸</span> <span class="demo-highlight">Client a déposé</span> <span class="demo-dim">— quittance_engie.pdf</span>'},
+{t:T(10,35,40),html:'<span class="demo-tag demo-tag-check">VERIF</span> <span class="demo-check">✓</span> Domicile · Daté du 10/01/2026 · Moins de 6 mois <span class="demo-check">✓</span>'},
+{t:T(10,36,0),html:'<span class="demo-tag demo-tag-check">VERIF</span> Nom CNI vs nom domicile...'},
+{t:T(10,36,10),html:'<span class="demo-tag demo-tag-error">ALERTE</span> <span class="demo-error">Nom CNI : LECLERC · Nom domicile : MOREAU — noms différents</span>'},
+{t:T(10,36,20),html:'<span class="demo-tag demo-tag-error">→</span> <span class="demo-highlight" style="color:#fbbf24;">Hébergement détecté — attestation + CNI hébergeant demandées automatiquement</span>'},
+{t:T(10,36,30),html:''},
+{t:T(10,37,0),html:'<span class="demo-dim">── Hébergement</span> <span class="demo-phase-timer" data-phase="2"></span>',phase:2},
+{t:T(10,37,10),html:'<span class="demo-dim">▸</span> <span class="demo-highlight">Client a déposé</span> <span class="demo-dim">— attestation_hebergement.pdf</span>'},
+{t:T(10,37,20),html:'<span class="demo-tag demo-tag-extract">IA</span> <span class="demo-check">✓</span> Attestation · Hébergeant : MOREAU Paul · Hébergée : LECLERC Sophie'},
+{t:T(10,37,40),html:'<span class="demo-dim">▸</span> <span class="demo-highlight">Client a déposé</span> <span class="demo-dim">— cni_moreau.jpg</span>'},
+{t:T(10,37,50),html:'<span class="demo-tag demo-tag-check">VERIF</span> <span class="demo-check">✓</span> CNI hébergeant · MOREAU Paul · Non expirée <span class="demo-check">✓</span>'},
+{t:T(10,38,0),html:'<span class="demo-tag demo-tag-check">VERIF</span> <span class="demo-check">✓</span> Nom hébergeant = nom domicile (MOREAU) <span class="demo-check">✓</span>'},
+{t:T(10,38,10),html:'<span class="demo-tag demo-tag-done">OK</span> <span class="demo-check">✓</span> Hébergement validé — chaîne complète'},
+{t:T(10,39,0),html:''},
+{t:T(10,42,0),html:'<span class="demo-dim">── Cerfa</span> <span class="demo-phase-timer" data-phase="3"></span>',phase:3},
+{t:T(10,42,10),html:'<span class="demo-tag demo-tag-cerfa">CERFA</span> Génération Cerfa 13750 (VO)...'},
+{t:T(10,42,20),html:'<span class="demo-tag demo-tag-cerfa">CERFA</span> <span class="demo-check">✓</span> Cerfa pré-rempli · cachet numérique Garage Central SIV + signature apposés'},
+{t:T(10,42,40),html:''},
+{t:T(10,42,50),html:'<span class="demo-tag demo-tag-done">PRÊT</span> <span class="demo-highlight" style="color:#34d399;">Dossier complet — hébergement validé — contrôlez, téléchargez et soumettez au SIV.</span>'},
+];
+let demoTimeout=[],demoTimerRAF=null,demoPaused=false,demoPauseTime=0,demoStartTime=0,demoPausedTotal=0,updateDemoTimer;
+function togglePause(){const btn=document.getElementById('demoPauseLabel'),icon=document.getElementById('demoPauseIcon');if(!demoPaused){demoPaused=true;demoPauseTime=performance.now();btn.textContent='Reprendre';icon.innerHTML='<polygon points="5 3 19 12 5 21 5 3"/>';if(demoTimerRAF)cancelAnimationFrame(demoTimerRAF);}else{demoPaused=false;demoPausedTotal+=performance.now()-demoPauseTime;btn.textContent='Pause';icon.innerHTML='<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';demoTimerRAF=requestAnimationFrame(updateDemoTimer);}}
+function runDemo(){
+const el=document.getElementById('demoTerminal'),timerEl=document.getElementById('demoTimer');
+el.innerHTML='';demoTimeout.forEach(t=>clearTimeout(t));demoTimeout=[];if(demoTimerRAF)cancelAnimationFrame(demoTimerRAF);
+demoPaused=false;demoPausedTotal=0;document.getElementById('demoPauseLabel').textContent='Pause';
+window._demoNextLine=0;window._demoCursorAdded=false;window._demoMockupState=0;
+document.getElementById('demoMockupPlaceholder').style.display='flex';
+['demoScreenClient','demoScreenCerfa'].forEach(id=>document.getElementById(id).style.display='none');
+['mockCg','mockCession','mockCni','mockPermis','mockDomicile'].forEach(id=>{const e=document.getElementById(id);e.className='demo-screen-doc';e.querySelector('span').textContent='○';});
+['mockAttest','mockCniHeb'].forEach(id=>{const e=document.getElementById(id);e.style.display='none';e.className='demo-screen-doc';e.querySelector('span').textContent='○';});
+document.getElementById('mockHebergSection').style.display='none';
+['mockClientMsg','mockCerfaMsg','cerfaStamp'].forEach(id=>document.getElementById(id).style.display='none');
+['cerfaImmat','cerfaMarque','cerfaVin','cerfaTit','cerfaAddr'].forEach(id=>document.getElementById(id).textContent='');
+demoStartTime=performance.now();
+updateDemoTimer=function(){if(demoPaused)return;const elapsed=performance.now()-demoStartTime-demoPausedTotal,progress=Math.min(elapsed/REAL_DURATION,1),simTime=SIM_START+progress*SIM_DURATION;
+while(window._demoNextLine<demoLines.length){const line=demoLines[window._demoNextLine];if(simTime<line.t)break;if(line.html==='')el.innerHTML+='<div style="height:6px;"></div>';else{const div=document.createElement('div');div.className='demo-line';div.innerHTML=line.html;el.appendChild(div);}el.scrollTop=el.scrollHeight;window._demoNextLine++;}
+if(progress>=1&&!window._demoCursorAdded){el.appendChild(Object.assign(document.createElement('span'),{className:'demo-cursor'}));window._demoCursorAdded=true;}
+const S=window._demoMockupState;
+if(simTime>=T(10,32,0)&&S<1){document.getElementById('demoMockupPlaceholder').style.display='none';document.getElementById('demoScreenClient').style.display='block';window._demoMockupState=1;}
+if(simTime>=T(10,32,25)){const e=document.getElementById('mockCg');e.className='demo-screen-doc demo-screen-ok';e.querySelector('span').textContent='✓';}
+if(simTime>=T(10,33,20)){const e=document.getElementById('mockCession');e.className='demo-screen-doc demo-screen-ok';e.querySelector('span').textContent='✓';}
+if(simTime>=T(10,34,30)){const e=document.getElementById('mockCni');e.className='demo-screen-doc demo-screen-ok';e.querySelector('span').textContent='✓';}
+if(simTime>=T(10,35,10)){const e=document.getElementById('mockPermis');e.className='demo-screen-doc demo-screen-ok';e.querySelector('span').textContent='✓';}
+if(simTime>=T(10,35,40)){const e=document.getElementById('mockDomicile');e.className='demo-screen-doc demo-screen-ok';e.querySelector('span').textContent='✓';}
+if(simTime>=T(10,36,20)&&S<2){document.getElementById('mockHebergSection').style.display='block';document.getElementById('mockAttest').style.display='block';document.getElementById('mockCniHeb').style.display='block';const m=document.getElementById('mockClientMsg');m.style.display='block';m.className='demo-screen-msg demo-screen-msg-err';m.textContent='Hébergement détecté — documents supplémentaires requis';window._demoMockupState=2;}
+if(simTime>=T(10,37,20)){const e=document.getElementById('mockAttest');e.className='demo-screen-doc demo-screen-ok';e.querySelector('span').textContent='✓';}
+if(simTime>=T(10,37,50)){const e=document.getElementById('mockCniHeb');e.className='demo-screen-doc demo-screen-ok';e.querySelector('span').textContent='✓';}
+if(simTime>=T(10,38,10)&&S<3){const m=document.getElementById('mockClientMsg');m.style.display='block';m.className='demo-screen-msg demo-screen-msg-ok';m.textContent='✓ Tous les documents vérifiés — hébergement validé !';window._demoMockupState=3;}
+if(simTime>=T(10,42,0)&&S<4){document.getElementById('demoScreenClient').style.display='none';document.getElementById('demoScreenCerfa').style.display='block';window._demoMockupState=4;}
+if(simTime>=T(10,42,5))document.getElementById('cerfaImmat').textContent='AB-123-CD';
+if(simTime>=T(10,42,8))document.getElementById('cerfaMarque').textContent='PEUGEOT';
+if(simTime>=T(10,42,11))document.getElementById('cerfaVin').textContent='VF3LC9HZXJS67890';
+if(simTime>=T(10,42,14))document.getElementById('cerfaTit').textContent='LECLERC Sophie';
+if(simTime>=T(10,42,17))document.getElementById('cerfaAddr').textContent='Chez MOREAU Paul, 8 rue Voltaire, 93100 Montreuil';
+if(simTime>=T(10,42,20))document.getElementById('cerfaStamp').style.display='block';
+if(simTime>=T(10,42,40)&&S<5){const m=document.getElementById('mockCerfaMsg');m.style.display='block';m.textContent='Dossier complet — contrôlez, téléchargez et soumettez au SIV.';window._demoMockupState=5;}
+demoPhases.forEach((phase,i)=>{const pe=el.querySelector(`[data-phase="${i}"]`);if(!pe)return;if(simTime<phase.start)pe.textContent='';else if(simTime<=phase.end){const d=simTime-phase.start;pe.textContent=`${Math.floor(d/60)}:${String(Math.floor(d%60)).padStart(2,'0')}`;pe.style.color='#34d399';pe.style.background='rgba(5,150,105,0.15)';}else{const d=phase.end-phase.start;pe.textContent=`✓ ${Math.floor(d/60)}:${String(Math.floor(d%60)).padStart(2,'0')}`;pe.style.color='rgba(255,255,255,0.4)';pe.style.background='rgba(255,255,255,0.06)';}});
+const te=simTime-SIM_START;timerEl.textContent=`${Math.floor(te/60)}:${String(Math.floor(te%60)).padStart(2,'0')}`;
+if(progress<1)demoTimerRAF=requestAnimationFrame(updateDemoTimer);};
+demoTimerRAF=requestAnimationFrame(updateDemoTimer);}
+const demoObs=new IntersectionObserver(e=>{e.forEach(en=>{if(en.isIntersecting){runDemo();demoObs.unobserve(en.target);}});},{threshold:0.3});
+const demoEl=document.querySelector('.demo-live');if(demoEl)demoObs.observe(demoEl);
 </script>
 
 </body>
