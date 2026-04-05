@@ -88,17 +88,17 @@ def annotate_cerfa_vn(
 
     # CACHET et SIGNATURE (sous le label, y=1020)
     if cachet_nom:
-        draw.rectangle([(660, 1042), (880, 1102)], outline=blue, width=2)
-        draw.text((668, 1045), cachet_nom, fill=blue, font=font_stamp)
+        draw.rectangle([(660, 1060), (880, 1120)], outline=blue, width=2)
+        draw.text((668, 1063), cachet_nom, fill=blue, font=font_stamp)
         if cachet_adresse:
-            draw.text((668, 1059), cachet_adresse, fill=blue, font=font_stamp)
+            draw.text((668, 1077), cachet_adresse, fill=blue, font=font_stamp)
         if cachet_siret:
-            draw.text((668, 1073), f"SIRET {cachet_siret}", fill=blue, font=font_stamp)
-        draw.text((668, 1087), "Signature :", fill=blue, font=font_stamp)
+            draw.text((668, 1091), f"SIRET {cachet_siret}", fill=blue, font=font_stamp)
+        draw.text((668, 1105), "Signature :", fill=blue, font=font_stamp)
         # Dessiner une signature manuscrite stylisée
         for offset in range(3):
-            draw.arc([(730+offset, 1082+offset), (850+offset, 1100+offset)], 0, 180, fill=blue, width=1)
-            draw.arc([(750+offset, 1084+offset), (820+offset, 1098+offset)], 180, 360, fill=blue, width=1)
+            draw.arc([(730+offset, 1100+offset), (850+offset, 1118+offset)], 0, 180, fill=blue, width=1)
+            draw.arc([(750+offset, 1102+offset), (820+offset, 1116+offset)], 180, 360, fill=blue, width=1)
 
     out = output_path or image_path
     img.save(out, "PNG")
