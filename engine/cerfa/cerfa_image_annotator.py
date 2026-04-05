@@ -70,13 +70,19 @@ def annotate_cerfa_vn(
         nom_court = vendeur_nom.split(" - ")[0] if " - " in vendeur_nom else vendeur_nom
         draw.text((220, 1000), nom_court, fill=blue, font=font_big)
 
-    # Date de vente (JJ/MM/AAAA) — cases y=1072
+    # Date de vente (JJ/MM/AAAA) — cases individuelles après "désignée ci-dessous le"
+    # 8 cases : J J / M M / A A A A
+    # Première case à x≈340, y≈1155, espacement ~22px entre cases, séparateur / ajoute ~8px
     if date_vente and "/" in date_vente:
         parts = date_vente.split("/")
         if len(parts) == 3:
-            draw.text((148, 1072), parts[0], fill=blue, font=font)
-            draw.text((228, 1072), parts[1], fill=blue, font=font)
-            draw.text((325, 1072), parts[2], fill=blue, font=font)
+            jj, mm, aaaa = parts[0].zfill(2), parts[1].zfill(2), parts[2].zfill(4)
+            date_chars = list(jj) + list(mm) + list(aaaa)
+            # Positions X de chaque case (mesurées sur l'image 200dpi)
+            case_x = [347, 367, 395, 415, 443, 463, 483, 503]
+            for i, ch in enumerate(date_chars):
+                if i < len(case_x):
+                    draw.text((case_x[i], 1161), ch, fill=blue, font=font)
 
     # USAGE — X dans OUI (case à droite du label USAGE)
     draw.text((1225, 1018), 'X', fill=blue, font=font_big)
