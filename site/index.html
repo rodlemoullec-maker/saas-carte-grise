@@ -159,7 +159,8 @@
         </div>
 
         <div class="demo-live fade-in">
-            <!-- Terminal-style simulation -->
+          <div class="demo-split">
+            <!-- Terminal gauche -->
             <div class="demo-terminal">
                 <div class="demo-terminal-bar">
                     <span class="demo-dot demo-dot-red"></span>
@@ -172,6 +173,72 @@
                     <!-- Les lignes s'ajoutent en JS -->
                 </div>
             </div>
+
+            <!-- Mockup droite -->
+            <div class="demo-mockup" id="demoMockup">
+                <!-- Phase 1 : espace vendeur -->
+                <div class="demo-screen" id="demoScreenVendeur" style="display:none;">
+                    <div class="demo-screen-bar">
+                        <span class="demo-screen-dot"></span>
+                        <span class="demo-screen-title">Espace vendeur</span>
+                    </div>
+                    <div class="demo-screen-body">
+                        <div class="demo-screen-header">Dossier CG-2026-48721</div>
+                        <div class="demo-screen-section">Documents véhicule</div>
+                        <div class="demo-screen-doc" id="mockCoc"><span class="demo-screen-pending">○</span> COC</div>
+                        <div class="demo-screen-doc" id="mockFacture"><span class="demo-screen-pending">○</span> Facture</div>
+                        <div class="demo-screen-section" style="margin-top:12px;">Vérifications</div>
+                        <div class="demo-screen-doc" id="mockVin"><span class="demo-screen-pending">○</span> VIN croisé COC ↔ facture</div>
+                        <div class="demo-screen-msg" id="mockVendeurMsg" style="display:none;"></div>
+                    </div>
+                </div>
+
+                <!-- Phase 2-3 : espace client mobile -->
+                <div class="demo-screen demo-screen-mobile" id="demoScreenClient" style="display:none;">
+                    <div class="demo-screen-bar">
+                        <span class="demo-screen-dot"></span>
+                        <span class="demo-screen-title">📱 Espace client — Moto Center</span>
+                    </div>
+                    <div class="demo-screen-body">
+                        <div class="demo-screen-header">Vos documents</div>
+                        <div class="demo-screen-doc" id="mockCni"><span class="demo-screen-pending">○</span> Pièce d'identité</div>
+                        <div class="demo-screen-doc" id="mockPermis"><span class="demo-screen-pending">○</span> Permis de conduire</div>
+                        <div class="demo-screen-doc" id="mockDomicile"><span class="demo-screen-pending">○</span> Justificatif de domicile</div>
+                        <div class="demo-screen-msg" id="mockClientMsg" style="display:none;"></div>
+                    </div>
+                </div>
+
+                <!-- Phase 4 : Cerfa -->
+                <div class="demo-screen" id="demoScreenCerfa" style="display:none;">
+                    <div class="demo-screen-bar">
+                        <span class="demo-screen-dot"></span>
+                        <span class="demo-screen-title">Cerfa 13749 — VN</span>
+                    </div>
+                    <div class="demo-screen-body demo-screen-cerfa">
+                        <div class="demo-cerfa-field"><span class="demo-cerfa-label">A — Immatriculation</span><span class="demo-cerfa-val" id="cerfaImmat"></span></div>
+                        <div class="demo-cerfa-field"><span class="demo-cerfa-label">D.1 — Marque</span><span class="demo-cerfa-val" id="cerfaMarque"></span></div>
+                        <div class="demo-cerfa-field"><span class="demo-cerfa-label">D.2.1 — CNIT</span><span class="demo-cerfa-val" id="cerfaCnit"></span></div>
+                        <div class="demo-cerfa-field"><span class="demo-cerfa-label">E — VIN</span><span class="demo-cerfa-val" id="cerfaVin"></span></div>
+                        <div class="demo-cerfa-field"><span class="demo-cerfa-label">P.2 — Puissance</span><span class="demo-cerfa-val" id="cerfaPuiss"></span></div>
+                        <div class="demo-cerfa-field"><span class="demo-cerfa-label">C.1 — Titulaire</span><span class="demo-cerfa-val" id="cerfaTit"></span></div>
+                        <div class="demo-cerfa-field"><span class="demo-cerfa-label">C.3 — Adresse</span><span class="demo-cerfa-val" id="cerfaAddr"></span></div>
+                        <div class="demo-cerfa-stamp" id="cerfaStamp" style="display:none;">
+                            <div>🔏 Cachet Moto Center</div>
+                            <div>✍️ Signature numérique</div>
+                        </div>
+                        <div class="demo-screen-msg demo-screen-msg-ok" id="mockCerfaMsg" style="display:none;"></div>
+                    </div>
+                </div>
+
+                <!-- Placeholder initial -->
+                <div class="demo-mockup-placeholder" id="demoMockupPlaceholder">
+                    <div style="color: rgba(255,255,255,0.3); font-size: 0.85rem; text-align: center;">
+                        <div style="font-size: 2rem; margin-bottom: 8px;">👁️</div>
+                        L'aperçu produit apparaît<br>pendant la simulation
+                    </div>
+                </div>
+            </div>
+          </div><!-- /demo-split -->
 
             <!-- Boutons contrôle -->
             <div style="text-align: center; margin-top: 16px; display: flex; gap: 8px; justify-content: center;">
@@ -723,6 +790,66 @@ function runDemo() {
             window._demoCursorAdded = true;
         }
 
+        // ── Mockup synchronisé ──
+        const S = window._demoMockupState;
+        const ph = document.getElementById('demoMockupPlaceholder');
+        const sv = document.getElementById('demoScreenVendeur');
+        const sc = document.getElementById('demoScreenClient');
+        const sf = document.getElementById('demoScreenCerfa');
+
+        // Phase 1 : espace vendeur (10:32 → 10:33:20)
+        if (simTime >= T(10,32,0) && S < 1) {
+            ph.style.display = 'none'; sv.style.display = 'block'; window._demoMockupState = 1;
+        }
+        if (simTime >= T(10,32,18)) { const e=document.getElementById('mockCoc'); e.className='demo-screen-doc demo-screen-ok'; e.querySelector('span').textContent='✓'; }
+        if (simTime >= T(10,33,10)) { const e=document.getElementById('mockFacture'); e.className='demo-screen-doc demo-screen-ok'; e.querySelector('span').textContent='✓'; }
+        if (simTime >= T(10,33,15)) { const e=document.getElementById('mockVin'); e.className='demo-screen-doc demo-screen-ok'; e.querySelector('span').textContent='✓'; }
+        if (simTime >= T(10,33,15) && S < 2) {
+            const m=document.getElementById('mockVendeurMsg'); m.style.display='block';
+            m.className='demo-screen-msg demo-screen-msg-ok'; m.textContent='✓ Documents vendeur vérifiés — envoyez le lien SMS au client';
+            window._demoMockupState = 2;
+        }
+
+        // Phase 2 : espace client (10:34 → 10:42:50)
+        if (simTime >= T(10,34,0) && S < 3) {
+            sv.style.display = 'none'; sc.style.display = 'block'; window._demoMockupState = 3;
+        }
+        if (simTime >= T(10,36,8) && simTime < T(10,36,18)) { const e=document.getElementById('mockCni'); e.className='demo-screen-doc demo-screen-ok'; e.querySelector('span').textContent='✓'; }
+        if (simTime >= T(10,36,18)) {
+            const e=document.getElementById('mockCni'); e.className='demo-screen-doc demo-screen-err'; e.querySelector('span').textContent='✗';
+            const m=document.getElementById('mockClientMsg'); m.style.display='block';
+            m.className='demo-screen-msg demo-screen-msg-err'; m.textContent='CNI expirée — déposez une pièce d\'identité valide';
+        }
+        if (simTime >= T(10,41,18)) {
+            const e=document.getElementById('mockCni'); e.className='demo-screen-doc demo-screen-ok'; e.querySelector('span').textContent='✓';
+            const m=document.getElementById('mockClientMsg'); m.style.display='none';
+        }
+        if (simTime >= T(10,41,50)) { const e=document.getElementById('mockPermis'); e.className='demo-screen-doc demo-screen-ok'; e.querySelector('span').textContent='✓'; }
+        if (simTime >= T(10,42,40)) { const e=document.getElementById('mockDomicile'); e.className='demo-screen-doc demo-screen-ok'; e.querySelector('span').textContent='✓'; }
+        if (simTime >= T(10,42,50) && S < 4) {
+            const m=document.getElementById('mockClientMsg'); m.style.display='block';
+            m.className='demo-screen-msg demo-screen-msg-ok'; m.textContent='✓ Tous vos documents sont vérifiés !';
+            window._demoMockupState = 4;
+        }
+
+        // Phase 4 : Cerfa (10:43)
+        if (simTime >= T(10,43,0) && S < 5) {
+            sc.style.display = 'none'; sf.style.display = 'block'; window._demoMockupState = 5;
+        }
+        if (simTime >= T(10,43,5)) document.getElementById('cerfaMarque').textContent = 'HONDA';
+        if (simTime >= T(10,43,7)) document.getElementById('cerfaCnit').textContent = 'MH01-01-001-0';
+        if (simTime >= T(10,43,9)) document.getElementById('cerfaVin').textContent = 'JMZKECW105SJ08739';
+        if (simTime >= T(10,43,11)) document.getElementById('cerfaPuiss').textContent = '11 kW';
+        if (simTime >= T(10,43,13)) document.getElementById('cerfaTit').textContent = 'DUPONT Marie';
+        if (simTime >= T(10,43,15)) document.getElementById('cerfaAddr').textContent = '12 rue de la Paix, 75001 Paris';
+        if (simTime >= T(10,43,17)) document.getElementById('cerfaImmat').textContent = 'En attente SIV';
+        if (simTime >= T(10,43,20)) document.getElementById('cerfaStamp').style.display = 'block';
+        if (simTime >= T(10,43,30) && S < 6) {
+            const m=document.getElementById('mockCerfaMsg'); m.style.display='block';
+            m.textContent='Dossier complet — contrôlez, téléchargez et soumettez au SIV.';
+            window._demoMockupState = 6;
+        }
+
         // Timer global qui part de 0:00
         const totalElapsed = simTime - SIM_START;
         const tm = Math.floor(totalElapsed / 60);
@@ -780,9 +907,31 @@ function runDemo() {
     };
     demoTimerRAF = requestAnimationFrame(updateDemoTimer);
 
-    // Les lignes sont gérées dans updateDemoTimer via nextLineIndex
     window._demoNextLine = 0;
     window._demoCursorAdded = false;
+    window._demoMockupState = 0;
+
+    // Reset mockups
+    document.getElementById('demoMockupPlaceholder').style.display = 'flex';
+    document.getElementById('demoScreenVendeur').style.display = 'none';
+    document.getElementById('demoScreenClient').style.display = 'none';
+    document.getElementById('demoScreenCerfa').style.display = 'none';
+    ['mockCoc','mockFacture','mockVin'].forEach(id => {
+        const e = document.getElementById(id);
+        e.className = 'demo-screen-doc';
+        e.querySelector('span').textContent = '○';
+    });
+    ['mockCni','mockPermis','mockDomicile'].forEach(id => {
+        const e = document.getElementById(id);
+        e.className = 'demo-screen-doc';
+        e.querySelector('span').textContent = '○';
+    });
+    ['mockVendeurMsg','mockClientMsg','mockCerfaMsg','cerfaStamp'].forEach(id => {
+        document.getElementById(id).style.display = 'none';
+    });
+    ['cerfaImmat','cerfaMarque','cerfaCnit','cerfaVin','cerfaPuiss','cerfaTit','cerfaAddr'].forEach(id => {
+        document.getElementById(id).textContent = '';
+    });
 }
 
 // Lancer quand visible
