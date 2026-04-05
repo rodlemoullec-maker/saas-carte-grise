@@ -137,17 +137,25 @@ async def get_client_page(token: str, db: AsyncSession = Depends(get_db)):
         },
         "cession": {
             "signature_requise": bool(
-                metadata.get("pas_de_certificat_cession")
+                pro.type_compte != "AGENT_HABILITE"  # L'agent ne génère pas de cession
+                and metadata.get("pas_de_certificat_cession")
                 and (dossier.type or "").upper() in ("VO", "OCCASION")
             ),
             "signee": metadata.get("cession_signee_client", False),
             "telechargee": metadata.get("cession_client_telechargee", False),
         },
+        "mandats": {
+            "signature_requise": pro.type_compte == "VENDEUR_NON_HABILITE",
+            "signes": metadata.get("mandats_signes_client", False),
+            "vendeur_nom": pro.nom_commerce or "",
+            "agent_nom": pro.agent_nom or "",
+        },
         "mentions_legales": {
             "authenticite": "En deposant vos documents, vous certifiez qu'ils sont authentiques (art. 441-1 Code penal).",
             "exactitude": "Vous certifiez que les informations contenues dans vos documents sont exactes et a jour.",
             "role_service": "AutoDoc Pro est un outil d'aide, pas un conseiller juridique ni un substitut de l'administration.",
-            "responsabilite": f"La soumission du dossier est effectuee par {nom_commerce} sous sa responsabilite.",
+            "responsabilite": f"La soumission du dossier est effectuee par {nom_commerce} sous sa responsabilite." if pro.type_compte != "AGENT_HABILITE"
+                else f"La soumission du dossier est effectuee par {nom_commerce} en tant qu'intermediaire habilite.",
             "conservation": "Vos documents sont supprimes automatiquement une fois le dossier finalise.",
         },
         "intro_checklist": MSG_CLIENT["intro_checklist"],
@@ -192,6 +200,147 @@ async def choix_cpi(token: str, req: ChoixCPIRequest, db: AsyncSession = Depends
     else:
         msg = MSG_CLIENT["cpi_main_propre"].format(nom_commerce=nom_commerce)
     return {"status": "ok", "message": msg}
+
+
+# ─── Signature mandats 13757 par OTP SMS ────────────────────────────────────
+
+
+@router.post("/{token}/demander-otp-mandat")
+async def demander_otp_mandat(token: str, db: AsyncSession = Depends(get_db)):
+    """
+    Envoie un code OTP par SMS au client pour signer les mandats 13757.
+    Disponible uniquement pour les dossiers de vendeurs non habilités.
+    """
+    import secrets
+
+    dossier = await _get_dossier_by_token(db, token)
+    pro = await db.get(Professionnel, dossier.professionnel_id)
+
+    if not pro or pro.type_compte != "VENDEUR_NON_HABILITE":
+        raise HTTPException(422, "La signature de mandats n'est requise que pour les vendeurs non habilités.")
+
+    metadata = dossier.metadata_ or {}
+    if metadata.get("mandats_signes_client"):
+        return {"status": "deja_signe", "message": "Les mandats ont déjà été signés."}
+
+    # Générer le code OTP (6 chiffres)
+    code = str(secrets.randbelow(900000) + 100000)
+    metadata["mandat_otp_code"] = code
+    metadata["mandat_otp_at"] = datetime.utcnow().isoformat()
+    dossier.metadata_ = metadata
+    flag_modified(dossier, "metadata_")
+    await db.flush()
+
+    # Envoyer le SMS
+    from notifications.sms import send_sms, build_sms_otp
+    sms_text = build_sms_otp(code)
+    await send_sms(dossier.client_telephone, sms_text)
+
+    return {
+        "status": "otp_envoye",
+        "message": MSG_CLIENT["cession_otp"].format(telephone=dossier.client_telephone),
+        "telephone_masque": dossier.client_telephone[:4] + "••••" + dossier.client_telephone[-2:] if dossier.client_telephone else "",
+    }
+
+
+class SignerMandatsRequest(BaseModel):
+    code: str
+
+
+@router.post("/{token}/signer-mandats")
+async def signer_mandats(token: str, req: SignerMandatsRequest, db: AsyncSession = Depends(get_db)):
+    """
+    Valide le code OTP et signe numériquement les 2 mandats 13757.
+    Génère les PDFs avec mention de signature et les stocke.
+    """
+    dossier = await _get_dossier_by_token(db, token)
+    pro = await db.get(Professionnel, dossier.professionnel_id)
+
+    if not pro or pro.type_compte != "VENDEUR_NON_HABILITE":
+        raise HTTPException(422, "Signature mandats non applicable.")
+
+    metadata = dossier.metadata_ or {}
+
+    if metadata.get("mandats_signes_client"):
+        return {"status": "deja_signe", "message": "Les mandats ont déjà été signés."}
+
+    # Vérifier le code OTP
+    stored_code = metadata.get("mandat_otp_code")
+    if not stored_code:
+        raise HTTPException(422, "Aucun code OTP demandé. Cliquez d'abord sur 'Signer les mandats'.")
+
+    # Expiration : 10 minutes
+    otp_at = metadata.get("mandat_otp_at", "")
+    if otp_at:
+        from datetime import timedelta
+        otp_time = datetime.fromisoformat(otp_at)
+        if (datetime.utcnow() - otp_time) > timedelta(minutes=10):
+            raise HTTPException(422, "Code expiré. Demandez un nouveau code.")
+
+    if req.code != stored_code:
+        raise HTTPException(422, "Code incorrect.")
+
+    # Générer les mandats PDF
+    from api.routers.documents import _build_dossier_dict
+    dossier_dict = await _build_dossier_dict(db, dossier)
+
+    client_adresse = {}
+    for doc in dossier_dict.get("documents", []):
+        if doc.get("type") == "DOMICILE" and doc.get("extracted_data"):
+            ext = doc["extracted_data"]
+            adresse_raw = ext.get("adresse_ligne1", "") or ext.get("adresse", "")
+            parts = adresse_raw.split(" ", 1) if adresse_raw else ["", ""]
+            client_adresse = {
+                "numero": parts[0] if len(parts) > 1 and parts[0].isdigit() else "",
+                "nom_voie": parts[1] if len(parts) > 1 and parts[0].isdigit() else adresse_raw,
+                "code_postal": ext.get("code_postal", ""),
+                "commune": ext.get("ville", ""),
+            }
+            break
+
+    client_nom = f"{dossier.client_nom or ''} {dossier.client_prenom or ''}".strip()
+
+    from engine.cerfa.mandat_generator import generate_double_mandat
+    mandat_vendeur, mandat_agent = generate_double_mandat(
+        client_nom=client_nom,
+        client_adresse=client_adresse,
+        vendeur_nom=pro.nom_commerce or pro.raison_sociale or "",
+        vendeur_siret=pro.siret or "",
+        agent_nom=pro.agent_nom or "",
+        agent_siret=pro.agent_siret or "",
+        immatriculation=dossier.immatriculation or "",
+        vin=dossier.vin or "",
+        marque="",
+        lieu=pro.ville or "",
+    )
+
+    # Stocker les mandats signés
+    from storage.document_store import get_document_store
+    store = get_document_store()
+    ref = dossier.reference or ""
+    await store.save(mandat_vendeur, f"{dossier.id}/mandats/Mandat_vendeur_13757_{ref}_signe.pdf", "application/pdf")
+    await store.save(mandat_agent, f"{dossier.id}/mandats/Mandat_agent_13757_{ref}_signe.pdf", "application/pdf")
+
+    # Marquer comme signé
+    metadata["mandats_signes_client"] = True
+    metadata["mandats_signes_at"] = datetime.utcnow().isoformat()
+    metadata["mandats_signes_par"] = client_nom
+    metadata.pop("mandat_otp_code", None)
+    dossier.metadata_ = metadata
+    flag_modified(dossier, "metadata_")
+    await db.flush()
+
+    return {
+        "status": "mandats_signes",
+        "message": "Les deux mandats ont été signés avec succès.",
+        "mandats": [
+            {"type": "client_vendeur", "label": f"Mandat client → {pro.nom_commerce or 'vendeur'}"},
+            {"type": "client_agent", "label": f"Mandat client → {pro.agent_nom or 'agent'}"},
+        ],
+    }
+
+
+# ─── Signature cession ─────────────────────────────────────────────────────
 
 
 @router.post("/{token}/signer-cession")
@@ -265,6 +414,19 @@ async def confirmer_envoi(token: str, db: AsyncSession = Depends(get_db)):
     pro = await db.get(Professionnel, dossier.professionnel_id)
     nom_commerce = pro.nom_commerce if pro else "votre vendeur"
     tel_commerce = pro.telephone_commerce if pro else ""
+
+    # Notifier le pro par email
+    if pro and pro.email_commerce:
+        from notifications.email import send_email
+        docs_list = "\n".join(
+            f"- {d.get('type', '?')} ({d.get('status', '?')})"
+            for d in dossier_dict.get("documents_client", [])
+        )
+        await send_email(pro.email_commerce, "client_a_uploade", {
+            "reference": dossier.reference or "",
+            "client_nom": f"{dossier.client_nom or ''} {dossier.client_prenom or ''}".strip(),
+            "documents_list": docs_list or "—",
+        })
 
     cpi_mode = metadata.get("cpi_mode", "main_propre")
     if cpi_mode == "email":
