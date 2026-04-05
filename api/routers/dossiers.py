@@ -64,6 +64,29 @@ async def create_dossier(
             "error": "profil_incomplet",
             "message": MSG_PRO["profil_incomplet"],
         })
+    if not pro.cgv_acceptees:
+        raise HTTPException(422, detail={
+            "error": "cgv_non_acceptees",
+            "message": "Vous devez accepter les conditions générales de vente avant de créer un dossier.",
+        })
+
+    # Vérifier la limite de volume mensuel
+    from api.guards.volume_limit import verifier_volume_mensuel, verifier_facturation
+    volume = await verifier_volume_mensuel(db, request.professionnel_id)
+    if volume["status"] == "bloque":
+        raise HTTPException(429, detail={
+            "error": "volume_depasse",
+            "message": volume["message"],
+        })
+
+    # Vérifier la facturation (essai gratuit + batch de 5)
+    facturation = await verifier_facturation(db, request.professionnel_id)
+    if facturation["status"] == "bloque":
+        raise HTTPException(402, detail={
+            "error": "paiement_requis",
+            "message": facturation["message"],
+            "non_payes": facturation["non_payes"],
+        })
 
     dossier = DossierDB(
         id=uuid4(),
@@ -82,7 +105,7 @@ async def create_dossier(
         "dossier_id": str(dossier.id),
         "reference": dossier.reference,
         "status": "PENDING",
-        "message": MSG_PRO["dossier_cree"],
+        "message": MSG_PRO["dossier_cree_agent"] if pro.type_compte == "AGENT_HABILITE" else MSG_PRO["dossier_cree"],
         "docs_attendus": {
             "vn": [
                 {"type": "COC", "label": "Certificat de Conformite (COC)", "obligatoire": True},
@@ -137,10 +160,21 @@ async def get_checklist(dossier_id: UUID, db: AsyncSession = Depends(get_db)):
     from engine.pipeline.realtime import _check_pro_docs, _check_client_docs
 
     dossier_dict = await _build_dossier_dict(db, dossier)
+    pro = await db.get(Professionnel, dossier.professionnel_id)
+    type_compte = pro.type_compte if pro else "VENDEUR_HABILITE"
+
     pro_checklist = _check_pro_docs(dossier_dict)
     client_checklist = _check_client_docs(dossier_dict)
 
     pro_checklist["client_docs"] = client_checklist
+    pro_checklist["type_compte"] = type_compte
+
+    # Pour un agent habilité, la cession n'est pas générée par le système
+    if type_compte == "AGENT_HABILITE":
+        pro_checklist["cession_generee_par_systeme"] = False
+    else:
+        pro_checklist["cession_generee_par_systeme"] = True
+
     return pro_checklist
 
 
@@ -311,6 +345,7 @@ async def confirm_send_link(dossier_id: UUID, db: AsyncSession = Depends(get_db)
         nom_commerce=pro.nom_commerce or "",
         lien="{LIEN}",  # Remplace apres generation du token
         telephone_commerce=pro.telephone_commerce or "",
+        type_compte=pro.type_compte or "VENDEUR_HABILITE",
     )
 
     # Générer le token client
@@ -320,12 +355,21 @@ async def confirm_send_link(dossier_id: UUID, db: AsyncSession = Depends(get_db)
     dossier.status = "ATTENTE_CLIENT"
     await db.flush()
 
-    # TODO: envoyer le SMS réel via notifications/sms.py
+    # Construire l'URL client complete
+    client_url = f"https://app.autodocpro.fr/client/{client_token}"
+    sms_final = sms_text.replace("{LIEN}", client_url)
+
+    # Envoyer le SMS
+    from notifications.sms import send_sms
+    sms_sent = await send_sms(dossier.client_telephone, sms_final)
+    if not sms_sent:
+        logger.warning(f"[SMS] Echec envoi pour dossier {dossier_id}")
 
     return {
         "status": "lien_envoye",
         "message": MSG_PRO["sms_envoye"].format(telephone=dossier.client_telephone),
-        "sms_envoye": sms_text.replace("{LIEN}", f"/client/{client_token}"),
+        "sms_envoye": sms_final,
+        "sms_sent": sms_sent,
         "client_link": f"/client/{client_token}",
         "sent_at": dossier.client_link_sent_at.isoformat() if dossier.client_link_sent_at else None,
         "sent_to": {
@@ -378,16 +422,23 @@ async def generate_cerfa_endpoint(dossier_id: UUID, db: AsyncSession = Depends(g
     if not dossier:
         raise HTTPException(404, "Dossier non trouve")
 
-    # Si deja genere → servir directement
+    # Si deja genere → servir le PDF
     if dossier.status == "CERFA_GENERE":
-        # TODO: retourner le vrai PDF depuis le store
-        # Pour l'instant, retourne un message
-        return {
-            "status": "ok",
-            "message": MSG_PRO["cerfa_pret"],
-            "dossier_id": str(dossier_id),
-            "cerfa_type": "13749" if (dossier.type or "").upper() == "VN" else "13750",
-        }
+        from fastapi.responses import Response
+        dossier_type = "VN" if (dossier.type or "").upper() == "VN" else "VO"
+        cerfa_num = "13749" if dossier_type == "VN" else "13750"
+        cerfa_path = f"{dossier_id}/cerfa/Cerfa_{cerfa_num}.pdf"
+        store = get_document_store()
+        try:
+            pdf_bytes = await store.get(cerfa_path)
+            return Response(
+                content=pdf_bytes,
+                media_type="application/pdf",
+                headers={"Content-Disposition": f'inline; filename="Cerfa_{cerfa_num}.pdf"'},
+            )
+        except FileNotFoundError:
+            # PDF absent du store — regenerer
+            pass
 
     # Sinon, verifier les blocages avant de generer
     from api.routers.documents import _build_dossier_dict
@@ -402,9 +453,47 @@ async def generate_cerfa_endpoint(dossier_id: UUID, db: AsyncSession = Depends(g
             "blocages": blocages["reasons"],
         })
 
-    # TODO: appeler engine/cerfa_automation/cerfa_filler.py pour generer le PDF
+    # Generer le Cerfa via Playwright (service-public.gouv.fr)
+    import asyncio
+    from engine.cerfa_automation.cerfa_filler import CerfaFiller
+
+    dossier_type = "VN" if (dossier.type or "").upper() == "VN" else "VO"
+    cerfa_data = CerfaFiller.build_data_from_dossier(dossier_dict)
+
+    # CNIT manuel → injecter dans les donnees Cerfa
+    metadata = dossier.metadata_ or {}
+    cnit_manuel = metadata.get("cnit_manuel")
+    if cnit_manuel:
+        cerfa_data.setdefault("vehicule", {})["cnit"] = cnit_manuel
+
+    try:
+        filler = CerfaFiller(headless=True)
+        pdf_bytes = await asyncio.to_thread(
+            filler.fill_and_download, cerfa_data, None, dossier_type
+        )
+    except Exception as e:
+        logger.error(f"Erreur generation Cerfa : {e}")
+        raise HTTPException(500, detail={
+            "error": "cerfa_generation_failed",
+            "message": f"Erreur lors de la generation du Cerfa : {e}",
+        })
+
+    # Sauvegarder le PDF dans le store
+    store = get_document_store()
+    cerfa_num = "13749" if dossier_type == "VN" else "13750"
+    cerfa_path = f"{dossier_id}/cerfa/Cerfa_{cerfa_num}.pdf"
+    await store.save(pdf_bytes, cerfa_path, "application/pdf")
+
     dossier.status = "CERFA_GENERE"
     await db.flush()
+
+    # Notifier le pro par email
+    pro = await db.get(Professionnel, dossier.professionnel_id)
+    if pro and pro.email_commerce:
+        from notifications.email import send_email
+        await send_email(pro.email_commerce, "cerfa_pret", {
+            "reference": dossier.reference or "",
+        })
 
     # Nettoyage RGPD automatique — supprimer les donnees client sensibles
     from engine.rgpd.cleanup import cleanup_client_data_after_cerfa
@@ -453,13 +542,23 @@ async def generate_cerfa_endpoint(dossier_id: UUID, db: AsyncSession = Depends(g
             "message": f"CNIT {cnit_final} (saisie manuelle) inclus dans le Cerfa.",
         })
 
+    # Message adapté selon type_compte
+    pro = await db.get(Professionnel, dossier.professionnel_id)
+    if pro and pro.type_compte == "VENDEUR_NON_HABILITE":
+        cerfa_message = MSG_PRO["cerfa_pret_non_habilite"].format(
+            agent_nom=pro.agent_nom or "votre agent habilité"
+        )
+    else:
+        cerfa_message = MSG_PRO["cerfa_pret"]
+
     return {
         "status": "ok",
-        "message": MSG_PRO["cerfa_pret"],
+        "message": cerfa_message,
         "dossier_id": str(dossier_id),
         "cerfa_type": "13749" if is_vn else "13750",
         "cnit": cnit_final,
         "warnings": warnings,
+        "type_compte": pro.type_compte if pro else "VENDEUR_HABILITE",
     }
 
 
@@ -554,12 +653,16 @@ async def download_dossier_zip(dossier_id: UUID, db: AsyncSession = Depends(get_
                 zf.writestr(f"client/{doc_type}_{filename}.txt",
                             f"Document: {doc_type}\nFichier: {filename}\nStatut: {doc.get('status')}\n")
 
-        # Cerfa (si genere)
-        # TODO: quand la generation Cerfa sera implementee, lire le PDF depuis le store
+        # Cerfa (si genere) — lire le vrai PDF depuis le store
         if dossier.status == "CERFA_GENERE":
             cerfa_type = "13749" if type_vn_vo == "VN" else "13750"
-            zf.writestr(f"cerfa/Cerfa_{cerfa_type}_{ref}.txt",
-                        f"Cerfa {cerfa_type}\nReference: {ref}\nStatut: genere\nCachet + signature apposes automatiquement\n")
+            cerfa_path = f"{dossier_id}/cerfa/Cerfa_{cerfa_type}.pdf"
+            try:
+                cerfa_bytes = await store.get(cerfa_path)
+                zf.writestr(f"cerfa/Cerfa_{cerfa_type}_{ref}.pdf", cerfa_bytes)
+            except FileNotFoundError:
+                zf.writestr(f"cerfa/Cerfa_{cerfa_type}_{ref}.txt",
+                            f"Cerfa {cerfa_type}\nReference: {ref}\nPDF non disponible — relancer la generation.\n")
 
         # Recapitulatif
         recap = (
@@ -582,6 +685,191 @@ async def download_dossier_zip(dossier_id: UUID, db: AsyncSession = Depends(get_
         media_type="application/zip",
         headers={"Content-Disposition": f'attachment; filename="{zip_name}.zip"'},
     )
+
+
+# ─── Paiement Stripe ────────────────────────────────────────────────────────
+
+
+@router.post("/{dossier_id}/checkout")
+async def create_checkout(dossier_id: UUID, db: AsyncSession = Depends(get_db)):
+    """
+    Cree une session Stripe Checkout pour le paiement des honoraires.
+    Retourne l'URL de redirection vers Stripe.
+    """
+    dossier = await db.get(DossierDB, dossier_id)
+    if not dossier:
+        raise HTTPException(404, "Dossier non trouve")
+
+    if dossier.payment_captured:
+        return {"status": "already_paid", "message": "Dossier deja paye"}
+
+    # Montant en centimes
+    amount_cents = int((dossier.montant_honoraires or 14.0) * 100)
+
+    pro = await db.get(Professionnel, dossier.professionnel_id)
+
+    from engine.payment.honoraires import HonorairesService
+    service = HonorairesService()
+    result = await service.create_checkout_session(
+        dossier_id=dossier_id,
+        professionnel_id=dossier.professionnel_id,
+        amount_cents=amount_cents,
+        stripe_customer_id=pro.stripe_customer_id if pro else None,
+        success_url=f"https://app.autodocpro.fr/dossier/{dossier_id}?payment=success",
+        cancel_url=f"https://app.autodocpro.fr/dossier/{dossier_id}?payment=cancelled",
+    )
+
+    return {
+        "status": "checkout_created",
+        "checkout_url": result["url"],
+        "session_id": result["session_id"],
+        "amount_cents": amount_cents,
+    }
+
+
+# ─── Double mandat 13757 (vendeur non habilité) ─────────────────────────────
+
+
+@router.get("/{dossier_id}/mandats")
+async def generate_mandats(dossier_id: UUID, db: AsyncSession = Depends(get_db)):
+    """
+    Génère les 2 mandats Cerfa 13757 pour un vendeur non habilité :
+    - Mandat client → vendeur
+    - Mandat client → agent habilité
+
+    Retourne un ZIP avec les 2 PDFs.
+    """
+    import io
+    import zipfile
+    from fastapi.responses import StreamingResponse
+
+    dossier = await db.get(DossierDB, dossier_id)
+    if not dossier:
+        raise HTTPException(404, "Dossier non trouve")
+
+    pro = await db.get(Professionnel, dossier.professionnel_id)
+    if not pro:
+        raise HTTPException(404, "Professionnel non trouve")
+
+    if pro.type_compte != "VENDEUR_NON_HABILITE":
+        raise HTTPException(422, "Les mandats ne sont nécessaires que pour les vendeurs non habilités")
+
+    if not pro.agent_nom:
+        raise HTTPException(422, detail={
+            "error": "agent_non_configure",
+            "message": "Configurez d'abord votre agent habilité dans les paramètres.",
+        })
+
+    # Construire les données depuis le dossier
+    from api.routers.documents import _build_dossier_dict
+    dossier_dict = await _build_dossier_dict(db, dossier)
+
+    # Extraire l'adresse client depuis les documents
+    client_adresse = {}
+    for doc in dossier_dict.get("documents", []):
+        if doc.get("type") == "DOMICILE" and doc.get("extracted_data"):
+            ext = doc["extracted_data"]
+            adresse_raw = ext.get("adresse_ligne1", "") or ext.get("adresse", "")
+            parts = adresse_raw.split(" ", 1) if adresse_raw else ["", ""]
+            client_adresse = {
+                "numero": parts[0] if len(parts) > 1 and parts[0].isdigit() else "",
+                "nom_voie": parts[1] if len(parts) > 1 and parts[0].isdigit() else adresse_raw,
+                "code_postal": ext.get("code_postal", ""),
+                "commune": ext.get("ville", ""),
+            }
+            break
+
+    client_nom = f"{dossier.client_nom or ''} {dossier.client_prenom or ''}".strip()
+
+    from engine.cerfa.mandat_generator import generate_double_mandat
+    mandat_vendeur, mandat_agent = generate_double_mandat(
+        client_nom=client_nom,
+        client_adresse=client_adresse,
+        vendeur_nom=pro.nom_commerce or pro.raison_sociale or "",
+        vendeur_siret=pro.siret or "",
+        agent_nom=pro.agent_nom or "",
+        agent_siret=pro.agent_siret or "",
+        immatriculation=dossier.immatriculation or "",
+        vin=dossier.vin or "",
+        marque="",  # sera extrait du COC si dispo
+        lieu=pro.ville or "",
+    )
+
+    # Sauvegarder dans le store
+    store = get_document_store()
+    ref = dossier.reference or ""
+    await store.save(mandat_vendeur, f"{dossier_id}/mandats/Mandat_vendeur_13757_{ref}.pdf", "application/pdf")
+    await store.save(mandat_agent, f"{dossier_id}/mandats/Mandat_agent_13757_{ref}.pdf", "application/pdf")
+
+    # Retourner un ZIP avec les 2 mandats
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as zf:
+        zf.writestr(f"Mandat_vendeur_13757_{ref}.pdf", mandat_vendeur)
+        zf.writestr(f"Mandat_agent_13757_{ref}.pdf", mandat_agent)
+    buffer.seek(0)
+
+    return StreamingResponse(
+        buffer,
+        media_type="application/zip",
+        headers={"Content-Disposition": f'attachment; filename="Mandats_13757_{ref}.zip"'},
+    )
+
+
+# ─── Transmission dossier → agent (vendeur non habilité) ────────────────────
+
+
+@router.post("/{dossier_id}/transmettre-agent")
+async def transmettre_agent(dossier_id: UUID, db: AsyncSession = Depends(get_db)):
+    """
+    Transmet le dossier complet à l'agent habilité du vendeur non habilité.
+    Envoie un email à l'agent avec les infos du dossier.
+    Marque le dossier comme transmis.
+    """
+    dossier = await db.get(DossierDB, dossier_id)
+    if not dossier:
+        raise HTTPException(404, "Dossier non trouve")
+
+    pro = await db.get(Professionnel, dossier.professionnel_id)
+    if not pro:
+        raise HTTPException(404, "Professionnel non trouve")
+
+    if pro.type_compte != "VENDEUR_NON_HABILITE":
+        raise HTTPException(422, "La transmission n'est possible que pour les vendeurs non habilités")
+
+    if not pro.agent_nom or not pro.agent_email:
+        raise HTTPException(422, detail={
+            "error": "agent_non_configure",
+            "message": "Configurez l'email de votre agent habilité dans les paramètres.",
+        })
+
+    # Marquer comme transmis
+    from sqlalchemy.orm.attributes import flag_modified
+    metadata = dossier.metadata_ or {}
+    metadata["transmis_agent"] = True
+    metadata["transmis_agent_at"] = datetime.utcnow().isoformat()
+    metadata["transmis_agent_nom"] = pro.agent_nom
+    dossier.metadata_ = metadata
+    flag_modified(dossier, "metadata_")
+    await db.flush()
+
+    # Notifier l'agent par email
+    from notifications.email import send_email
+    client_nom = f"{dossier.client_nom or ''} {dossier.client_prenom or ''}".strip()
+    await send_email(pro.agent_email, "dossier_accepte", {
+        "reference": dossier.reference or "",
+        "diagnostic": dossier.diagnostic or "VERT",
+        "tax_total": "—",
+    })
+
+    logger.info(f"[Transmission] Dossier {dossier_id} transmis à {pro.agent_nom} ({pro.agent_email})")
+
+    return {
+        "status": "transmis",
+        "message": f"Dossier transmis à {pro.agent_nom}. Un email de notification a été envoyé.",
+        "agent_nom": pro.agent_nom,
+        "agent_email": pro.agent_email,
+        "dossier_id": str(dossier_id),
+    }
 
 
 # ─── Delete ──────────────────────────────────────────────────────────────────
@@ -613,6 +901,8 @@ def _to_response(d: DossierDB) -> dict:
         "immatriculation": d.immatriculation,
         "client_nom": d.client_nom,
         "client_telephone": d.client_telephone,
+        "client_email": d.client_email,
         "tax_estimate": d.tax_estimate,
+        "created_by_source": d.created_by_source,
         "created_at": d.created_at.isoformat() if d.created_at else None,
     }
