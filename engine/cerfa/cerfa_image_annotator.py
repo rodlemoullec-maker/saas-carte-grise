@@ -94,11 +94,24 @@ def annotate_cerfa_vn(
             draw.text((718, 1107), cachet_adresse, fill=blue, font=font_stamp)
         if cachet_siret:
             draw.text((718, 1121), f"SIRET {cachet_siret}", fill=blue, font=font_stamp)
-        draw.text((718, 1135), "Signature :", fill=blue, font=font_stamp)
-        # Dessiner une signature manuscrite stylisée
-        for offset in range(3):
-            draw.arc([(780+offset, 1130+offset), (900+offset, 1148+offset)], 0, 180, fill=blue, width=1)
-            draw.arc([(800+offset, 1132+offset), (870+offset, 1146+offset)], 180, 360, fill=blue, width=1)
+        # Signature manuscrite réaliste
+        sig_x, sig_y = 770, 1130
+        # Trait principal — boucle montante puis descendante
+        points_main = [
+            (sig_x, sig_y+10), (sig_x+5, sig_y+8), (sig_x+12, sig_y+2),
+            (sig_x+20, sig_y-4), (sig_x+30, sig_y-8), (sig_x+38, sig_y-5),
+            (sig_x+42, sig_y), (sig_x+35, sig_y+6), (sig_x+28, sig_y+10),
+            (sig_x+40, sig_y+8), (sig_x+50, sig_y+3), (sig_x+58, sig_y-2),
+            (sig_x+65, sig_y-6), (sig_x+75, sig_y-3), (sig_x+80, sig_y+2),
+            (sig_x+72, sig_y+8), (sig_x+78, sig_y+6), (sig_x+88, sig_y+2),
+            (sig_x+95, sig_y-1), (sig_x+105, sig_y+4), (sig_x+115, sig_y+6),
+        ]
+        for w in range(2):
+            draw.line(points_main, fill=blue, width=2-w, joint="curve")
+        # Boucle du paraphe
+        draw.arc([(sig_x+85, sig_y-12), (sig_x+120, sig_y+8)], 200, 80, fill=blue, width=2)
+        # Trait de soulignement
+        draw.line([(sig_x+10, sig_y+14), (sig_x+110, sig_y+12)], fill=blue, width=1)
 
     out = output_path or image_path
     img.save(out, "PNG")
