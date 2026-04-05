@@ -1224,7 +1224,7 @@ ul { list-style: none; }
 
 @media (max-width: 968px) {
     .demo-split { grid-template-columns: 1fr; }
-    .demo-mockup { position: static; display: none; }
+    .demo-mockup { position: static; }
 }
 
 /* --- BEFORE / AFTER --- */
