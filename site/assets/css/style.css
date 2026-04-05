@@ -1001,6 +1001,17 @@ ul { list-style: none; }
     color: rgba(255,255,255,0.4);
     font-family: 'SF Mono', 'Fira Code', monospace;
 }
+.demo-timer {
+    margin-left: auto;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #fbbf24;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    letter-spacing: 0.05em;
+    background: rgba(217,119,6,0.15);
+    padding: 2px 10px;
+    border-radius: 6px;
+}
 .demo-terminal-body {
     padding: 24px 28px;
     min-height: 420px;

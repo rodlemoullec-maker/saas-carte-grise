@@ -166,6 +166,7 @@
                     <span class="demo-dot demo-dot-yellow"></span>
                     <span class="demo-dot demo-dot-green"></span>
                     <span class="demo-terminal-title">AutoDoc Pro — Dossier CG-2026-48721</span>
+                    <span class="demo-timer" id="demoTimer">10:32:00</span>
                 </div>
                 <div class="demo-terminal-body" id="demoTerminal">
                     <!-- Les lignes s'ajoutent en JS -->
@@ -579,72 +580,113 @@ const observer = new IntersectionObserver((entries) => {
 document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
 
 // ─── Simulation live ───
+// ─── Simulation live avec timer accéléré ───
+// Temps simulé : 10:32:00 → 10:44:00 (12 min)
+// Temps réel : ~20 secondes
+// Ratio : 1 seconde réelle = 36 secondes simulées
+
+const SIM_START = 10 * 3600 + 32 * 60; // 10:32:00 en secondes
+const SIM_END = 10 * 3600 + 44 * 60;   // 10:44:00
+const SIM_DURATION = SIM_END - SIM_START; // 720 secondes simulées
+const REAL_DURATION = 20000; // 20 secondes réelles
+
+function simTimeToReal(simSeconds) {
+    return ((simSeconds - SIM_START) / SIM_DURATION) * REAL_DURATION;
+}
+function formatTime(totalSec) {
+    const h = Math.floor(totalSec / 3600);
+    const m = Math.floor((totalSec % 3600) / 60);
+    const s = Math.floor(totalSec % 60);
+    return `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+// Chaque ligne a un temps simulé (en secondes depuis minuit)
+const T = (h, m, s) => h * 3600 + m * 60 + (s||0);
 const demoLines = [
-    // ── Phase 1 : dépôt vendeur ──
-    { delay: 0, html: '<span class="demo-dim">── Documents vendeur ──────────────────────── <span class="demo-timestamp">10:32</span> ──</span>' },
-    { delay: 400, html: '<span class="demo-dim">$</span> <span class="demo-highlight">Document reçu</span> <span class="demo-dim">— coc_honda_cb125r.pdf (2.1 MB)</span>' },
-    { delay: 1000, html: '<span class="demo-tag demo-tag-ocr">OCR</span> <span class="demo-check">✓</span> 847 caractères extraits <span class="demo-dim">— confiance 94%</span>' },
-    { delay: 1500, html: '<span class="demo-tag demo-tag-extract">IA</span> Classification : <span class="demo-highlight">COC</span> <span class="demo-dim">(Certificat de Conformité)</span>' },
-    { delay: 2100, html: '<span class="demo-tag demo-tag-extract">IA</span> <span class="demo-check">✓</span> HONDA CB125R · VIN : <span class="demo-highlight">JMZKECW105SJ08739</span> · 11 kW · L3e-A1E' },
-    { delay: 2700, html: '<span class="demo-dim">$</span> <span class="demo-highlight">Document reçu</span> <span class="demo-dim">— facture_honda.pdf</span>' },
-    { delay: 3200, html: '<span class="demo-tag demo-tag-extract">IA</span> <span class="demo-check">✓</span> Facture · VIN identique · Date : 28/03/2026 · Vendeur : Moto Center' },
-    { delay: 3700, html: '<span class="demo-tag demo-tag-check">VERIF</span> <span class="demo-check">✓</span> VIN cohérent COC ↔ facture' },
-    { delay: 4100, html: '' },
-    // ── Phase 2 : SMS au client ──
-    { delay: 4300, html: '<span class="demo-dim">── SMS envoyé au client ───────────────────── <span class="demo-timestamp">10:34</span> ──</span>' },
-    { delay: 4700, html: '<span class="demo-tag demo-tag-ocr">SMS</span> Lien envoyé au 06 12 •• •• 78 <span class="demo-dim">— "Moto Center a choisi AutoDoc Pro..."</span>' },
-    { delay: 5300, html: '<span class="demo-dim">$</span> <span class="demo-highlight">Client a déposé</span> <span class="demo-dim">— cni_dupont_recto.jpg</span>' },
-    { delay: 5800, html: '<span class="demo-tag demo-tag-extract">IA</span> <span class="demo-check">✓</span> CNI · DUPONT Marie · Née le 14/05/1992' },
-    { delay: 6300, html: '<span class="demo-tag demo-tag-check">VERIF</span> Vérification date d\'expiration...' },
-    { delay: 6900, html: '<span class="demo-tag demo-tag-error">BLOQUÉ</span> <span class="demo-error">✗ CNI expirée le 12/01/2026</span>' },
-    { delay: 7400, html: '<span class="demo-tag demo-tag-error">→</span> <span class="demo-error">Le client est invité à déposer une pièce d\'identité valide</span>' },
-    { delay: 7900, html: '' },
-    // ── Phase 3 : correction client ──
-    { delay: 8200, html: '<span class="demo-dim">── Client corrige depuis son téléphone ────── <span class="demo-timestamp">10:41</span> ──</span>' },
-    { delay: 8700, html: '<span class="demo-dim">$</span> <span class="demo-highlight">Client a déposé</span> <span class="demo-dim">— passeport_dupont.jpg</span>' },
-    { delay: 9200, html: '<span class="demo-tag demo-tag-extract">IA</span> <span class="demo-check">✓</span> Passeport · DUPONT Marie · Expire le 15/11/2033 <span class="demo-check">✓</span>' },
-    { delay: 9600, html: '<span class="demo-dim">$</span> <span class="demo-highlight">Client a déposé</span> <span class="demo-dim">— permis_dupont.jpg</span>' },
-    { delay: 10100, html: '<span class="demo-tag demo-tag-check">VERIF</span> <span class="demo-check">✓</span> Permis B · véhicule L3e-A1E ≤ 11 kW — permis adapté <span class="demo-check">✓</span>' },
-    { delay: 10500, html: '<span class="demo-tag demo-tag-check">VERIF</span> <span class="demo-check">✓</span> Permis B + 125cc → formation 7h requise — <span class="demo-highlight">attestation détectée</span> <span class="demo-check">✓</span>' },
-    { delay: 11500, html: '<span class="demo-dim">$</span> <span class="demo-highlight">Client a déposé</span> <span class="demo-dim">— quittance_edf.pdf</span>' },
-    { delay: 12000, html: '<span class="demo-tag demo-tag-check">VERIF</span> <span class="demo-check">✓</span> Domicile · Daté du 15/02/2026 · Nom = CNI <span class="demo-check">✓</span>' },
-    { delay: 12500, html: '' },
-    // ── Phase 4 : Cerfa ──
-    { delay: 12700, html: '<span class="demo-dim">── Tous les documents vérifiés ─────────────── <span class="demo-timestamp">10:44</span> ──</span>' },
-    { delay: 13200, html: '<span class="demo-tag demo-tag-cerfa">CERFA</span> Génération Cerfa 13749 (VN)...' },
-    { delay: 13800, html: '<span class="demo-tag demo-tag-cerfa">CERFA</span> <span class="demo-check">✓</span> Cerfa pré-rempli · cachet Moto Center et signature enregistrée numériquement apposés automatiquement' },
-    { delay: 14400, html: '' },
-    { delay: 14600, html: '<span class="demo-tag demo-tag-done">PRÊT</span> <span class="demo-highlight" style="color: #34d399;">Dossier complet — 0 alerte. Contrôlez, téléchargez et soumettez au SIV.</span>' },
+    // Phase 1 : vendeur (10:32)
+    { t: T(10,32,0),  html: '<span class="demo-dim">── Documents vendeur ──</span>' },
+    { t: T(10,32,5),  html: '<span class="demo-dim">$</span> <span class="demo-highlight">Document reçu</span> <span class="demo-dim">— coc_honda_cb125r.pdf (2.1 MB)</span>' },
+    { t: T(10,32,12), html: '<span class="demo-tag demo-tag-ocr">OCR</span> <span class="demo-check">✓</span> 847 caractères extraits <span class="demo-dim">— confiance 94%</span>' },
+    { t: T(10,32,18), html: '<span class="demo-tag demo-tag-extract">IA</span> Classification : <span class="demo-highlight">COC</span> <span class="demo-dim">(Certificat de Conformité)</span>' },
+    { t: T(10,32,25), html: '<span class="demo-tag demo-tag-extract">IA</span> <span class="demo-check">✓</span> HONDA CB125R · VIN : <span class="demo-highlight">JMZKECW105SJ08739</span> · 11 kW · L3e-A1E' },
+    { t: T(10,33,0),  html: '<span class="demo-dim">$</span> <span class="demo-highlight">Document reçu</span> <span class="demo-dim">— facture_honda.pdf</span>' },
+    { t: T(10,33,10), html: '<span class="demo-tag demo-tag-extract">IA</span> <span class="demo-check">✓</span> Facture · VIN identique · Date : 28/03/2026 · Vendeur : Moto Center' },
+    { t: T(10,33,15), html: '<span class="demo-tag demo-tag-check">VERIF</span> <span class="demo-check">✓</span> VIN cohérent COC ↔ facture' },
+    { t: T(10,33,20), html: '' },
+    // Phase 2 : SMS (10:34)
+    { t: T(10,34,0),  html: '<span class="demo-dim">── SMS envoyé au client ──</span>' },
+    { t: T(10,34,5),  html: '<span class="demo-tag demo-tag-ocr">SMS</span> Lien envoyé au 06 12 •• •• 78 <span class="demo-dim">— "Moto Center a choisi AutoDoc Pro..."</span>' },
+    // Client dépose (10:36 — 2 min plus tard)
+    { t: T(10,36,0),  html: '<span class="demo-dim">$</span> <span class="demo-highlight">Client a déposé</span> <span class="demo-dim">— cni_dupont_recto.jpg</span>' },
+    { t: T(10,36,8),  html: '<span class="demo-tag demo-tag-extract">IA</span> <span class="demo-check">✓</span> CNI · DUPONT Marie · Née le 14/05/1992' },
+    { t: T(10,36,14), html: '<span class="demo-tag demo-tag-check">VERIF</span> Vérification date d\'expiration...' },
+    { t: T(10,36,18), html: '<span class="demo-tag demo-tag-error">BLOQUÉ</span> <span class="demo-error">✗ CNI expirée le 12/01/2026</span>' },
+    { t: T(10,36,25), html: '<span class="demo-tag demo-tag-error">→</span> <span class="demo-error">Le client est invité à déposer une pièce d\'identité valide</span>' },
+    { t: T(10,36,30), html: '' },
+    // Phase 3 : correction (10:41 — 5 min plus tard, le client cherche son passeport)
+    { t: T(10,41,0),  html: '<span class="demo-dim">── Client corrige depuis son téléphone ──</span>' },
+    { t: T(10,41,10), html: '<span class="demo-dim">$</span> <span class="demo-highlight">Client a déposé</span> <span class="demo-dim">— passeport_dupont.jpg</span>' },
+    { t: T(10,41,18), html: '<span class="demo-tag demo-tag-extract">IA</span> <span class="demo-check">✓</span> Passeport · DUPONT Marie · Expire le 15/11/2033 <span class="demo-check">✓</span>' },
+    { t: T(10,41,40), html: '<span class="demo-dim">$</span> <span class="demo-highlight">Client a déposé</span> <span class="demo-dim">— permis_dupont.jpg</span>' },
+    { t: T(10,41,50), html: '<span class="demo-tag demo-tag-check">VERIF</span> <span class="demo-check">✓</span> Permis B · véhicule L3e-A1E ≤ 11 kW — permis adapté <span class="demo-check">✓</span>' },
+    { t: T(10,42,0),  html: '<span class="demo-tag demo-tag-check">VERIF</span> <span class="demo-check">✓</span> Permis B + 125cc → formation 7h requise — <span class="demo-highlight">attestation détectée</span> <span class="demo-check">✓</span>' },
+    { t: T(10,42,30), html: '<span class="demo-dim">$</span> <span class="demo-highlight">Client a déposé</span> <span class="demo-dim">— quittance_edf.pdf</span>' },
+    { t: T(10,42,40), html: '<span class="demo-tag demo-tag-check">VERIF</span> <span class="demo-check">✓</span> Domicile · Daté du 15/02/2026 · Nom = passeport <span class="demo-check">✓</span>' },
+    { t: T(10,42,50), html: '' },
+    // Phase 4 : Cerfa (10:43)
+    { t: T(10,43,0),  html: '<span class="demo-dim">── Tous les documents vérifiés ──</span>' },
+    { t: T(10,43,10), html: '<span class="demo-tag demo-tag-cerfa">CERFA</span> Génération Cerfa 13749 (VN)...' },
+    { t: T(10,43,20), html: '<span class="demo-tag demo-tag-cerfa">CERFA</span> <span class="demo-check">✓</span> Cerfa pré-rempli · cachet Moto Center et signature enregistrée numériquement apposés automatiquement' },
+    { t: T(10,43,30), html: '' },
+    { t: T(10,43,40), html: '<span class="demo-tag demo-tag-done">PRÊT</span> <span class="demo-highlight" style="color: #34d399;">Dossier complet — 0 alerte. Contrôlez, téléchargez et soumettez au SIV.</span>' },
 ];
 
 let demoTimeout = [];
+let demoTimerRAF = null;
+
 function runDemo() {
     const el = document.getElementById('demoTerminal');
+    const timerEl = document.getElementById('demoTimer');
     el.innerHTML = '';
     demoTimeout.forEach(t => clearTimeout(t));
     demoTimeout = [];
-    demoLines.forEach((line, i) => {
+    if (demoTimerRAF) cancelAnimationFrame(demoTimerRAF);
+
+    const startTime = performance.now();
+
+    // Timer qui défile
+    function updateTimer() {
+        const elapsed = performance.now() - startTime;
+        const progress = Math.min(elapsed / REAL_DURATION, 1);
+        const simTime = SIM_START + progress * SIM_DURATION;
+        timerEl.textContent = formatTime(simTime);
+        if (progress < 1) demoTimerRAF = requestAnimationFrame(updateTimer);
+    }
+    demoTimerRAF = requestAnimationFrame(updateTimer);
+
+    // Lignes qui apparaissent au bon moment
+    demoLines.forEach((line) => {
+        const realDelay = simTimeToReal(line.t);
         const t = setTimeout(() => {
             if (line.html === '') { el.innerHTML += '<div style="height: 6px;"></div>'; return; }
             const div = document.createElement('div');
             div.className = 'demo-line';
             div.innerHTML = line.html;
-            div.style.animationDelay = '0s';
             el.appendChild(div);
             el.scrollTop = el.scrollHeight;
-        }, line.delay);
+        }, realDelay);
         demoTimeout.push(t);
     });
-    // Curseur clignotant à la fin
-    const tCursor = setTimeout(() => {
+
+    // Curseur à la fin
+    demoTimeout.push(setTimeout(() => {
         const cursor = document.createElement('span');
         cursor.className = 'demo-cursor';
         el.appendChild(cursor);
-    }, 15100);
-    demoTimeout.push(tCursor);
+    }, REAL_DURATION + 500));
 }
 
-// Lancer la démo quand la section est visible
+// Lancer quand visible
 const demoObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
         if (entry.isIntersecting) {
