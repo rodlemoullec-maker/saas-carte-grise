@@ -48,6 +48,7 @@ def annotate_cerfa_vn(
     cachet_siret: str = "",
     couleur: str = "",
     couleur_nuance: str = "",  # "clair" ou "fonce"
+    usage: str = "",  # "oui" ou "non"
     output_path: str | None = None,
     # Champs techniques (pour compléter si Playwright ne les a pas remplis)
     marque_d1: str = "",
@@ -112,12 +113,22 @@ def annotate_cerfa_vn(
                 if i < len(case_x):
                     draw.text((case_x[i], 1163), ch, fill=black, font=font)
 
-    # COULEUR DOMINANTE — cocher la case correspondante
     def _draw_check(draw, cx, cy, color=black):
         """Dessine une coche ✓ centrée sur (cx, cy)."""
         draw.line([(cx-6, cy), (cx-2, cy+6)], fill=color, width=3)
         draw.line([(cx-2, cy+6), (cx+8, cy-6)], fill=color, width=3)
 
+    # USAGE (OUI/NON)
+    if usage:
+        usage_positions = {
+            "oui": (1266, 1044),
+            "non": (1365, 1044),
+        }
+        pos = usage_positions.get(usage.lower())
+        if pos:
+            _draw_check(draw, pos[0], pos[1])
+
+    # COULEUR DOMINANTE — cocher la case correspondante
     if couleur:
         couleur_positions = {
             "noir":    (1311, 1140),

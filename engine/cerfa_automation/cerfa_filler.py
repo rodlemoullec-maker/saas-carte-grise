@@ -181,23 +181,9 @@ class CerfaFiller:
         # rapport puiss./masse
         # → Tous annotés directement sur l'image PNG, pas via Playwright.
 
-        # ─── Tous les champs véhicule sont maintenant gérés par
-        # cerfa_image_annotator.py (PIL), plus aucune dépendance Playwright
-        # pour le remplissage des champs du tableau véhicule. ───
-        # Couleur
-        nuance = v.get("couleur_nuance", "")
-        if nuance == "fonce":
-            try: page.check("#identification_vehicule_nuance_2")
-            except Exception: pass
-        elif nuance == "clair":
-            try: page.check("#identification_vehicule_nuance_1")
-            except Exception: pass
-        couleur_map = {"noir":"1","marron":"2","rouge":"3","orange":"4","jaune":"5",
-                       "vert":"6","bleu":"7","beige":"8","gris":"9","blanc":"10"}
-        cid = couleur_map.get((v.get("couleur") or "").lower(), "")
-        if cid:
-            try: page.check(f"#identification_vehicule_couleur_{cid}")
-            except Exception: pass
+        # ─── Tous les champs véhicule (y compris couleur, usage) sont
+        # maintenant gérés par cerfa_image_annotator.py (PIL),
+        # plus aucune dépendance Playwright pour la page 1. ───
 
     def _fill_vn_page2(self, page, data: dict):
         """P2 VN: certificat de vente."""
