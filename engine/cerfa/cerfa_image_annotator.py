@@ -453,6 +453,8 @@ def annotate_cerfa_vo(
     adresse_nom_voie: str = "",
     adresse_code_postal: str = "",
     adresse_commune: str = "",
+    multi_propriete: str = "",
+    cotitulaire_nom: str = "",
     siret: str = "",
     output_path: str | None = None,
 ) -> str:
@@ -614,6 +616,14 @@ def annotate_cerfa_vo(
     # Adresse — commune
     if adresse_commune:
         draw.text((429, 1098), adresse_commune, fill=black, font=font_xl)
+
+    # Multi-propriété (nombre de titulaires)
+    if multi_propriete:
+        draw.text((1299, 1141), multi_propriete, fill=black, font=font_xl)
+
+    # Co-titulaire nom
+    if cotitulaire_nom:
+        draw.text((239, 1177), cotitulaire_nom, fill=black, font=font_xl)
 
     # SIRET (personne morale) — même espacement que VN
     if siret:
