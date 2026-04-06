@@ -171,7 +171,7 @@ document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
                 <div class="demo-screen" id="demoScreenCerfa" style="display:none;">
                     <div class="demo-screen-bar"><span class="demo-screen-dot" id="logoDot"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10"/></svg></span><span class="demo-screen-title" id="cerfaTitle">Cerfa 13750*07 — Véhicule d'occasion</span></div>
                     <div class="demo-screen-body" style="padding:8px;">
-                        <img src="assets/cerfa_vo_page1.png?v=1" alt="Cerfa 13750 rempli" style="width:100%;border-radius:6px;border:1px solid rgba(255,255,255,0.1);cursor:zoom-in;" onclick="document.getElementById('cerfaFullscreen').style.display='flex'" title="Cliquez pour agrandir">
+                        <img src="assets/cerfa_vo_page1.png?v=2" alt="Cerfa 13750 rempli" style="width:100%;border-radius:6px;border:1px solid rgba(255,255,255,0.1);cursor:zoom-in;" onclick="document.getElementById('cerfaFullscreen').style.display='flex'" title="Cliquez pour agrandir">
                         <div class="demo-cerfa-stamp" id="cerfaStamp" style="display:none;"><div>🔏 Cachet numérique Garage Central SIV</div><div>✍️ Signature numérique enregistrée</div></div>
                         <div class="demo-screen-msg demo-screen-msg-ok" id="mockCerfaMsg" style="display:none;"></div>
                     </div>
@@ -720,7 +720,7 @@ const demoEl=document.querySelector('.demo-live');if(demoEl)demoObs.observe(demo
 
 <!-- Cerfa plein écran -->
 <div id="cerfaFullscreen" onclick="this.style.display='none'" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;background:rgba(0,0,0,0.9);cursor:zoom-out;align-items:center;justify-content:center;padding:20px;">
-    <img src="assets/cerfa_vo_page1.png?v=1" style="max-height:95vh;max-width:95vw;border-radius:8px;box-shadow:0 0 60px rgba(0,0,0,0.5);">
+    <img src="assets/cerfa_vo_page1.png?v=2" style="max-height:95vh;max-width:95vw;border-radius:8px;box-shadow:0 0 60px rgba(0,0,0,0.5);">
 </div>
 </body>
 </html>

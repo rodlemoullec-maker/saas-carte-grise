@@ -524,7 +524,7 @@ def annotate_cerfa_vo(
 
     # VIN E
     if vin_e:
-        draw.text((110, 558), vin_e, fill=black, font=font_xl)
+        draw.text((110, 618), vin_e, fill=black, font=font_xl)
 
     # Genre national J.1
     if genre_j1:
