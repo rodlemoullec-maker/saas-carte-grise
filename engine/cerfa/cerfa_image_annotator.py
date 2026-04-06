@@ -53,6 +53,7 @@ def annotate_cerfa_vn(
     # Champs techniques
     date_reception: str = "",
     numero_k: str = "",
+    origine_hors_ue: bool = False,
     marque_d1: str = "",
     type_variante_d2: str = "",
     cnit_d21: str = "",
@@ -163,6 +164,23 @@ def annotate_cerfa_vn(
     # Numéro K
     if numero_k:
         draw.text((87, 671), numero_k, fill=black, font=font_xl)
+
+    # Attestation de dédouanement — signature vendeur (hors UE uniquement)
+    if origine_hors_ue:
+        sig_dx, sig_dy = 200, 850
+        points_dedou = [
+            (sig_dx, sig_dy+10), (sig_dx+5, sig_dy+8), (sig_dx+12, sig_dy+2),
+            (sig_dx+20, sig_dy-4), (sig_dx+30, sig_dy-8), (sig_dx+38, sig_dy-5),
+            (sig_dx+42, sig_dy), (sig_dx+35, sig_dy+6), (sig_dx+28, sig_dy+10),
+            (sig_dx+40, sig_dy+8), (sig_dx+50, sig_dy+3), (sig_dx+58, sig_dy-2),
+            (sig_dx+65, sig_dy-6), (sig_dx+75, sig_dy-3), (sig_dx+80, sig_dy+2),
+            (sig_dx+72, sig_dy+8), (sig_dx+78, sig_dy+6), (sig_dx+88, sig_dy+2),
+            (sig_dx+95, sig_dy-1), (sig_dx+105, sig_dy+4), (sig_dx+115, sig_dy+6),
+        ]
+        for w in range(2):
+            draw.line(points_dedou, fill=black, width=2-w, joint="curve")
+        draw.arc([(sig_dx+85, sig_dy-12), (sig_dx+120, sig_dy+8)], 200, 80, fill=black, width=2)
+        draw.line([(sig_dx+10, sig_dy+14), (sig_dx+110, sig_dy+12)], fill=black, width=1)
 
     # ─── Champs techniques du tableau véhicule (200 DPI) ───
     # Ligne Marque (D.1) — à droite du label, y≈380
