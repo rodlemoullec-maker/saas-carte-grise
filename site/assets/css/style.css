@@ -974,14 +974,17 @@ ul { list-style: none; }
 }
 .demo-split {
     display: grid;
-    grid-template-columns: 1fr 280px;
+    grid-template-columns: 1fr 380px;
     gap: 16px;
     align-items: start;
 }
 .demo-mockup-stack {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
+    max-height: 560px;
+    overflow-y: auto;
+    scrollbar-width: thin;
 }
 .demo-mockup-mini {
     transform: scale(1);
@@ -1049,7 +1052,7 @@ ul { list-style: none; }
 }
 .demo-terminal-body {
     padding: 24px 28px;
-    height: 400px;
+    height: 500px;
     overflow-y: auto;
     font-family: 'Inter', -apple-system, sans-serif;
     font-size: 0.92rem;
@@ -1279,6 +1282,7 @@ ul { list-style: none; }
 
 @media (max-width: 968px) {
     .demo-split { grid-template-columns: 1fr; }
+    .demo-mockup-stack { max-height: none; }
     .demo-mockup { position: static; }
 }
 
