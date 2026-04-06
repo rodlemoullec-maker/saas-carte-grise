@@ -2369,12 +2369,14 @@ def _check_identite_validity(dossier: dict) -> list:
 
     for d in dossier.get("documents_client", []):
         dtype = d.get("type", "").upper()
-        if dtype not in ("CNI", "PASSEPORT"):
+        is_cotitulaire = dtype.startswith("CNI_COTITULAIRE")
+        if dtype not in ("CNI", "PASSEPORT") and not is_cotitulaire:
             continue
 
         ext = d.get("extracted_data", {})
         date_exp_str = ext.get("date_expiration")
-        type_id = ext.get("type_identite", dtype)
+        label_prefix = "co-titulaire — " if is_cotitulaire else ""
+        type_id = label_prefix + ext.get("type_identite", dtype)
 
         if not date_exp_str:
             # Pas de date d'expiration extractible → warning
