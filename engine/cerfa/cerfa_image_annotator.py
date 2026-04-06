@@ -430,6 +430,12 @@ def annotate_cerfa_vo(
     date_achat: str = "",
     date_certificat: str = "",
     date_premiere_immat: str = "",
+    numero_formule: str = "",
+    marque_d1: str = "",
+    denomination_d3: str = "",
+    type_variante_d2: str = "",
+    vin_e: str = "",
+    genre_j1: str = "",
     output_path: str | None = None,
 ) -> str:
     """
@@ -473,6 +479,30 @@ def annotate_cerfa_vo(
             for i, ch in enumerate(date_chars):
                 if i < len(dcert_x):
                     draw.text((dcert_x[i], 360), ch, fill=black, font=font_xl)
+
+    # Numéro de formule
+    if numero_formule:
+        draw.text((110, 445), numero_formule, fill=black, font=font_xl)
+
+    # Marque D.1
+    if marque_d1:
+        draw.text((110, 500), marque_d1, fill=black, font=font_xl)
+
+    # Type Variante Version D.2
+    if type_variante_d2:
+        draw.text((110, 558), type_variante_d2, fill=black, font=font_xl)
+
+    # VIN E
+    if vin_e:
+        draw.text((110, 558), vin_e, fill=black, font=font_xl)
+
+    # Genre national J.1
+    if genre_j1:
+        draw.text((635, 616), genre_j1, fill=black, font=font_xl)
+
+    # Dénomination commerciale D.3
+    if denomination_d3:
+        draw.text((635, 503), denomination_d3, fill=black, font=font_xl)
 
     # Date 1ère immatriculation (B)
     if date_premiere_immat and "/" in date_premiere_immat:
