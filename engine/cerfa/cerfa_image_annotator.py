@@ -439,6 +439,7 @@ def annotate_cerfa_vo(
     num_exploitation_agricole: str = "",
     couleur: str = "",
     couleur_nuance: str = "",
+    personne_type: str = "",
     output_path: str | None = None,
 ) -> str:
     """
@@ -521,6 +522,16 @@ def annotate_cerfa_vo(
             for i, ch in enumerate(date_chars):
                 if i < len(dimmat_x):
                     draw.text((dimmat_x[i], 360), ch, fill=black, font=font_xl)
+
+    # TITULAIRE — Personne physique / morale
+    if personne_type:
+        vo_personne_positions = {
+            "physique": (584, 831),
+            "morale": (1024, 833),
+        }
+        pos = vo_personne_positions.get(personne_type.lower())
+        if pos:
+            _draw_check(draw, pos[0], pos[1])
 
     # COULEUR DOMINANTE
     if couleur:
