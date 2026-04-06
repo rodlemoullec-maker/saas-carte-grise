@@ -48,7 +48,7 @@ class CerfaFiller:
         if dossier_type == "VN":
             return self._generate_vn_pil(data, output_path)
 
-        return self._generate_vo_playwright(data, output_path)
+        return self._generate_vo_pil(data, output_path)
 
     def _generate_vn_pil(self, data: dict, output_path: str | None = None) -> bytes:
         """Génère le Cerfa 13749 VN entièrement via PIL (zéro Playwright)."""
@@ -185,227 +185,100 @@ class CerfaFiller:
         logger.info(f"[CerfaFiller VN] Cerfa généré : {len(pdf_bytes)} bytes — 100% PIL, zéro Playwright")
         return pdf_bytes
 
-    def _generate_vo_playwright(self, data: dict, output_path: str | None = None) -> bytes:
-        """Génère le Cerfa 13750 VO via Playwright (service-public.gouv.fr)."""
-        from playwright.sync_api import sync_playwright
-
-        with sync_playwright() as p:
-            browser = p.chromium.launch(headless=self.headless)
-            ctx = browser.new_context(user_agent=USER_AGENT, accept_downloads=True)
-            page = ctx.new_page()
-            page.set_default_timeout(30000)
-
-            try:
-                cerfa_url = CERFA_URLS["VO"]
-                logger.info(f"Ouverture formulaire Cerfa 13750 (VO)")
-                page.goto(cerfa_url, wait_until="networkidle")
-
-                # Cookies
-                try:
-                    page.click("button:has-text('Accepter')", timeout=3000)
-                except Exception:
-                    pass
-                    # ═══ 13750 VO : 4 etapes ═══
-                    self._fill_page1(page, data)
-                    page.click("text=Suivant"); time.sleep(2)
-                    logger.info("VO P1 (vehicule) OK")
-
-                    self._fill_page2(page, data)
-                    page.click("text=Suivant"); time.sleep(2)
-                    logger.info("VO P2 (titulaire) OK")
-
-                    page.click("text=Suivant"); time.sleep(2)
-                    logger.info("VO P3 (loueur) skip")
-
-                # ═══ PAGE FINALE : TELECHARGER ═══
-                time.sleep(2)
-                # Forcer la case Certificat (le listbox custom ne propage pas la valeur)
-                page.evaluate("""
-                    var li = document.querySelector('.listbox-input');
-                    if (li) li.value = 'Certificat';
-                    var gr = document.querySelector('input[name="Groupe_de_boutons_radio"]');
-                    if (gr) gr.value = 'Certificat';
-                """)
-                page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
-                time.sleep(2)
-                page.screenshot(path="cerfa_final_page.png")
-                # Chercher le bouton par plusieurs methodes
-                btn = page.query_selector("button[name='telecharger']") or \
-                      page.query_selector("button.btn-primary[type='submit']")
-                if not btn:
-                    # Chercher tous les boutons visibles contenant PDF ou formulaire
-                    for b in page.query_selector_all("button:visible"):
-                        txt = b.inner_text().lower()
-                        if "pdf" in txt or "formulaire" in txt or "charger" in txt:
-                            btn = b
-                            break
-                if btn:
-                    logger.info(f"Bouton trouve: {btn.inner_text().strip()[:50]}")
-                    with page.expect_download(timeout=30000) as dl_info:
-                        btn.click()
-                    download = dl_info.value
-                else:
-                    logger.error("Bouton telecharger non trouve!")
-                    raise RuntimeError("Bouton telecharger non trouve")
-
-                if output_path:
-                    Path(output_path).parent.mkdir(parents=True, exist_ok=True)
-                    download.save_as(output_path)
-                    logger.info(f"PDF sauve : {output_path}")
-
-                raw_pdf = Path(download.path()).read_bytes()
-
-                # Post-traitement : cocher la case Certificat sur le PDF VO
-                if dossier_type == "VO":
-                    raw_pdf = self._check_certificat_box(raw_pdf)
-
-                if output_path:
-                    Path(output_path).parent.mkdir(parents=True, exist_ok=True)
-                    Path(output_path).write_bytes(raw_pdf)
-
-                logger.info(f"PDF genere : {len(raw_pdf)} bytes")
-                return raw_pdf
-
-            except Exception as e:
-                logger.error(f"Erreur CerfaFiller : {e}")
-                try:
-                    page.screenshot(path="cerfa_error.png")
-                except Exception:
-                    pass
-                raise
-            finally:
-                browser.close()
-
-    # ─── VO (13750) specifique ──────────────────────────────────────
-
-    def _fill_page1(self, page, data: dict):
-        """Page 1 : demarche + vehicule."""
-        # Demarche (dropdown custom)
-        page.click("[role='button']")
-        time.sleep(0.5)
-        demarche = data.get("demarche", "Certificat")
-        page.click("[role='button']")
-        time.sleep(0.5)
-        page.click(f"li:has-text('{demarche}')")
-        time.sleep(1)
+    def _generate_vo_pil(self, data: dict, output_path: str | None = None) -> bytes:
+        """Génère le Cerfa 13750 VO entièrement via PIL (zéro Playwright)."""
+        import io
+        from engine.cerfa.cerfa_image_annotator import annotate_cerfa_vo
 
         v = data.get("vehicule", {})
-        self._fill(page, "#valeurNumeroImma", v.get("immatriculation"))
-        self._fill(page, "#Jour1_concat", v.get("date_achat"))
-        self._fill(page, "#Jour2_concat", v.get("date_certificat"))
-        self._fill(page, "#Jour3_concat", v.get("date_premiere_immatriculation"))
-        self._fill(page, "#Newformatimma", v.get("numero_formule"))
-        self._fill(page, "#Marque", v.get("marque"))
-        self._fill(page, "#DenominationCommerciale", v.get("denomination_commerciale"))
-        self._fill(page, "#TypeVarianteVersion", v.get("type_variante_version"))
-        self._fill(page, "#NumeroIdentificationVehicule", v.get("numero_identification"))
-        self._fill(page, "#GenreNational", v.get("genre_national"))
-
-        # Couleur
-        nuance = v.get("couleur_nuance", "")
-        if nuance == "clair":
-            page.check("#nuance_1")
-        elif nuance == "fonce":
-            page.check("#nuance_2")
-
-        couleur_map = {
-            "noir": "1", "marron": "2", "rouge": "3", "orange": "4",
-            "jaune": "5", "vert": "6", "bleu": "7", "beige": "8",
-            "gris": "9", "blanc": "10",
-        }
-        cid = couleur_map.get((v.get("couleur") or "").lower(), "")
-        if cid:
-            page.check(f"#couleur_{cid}_{cid}")
-
-    def _fill_page2(self, page, data: dict):
-        """Page 2 : titulaire + domicile."""
         t = data.get("titulaire", {})
-        is_pm = t.get("type", "physique") == "morale"
-
-        if is_pm:
-            page.check("#Personne_2")
-            time.sleep(1)
-            # Personne morale : SIREN + raison sociale (pas nom/prenom/naissance)
-            self._fill(page, "#N_SIREN", t.get("siren"))
-            self._fill(page, "#RaisonSocialeTitu", t.get("raison_sociale"))
-        else:
-            page.check("#Personne_1")
-            time.sleep(0.5)
-            if t.get("sexe", "M") == "M":
-                page.check("#Sexe_1")
-            else:
-                page.check("#Sexe_2")
-            # Personne physique : nom + prenom
-            nom_prenom = f"{t.get('nom_naissance', '')} {t.get('prenom', '')}".strip()
-            self._fill(page, "#NomPrenomTitulaire", nom_prenom)
-            self._fill(page, "#Name", t.get("nom_usage"))
-
-        # Naissance
-        self._fill(page, "#Jour4_concat", t.get("date_naissance"))
-        self._fill(page, "#CityName1", t.get("commune_naissance"))
-        self._fill(page, "#DPT", t.get("departement_naissance"))
-        self._fill(page, "#Pays", t.get("pays_naissance"))
-
-        # Adresse
         a = t.get("adresse", {})
-        self._fill(page, "#Adresse", a.get("etage"))
-        self._fill(page, "#Adresse_1_", a.get("immeuble"))
-        self._fill(page, "#BuildingNumber", a.get("numero_voie"))
-        self._fill(page, "#BlockName", a.get("extension"))
-        self._fill(page, "#RoadType", a.get("type_voie"))
-        self._fill(page, "#StreetName", a.get("libelle_voie"))
-        self._fill(page, "#Adresse_2_", a.get("lieu_dit"))
-        self._fill(page, "#Postcode", a.get("code_postal"))
-        self._fill(page, "#CityName2", a.get("commune"))
+        metadata = data.get("metadata", {})
 
-        # Contact
-        self._fill(page, "#telPorTitulaire", t.get("telephone"))
-        self._fill(page, "#mailTitulaire", t.get("email"))
+        # Image vierge
+        blank_path = str(Path(__file__).parent.parent.parent / "site" / "assets" / "cerfa_vo_page1_blank.png")
+        if not Path(blank_path).exists():
+            blank_path = str(Path(__file__).parent.parent.parent / "data" / "cerfa_vo_blank.png")
 
-        # Multi-propriete
-        if data.get("cotitulaire"):
-            page.check("#mutlipropriete_1")  # Oui
-        else:
-            page.check("#mutlipropriete_2")  # Non
+        logger.info(f"[CerfaFiller VO] Génération PIL depuis {blank_path}")
 
-    def _check_certificat_box(self, pdf_bytes: bytes) -> bytes:
-        """Overlay un X dans la case Certificat du PDF 13750 telecharge."""
-        from fpdf import FPDF
-        from pypdf import PdfReader, PdfWriter
-        import io
+        # Type personne
+        personne_type = "morale" if t.get("type") == "morale" else "physique"
+        titulaire_nom = f"{t.get('nom_naissance', '')} {t.get('prenom', '')}".strip()
+        if personne_type == "morale":
+            titulaire_nom = t.get("raison_sociale", "")
 
-        H = 841.89
-        # Case Certificat : texte a x=163.2, y=760.1 — la checkbox est a ~x=150, y=760
-        ov = FPDF(unit="pt", format=(595.276, H))
-        ov.add_page()
-        ov.set_font("Helvetica", "B", 10)
-        ov.set_xy(148, H - 765)
-        ov.cell(8, 8, "X")
+        # Sexe
+        sexe = t.get("sexe", "") or metadata.get("client_sexe", "")
 
-        ov_bytes = bytes(ov.output())
-        original = PdfReader(io.BytesIO(pdf_bytes))
-        overlay = PdfReader(io.BytesIO(ov_bytes))
-        writer = PdfWriter()
+        # Co-titulaire
+        cotitulaires = metadata.get("cotitulaires", [])
+        cotitulaire_nom = ""
+        cotitulaire_nom_usage = ""
+        cotitulaire_siret = ""
+        if cotitulaires:
+            cot = cotitulaires[0]
+            if cot.get("type") == "morale":
+                cotitulaire_nom = cot.get("raison_sociale", "")
+                cotitulaire_siret = cot.get("siren", "")
+            else:
+                cotitulaire_nom = f"{cot.get('nom', '')} {cot.get('prenom', '')}".strip()
+                cotitulaire_nom_usage = cot.get("nom_usage", "")
 
-        page = original.pages[0]
-        page.merge_page(overlay.pages[0])
-        writer.add_page(page)
+        out_path = output_path or str(Path(__file__).parent / "cerfa_vo_generated.png")
 
-        # Copier les autres pages si il y en a
-        for i in range(1, len(original.pages)):
-            writer.add_page(original.pages[i])
+        annotate_cerfa_vo(
+            image_path=blank_path,
+            type_demande="certificat",
+            immatriculation_a=v.get("immatriculation", ""),
+            date_achat=v.get("date_achat", ""),
+            date_certificat=v.get("date_certificat", ""),
+            date_premiere_immat=v.get("date_premiere_immatriculation", ""),
+            numero_formule=v.get("numero_formule", ""),
+            marque_d1=v.get("marque", ""),
+            denomination_d3=v.get("denomination_commerciale", ""),
+            type_variante_d2=v.get("type_variante_version", ""),
+            vin_e=v.get("numero_identification", ""),
+            genre_j1=v.get("genre_national", ""),
+            num_exploitation_agricole=v.get("num_exploitation_agricole", ""),
+            couleur=v.get("couleur", ""),
+            couleur_nuance=v.get("couleur_nuance", ""),
+            personne_type=personne_type,
+            sexe=sexe,
+            titulaire_nom=titulaire_nom,
+            titulaire_nom_usage=t.get("nom_usage", ""),
+            titulaire_date_naissance=t.get("date_naissance", ""),
+            titulaire_lieu_naissance=t.get("commune_naissance", ""),
+            titulaire_dpt_naissance=t.get("departement_naissance", ""),
+            titulaire_pays_naissance=t.get("pays_naissance", "FRANCE"),
+            adresse_num_voie=a.get("numero_voie", ""),
+            adresse_extension=a.get("extension", ""),
+            adresse_type_voie=a.get("type_voie", ""),
+            adresse_nom_voie=a.get("libelle_voie", ""),
+            adresse_code_postal=a.get("code_postal", ""),
+            adresse_commune=a.get("commune", ""),
+            multi_propriete=str(metadata.get("nombre_titulaires", 1)),
+            cotitulaire_nom=cotitulaire_nom,
+            cotitulaire_nom_usage=cotitulaire_nom_usage,
+            cotitulaire_siret=cotitulaire_siret,
+            siret=t.get("siren", "") if personne_type == "morale" else "",
+            output_path=out_path,
+        )
 
-        output = io.BytesIO()
-        writer.write(output)
-        return output.getvalue()
+        # Convertir PNG en PDF
+        from PIL import Image
+        img = Image.open(out_path)
+        pdf_bytes_io = io.BytesIO()
+        img.save(pdf_bytes_io, "PDF", resolution=200)
+        pdf_bytes = pdf_bytes_io.getvalue()
 
-    def _fill(self, page, selector: str, value: str | None):
-        if not value:
-            return
-        try:
-            page.fill(selector, str(value), timeout=5000)
-        except Exception:
-            pass  # Champ non visible ou absent
+        if output_path:
+            pdf_path = output_path.replace(".png", ".pdf") if output_path.endswith(".png") else output_path
+            Path(pdf_path).write_bytes(pdf_bytes)
+            logger.info(f"[CerfaFiller VO] PDF sauvé : {pdf_path} ({len(pdf_bytes)} bytes)")
+
+        logger.info(f"[CerfaFiller VO] Cerfa généré : {len(pdf_bytes)} bytes — 100% PIL, zéro Playwright")
+        return pdf_bytes
 
     @staticmethod
     def build_data_from_dossier(dossier: dict) -> dict:
