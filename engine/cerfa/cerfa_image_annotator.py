@@ -455,6 +455,7 @@ def annotate_cerfa_vo(
     adresse_commune: str = "",
     multi_propriete: str = "",
     cotitulaire_nom: str = "",
+    cotitulaire_nom_usage: str = "",
     cotitulaire_siret: str = "",
     siret: str = "",
     output_path: str | None = None,
@@ -625,6 +626,10 @@ def annotate_cerfa_vo(
     # Co-titulaire nom
     if cotitulaire_nom:
         draw.text((239, 1177), cotitulaire_nom, fill=black, font=font_xl)
+
+    # Nom d'usage co-titulaire
+    if cotitulaire_nom_usage:
+        draw.text((713, 1177), cotitulaire_nom_usage, fill=black, font=font_xl)
 
     # SIRET co-titulaire
     if cotitulaire_siret:
