@@ -50,7 +50,9 @@ def annotate_cerfa_vn(
     couleur_nuance: str = "",  # "clair" ou "fonce"
     usage: str = "",  # "oui" ou "non"
     output_path: str | None = None,
-    # Champs techniques (pour compléter si Playwright ne les a pas remplis)
+    # Champs techniques
+    date_reception: str = "",
+    numero_k: str = "",
     marque_d1: str = "",
     type_variante_d2: str = "",
     cnit_d21: str = "",
@@ -154,6 +156,13 @@ def annotate_cerfa_vn(
         pos = nuance_positions.get(couleur_nuance.lower())
         if pos:
             _draw_check(draw, pos[0], pos[1])
+
+    # Date de réception par type
+    if date_reception:
+        draw.text((319, 580), date_reception, fill=black, font=font_xl)
+    # Numéro K
+    if numero_k:
+        draw.text((87, 671), numero_k, fill=black, font=font_xl)
 
     # ─── Champs techniques du tableau véhicule (200 DPI) ───
     # Ligne Marque (D.1) — à droite du label, y≈380

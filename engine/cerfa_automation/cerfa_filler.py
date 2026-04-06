@@ -169,10 +169,7 @@ class CerfaFiller:
             label.click()
         time.sleep(2)
 
-        # Maintenant remplir tous les champs (visibles apres COC=Non)
-        self._fill(page, "#identification_vehicule_soussigne", v.get("soussigne"))
-        self._fill(page, "#identification_vehicule_reception", v.get("date_reception"))
-        self._fill(page, "#identification_vehicule_numero_K", v.get("numero_k"))
+        # Soussigné, réception, K — gérés par cerfa_image_annotator.py (PIL)
 
         # ─── Champs remplis par cerfa_image_annotator.py (PIL) ───
         # D.1 (marque), D.2 (type variante), D.2.1 (CNIT), E (VIN),
