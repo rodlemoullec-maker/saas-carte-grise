@@ -440,6 +440,9 @@ def annotate_cerfa_vo(
     couleur: str = "",
     couleur_nuance: str = "",
     personne_type: str = "",
+    sexe: str = "",
+    titulaire_nom: str = "",
+    siret: str = "",
     output_path: str | None = None,
 ) -> str:
     """
@@ -532,6 +535,28 @@ def annotate_cerfa_vo(
         pos = vo_personne_positions.get(personne_type.lower())
         if pos:
             _draw_check(draw, pos[0], pos[1])
+
+    # Sexe M/F
+    if sexe:
+        vo_sexe_positions = {
+            "M": (736, 831),
+            "F": (803, 831),
+        }
+        pos = vo_sexe_positions.get(sexe.upper())
+        if pos:
+            _draw_check(draw, pos[0], pos[1])
+
+    # Titulaire nom
+    if titulaire_nom:
+        draw.text((212, 863), titulaire_nom, fill=black, font=font_xl)
+
+    # SIRET (personne morale) — même espacement que VN
+    if siret:
+        siret_clean = siret.replace(" ", "")[:14]
+        vo_siret_x = [1124, 1155, 1186, 1216, 1251, 1281, 1312, 1344, 1377, 1407, 1440, 1472, 1502, 1534]
+        for i, ch in enumerate(siret_clean):
+            if i < len(vo_siret_x):
+                draw.text((vo_siret_x[i], 818), ch, fill=black, font=font_xl)
 
     # COULEUR DOMINANTE
     if couleur:
