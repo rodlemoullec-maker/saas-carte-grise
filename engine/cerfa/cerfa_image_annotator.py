@@ -33,9 +33,10 @@ def _get_fonts():
                 ImageFont.truetype(p, 17),
                 ImageFont.truetype(p, 19),
                 ImageFont.truetype(p, 12),
+                ImageFont.truetype(p, 22),
             )
     f = ImageFont.load_default()
-    return f, f, f
+    return f, f, f, f
 
 
 def annotate_cerfa_vn(
@@ -47,13 +48,30 @@ def annotate_cerfa_vn(
     cachet_siret: str = "",
     couleur: str = "",
     output_path: str | None = None,
+    # Champs techniques (pour compléter si Playwright ne les a pas remplis)
+    marque_d1: str = "",
+    type_variante_d2: str = "",
+    masse_f1: str = "",
+    masse_f2: str = "",
+    masse_f3: str = "",
+    masse_g: str = "",
+    poids_vide_g1: str = "",
+    carrosserie_j2: str = "",
+    carrosserie_j3: str = "",
+    cylindree_p1: str = "",
+    puissance_nette_p2: str = "",
+    places_s1: str = "",
+    places_s2: str = "",
+    niveau_sonore_u1: str = "",
+    vitesse_moteur_u2: str = "",
+    classe_env_v9: str = "",
 ) -> str:
     """
     Annote un Cerfa 13749 (VN) avec les champs manquants.
     Image attendue : 1654x2339 px (200 DPI).
     Retourne le chemin de l'image annotée.
     """
-    font, font_big, font_stamp = _get_fonts()
+    font, font_big, font_stamp, font_xl = _get_fonts()
     black = (0, 0, 0)
     blue = (0, 51, 153)
     gray = (100, 100, 100)
@@ -85,6 +103,56 @@ def annotate_cerfa_vn(
                     draw.text((case_x[i], 1163), ch, fill=black, font=font)
 
     # USAGE et COULEUR — déjà cochés par Playwright, pas besoin d'annoter
+
+    # ─── Champs techniques du tableau véhicule (200 DPI) ───
+    # Ligne Marque (D.1) — à droite du label, y≈380
+    if marque_d1:
+        draw.text((538, 379), marque_d1, fill=black, font=font)
+    # Type Variante Version (D.2) — y≈418
+    if type_variante_d2:
+        draw.text((280, 418), type_variante_d2, fill=black, font=font)
+    # Masse F.1 (masse en charge max tech)
+    if masse_f1:
+        draw.text((518, 660), masse_f1, fill=black, font=font_xl)
+    # Masse F.2 (PTAC)
+    if masse_f2:
+        draw.text((730, 660), masse_f2, fill=black, font=font_xl)
+    # Masse F.3 (masse ensemble)
+    if masse_f3:
+        draw.text((943, 660), masse_f3, fill=black, font=font_xl)
+    # Masse en service G
+    if masse_g:
+        draw.text((1163, 660), masse_g, fill=black, font=font_xl)
+    # Poids vide G.1
+    if poids_vide_g1:
+        draw.text((1383, 660), poids_vide_g1, fill=black, font=font_xl)
+    # Carrosserie CE J.2
+    if carrosserie_j2:
+        draw.text((868, 752), carrosserie_j2, fill=black, font=font_xl)
+    # Carte nationale J.3
+    if carrosserie_j3:
+        draw.text((1040, 752), carrosserie_j3, fill=black, font=font_xl)
+    # Cylindrée P.1
+    if cylindree_p1:
+        draw.text((1215, 752), cylindree_p1, fill=black, font=font_xl)
+    # Puissance nette max P.2
+    if puissance_nette_p2:
+        draw.text((1384, 752), puissance_nette_p2, fill=black, font=font_xl)
+    # Places assises S.1
+    if places_s1:
+        draw.text((1170, 806), places_s1, fill=black, font=font_xl)
+    # Places debout S.2
+    if places_s2:
+        draw.text((1390, 806), places_s2, fill=black, font=font_xl)
+    # Niveau sonore U.1
+    if niveau_sonore_u1:
+        draw.text((522, 895), niveau_sonore_u1, fill=black, font=font_xl)
+    # Vitesse moteur U.2
+    if vitesse_moteur_u2:
+        draw.text((748, 895), vitesse_moteur_u2, fill=black, font=font_xl)
+    # Classe environnementale V.9
+    if classe_env_v9:
+        draw.text((1301, 895), classe_env_v9, fill=black, font=font_xl)
 
     # CACHET et SIGNATURE (sous le label, y=1020)
     if cachet_nom:
