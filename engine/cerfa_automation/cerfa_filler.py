@@ -181,9 +181,9 @@ class CerfaFiller:
         # rapport puiss./masse
         # → Tous annotés directement sur l'image PNG, pas via Playwright.
 
-        # Champs encore gérés par Playwright (pas encore dans l'annotateur)
-        self._fill(page, "#identification_vehicule_denomination_D3", v.get("denomination_commerciale"))
-        self._fill(page, "#identification_vehicule_puissance_admin_P_6", v.get("puissance_cv"))
+        # ─── Tous les champs véhicule sont maintenant gérés par
+        # cerfa_image_annotator.py (PIL), plus aucune dépendance Playwright
+        # pour le remplissage des champs du tableau véhicule. ───
         # Couleur
         nuance = v.get("couleur_nuance", "")
         if nuance == "fonce":

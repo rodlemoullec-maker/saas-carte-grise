@@ -53,6 +53,7 @@ def annotate_cerfa_vn(
     type_variante_d2: str = "",
     cnit_d21: str = "",
     vin_e: str = "",
+    denomination_d3: str = "",
     masse_f1: str = "",
     masse_f2: str = "",
     masse_f3: str = "",
@@ -67,6 +68,7 @@ def annotate_cerfa_vn(
     places_s1: str = "",
     places_s2: str = "",
     energie_p3: str = "",
+    puissance_admin_p6: str = "",
     rapport_puiss_masse: str = "",
     niveau_sonore_u1: str = "",
     vitesse_moteur_u2: str = "",
@@ -118,6 +120,9 @@ def annotate_cerfa_vn(
     # Type Variante Version (D.2) — y≈418
     if type_variante_d2:
         draw.text((519, 548), type_variante_d2, fill=black, font=font_xl)
+    # Dénomination commerciale D.3
+    if denomination_d3:
+        draw.text((1058, 548), denomination_d3, fill=black, font=font_xl)
     # CNIT D.2.1
     if cnit_d21:
         draw.text((519, 600), cnit_d21, fill=black, font=font_xl)
@@ -166,6 +171,9 @@ def annotate_cerfa_vn(
     # Énergie P.3
     if energie_p3:
         draw.text((517, 806), energie_p3, fill=black, font=font_xl)
+    # Puissance administrative P.6
+    if puissance_admin_p6:
+        draw.text((730, 806), puissance_admin_p6, fill=black, font=font_xl)
     # Rapport puissance/masse (motos)
     if rapport_puiss_masse:
         draw.text((945, 806), rapport_puiss_masse, fill=black, font=font_xl)
