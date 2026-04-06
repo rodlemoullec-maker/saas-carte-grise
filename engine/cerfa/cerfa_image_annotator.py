@@ -425,34 +425,65 @@ def annotate_cerfa_vn(
 
 def annotate_cerfa_vo(
     image_path: str,
-    vendeur_nom: str = "",
-    acheteur_nom: str = "",
-    date_cession: str = "",
-    cachet_nom: str = "",
-    cachet_adresse: str = "",
-    cachet_siret: str = "",
+    # Véhicule
+    immatriculation_a: str = "",
+    date_achat: str = "",
+    date_certificat: str = "",
+    date_premiere_immat: str = "",
     output_path: str | None = None,
 ) -> str:
     """
-    Annote un Cerfa 13750 (VO) avec les champs manquants.
-    Image attendue : 200 DPI.
+    Annote un Cerfa 13750 (VO) — 100% PIL.
+    Image attendue : 1654x2339 px (200 DPI).
     """
-    font, font_big, font_stamp = _get_fonts()
+    font, font_big, font_stamp, font_xl = _get_fonts()
+    black = (0, 0, 0)
     blue = (0, 51, 153)
     gray = (100, 100, 100)
 
     img = Image.open(image_path)
     draw = ImageDraw.Draw(img)
 
-    # Cachet + signature
-    if cachet_nom:
-        draw.rectangle([(660, 992), (870, 1052)], outline=blue, width=2)
-        draw.text((668, 995), cachet_nom, fill=blue, font=font_stamp)
-        if cachet_adresse:
-            draw.text((668, 1009), cachet_adresse, fill=blue, font=font_stamp)
-        if cachet_siret:
-            draw.text((668, 1023), f"SIRET {cachet_siret}", fill=blue, font=font_stamp)
-        draw.text((668, 1037), "~ signature numérique ~", fill=gray, font=font_stamp)
+    def _draw_check(d, cx, cy, color=black):
+        d.line([(cx-6, cy), (cx-2, cy+6)], fill=color, width=3)
+        d.line([(cx-2, cy+6), (cx+8, cy-6)], fill=color, width=3)
+
+    # Immatriculation A
+    if immatriculation_a:
+        draw.text((115, 360), immatriculation_a, fill=black, font=font_xl)
+
+    # Date d'achat (cases individuelles JJ/MM/AAAA)
+    if date_achat and "/" in date_achat:
+        parts = date_achat.split("/")
+        if len(parts) == 3:
+            jj, mm, aaaa = parts[0].zfill(2), parts[1].zfill(2), parts[2].zfill(4)
+            date_chars = list(jj) + list(mm) + list(aaaa)
+            dachat_x = [477, 516, 560, 600, 644, 684, 724, 764]
+            for i, ch in enumerate(date_chars):
+                if i < len(dachat_x):
+                    draw.text((dachat_x[i], 360), ch, fill=black, font=font_xl)
+
+    # Date du certificat actuel (B)
+    if date_certificat and "/" in date_certificat:
+        parts = date_certificat.split("/")
+        if len(parts) == 3:
+            jj, mm, aaaa = parts[0].zfill(2), parts[1].zfill(2), parts[2].zfill(4)
+            date_chars = list(jj) + list(mm) + list(aaaa)
+            dcert_x = [859, 898, 947, 987, 1031, 1071, 1111, 1151]
+            for i, ch in enumerate(date_chars):
+                if i < len(dcert_x):
+                    draw.text((dcert_x[i], 360), ch, fill=black, font=font_xl)
+
+    # Date 1ère immatriculation (B)
+    if date_premiere_immat and "/" in date_premiere_immat:
+        parts = date_premiere_immat.split("/")
+        if len(parts) == 3:
+            jj, mm, aaaa = parts[0].zfill(2), parts[1].zfill(2), parts[2].zfill(4)
+            date_chars = list(jj) + list(mm) + list(aaaa)
+            dimmat_x = [1242, 1281, 1330, 1370, 1417, 1457, 1497, 1537]
+            for i, ch in enumerate(date_chars):
+                if i < len(dimmat_x):
+                    draw.text((dimmat_x[i], 360), ch, fill=black, font=font_xl)
 
     out = output_path or image_path
     img.save(out, "PNG")
