@@ -153,7 +153,7 @@ document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
             </div>
             <div class="demo-mockup" id="demoMockup">
                 <div class="demo-screen" id="demoScreenVendeur" style="display:none;">
-                    <div class="demo-screen-bar"><span class="demo-screen-dot"></span><span class="demo-screen-title">Espace vendeur</span></div>
+                    <div class="demo-screen-bar"><span class="demo-screen-dot" id="logoDot"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10"/></svg></span><span class="demo-screen-title">Espace vendeur</span></div>
                     <div class="demo-screen-body">
                         <div class="demo-screen-header">Dossier CG-2026-63241</div>
                         <div class="demo-screen-section">Documents véhicule</div>
@@ -166,7 +166,7 @@ document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
                     </div>
                 </div>
                 <div class="demo-screen demo-screen-mobile" id="demoScreenClient" style="display:none;">
-                    <div class="demo-screen-bar"><span class="demo-screen-dot"></span><span class="demo-screen-title">📱 Espace client — Moto Center</span></div>
+                    <div class="demo-screen-bar"><span class="demo-screen-dot" id="logoDot"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10"/></svg></span><span class="demo-screen-title">📱 Espace client — Moto Center</span></div>
                     <div class="demo-screen-body">
                         <div class="demo-screen-header">Vos documents</div>
                         <div class="demo-screen-doc" id="mockCni"><span class="demo-screen-pending">○</span> Pièce d'identité</div>
@@ -179,7 +179,7 @@ document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
                     </div>
                 </div>
                 <div class="demo-screen" id="demoScreenZip" style="display:none;">
-                    <div class="demo-screen-bar"><span class="demo-screen-dot"></span><span class="demo-screen-title">Dossier complet — ZIP</span></div>
+                    <div class="demo-screen-bar"><span class="demo-screen-dot" id="logoDot"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10"/></svg></span><span class="demo-screen-title">Dossier complet — ZIP</span></div>
                     <div class="demo-screen-body">
                         <div class="demo-screen-header">Prêt pour votre agent</div>
                         <div class="demo-screen-doc" id="zipCerfa"><span class="demo-screen-pending">○</span> Cerfa 13749 pré-rempli</div>
@@ -599,6 +599,7 @@ const el=document.getElementById('demoTerminal'),timerEl=document.getElementById
 el.innerHTML='';demoTimeout.forEach(t=>clearTimeout(t));demoTimeout=[];if(demoTimerRAF)cancelAnimationFrame(demoTimerRAF);
 demoPaused=false;demoPausedTotal=0;document.getElementById('demoPauseLabel').textContent='Pause';
 window._demoNextLine=0;window._demoCursorAdded=false;window._demoMockupState=0;
+document.querySelectorAll('.demo-screen-dot').forEach(d=>d.classList.add('spinning'));
 document.getElementById('demoMockupPlaceholder').style.display='flex';
 ['demoScreenVendeur','demoScreenClient','demoScreenZip'].forEach(id=>document.getElementById(id).style.display='none');
 ['mockCoc','mockFacture','mockVin','mockCnit'].forEach(id=>{const e=document.getElementById(id);e.className='demo-screen-doc';e.querySelector('span').textContent='○';});
@@ -608,7 +609,7 @@ document.getElementById('demoMockupPlaceholder').style.display='flex';
 demoStartTime=performance.now();
 updateDemoTimer=function(){if(demoPaused)return;const elapsed=performance.now()-demoStartTime-demoPausedTotal,progress=Math.min(elapsed/REAL_DURATION,1),simTime=SIM_START+progress*SIM_DURATION;
 while(window._demoNextLine<demoLines.length){const line=demoLines[window._demoNextLine];if(simTime<line.t)break;if(line.html==='')el.innerHTML+='<div style="height:6px;"></div>';else{const div=document.createElement('div');div.className='demo-line';div.innerHTML=line.html;el.appendChild(div);}el.scrollTop=el.scrollHeight;window._demoNextLine++;}
-if(progress>=1&&!window._demoCursorAdded){el.appendChild(Object.assign(document.createElement('span'),{className:'demo-cursor'}));window._demoCursorAdded=true;}
+if(progress>=1&&!window._demoCursorAdded){el.appendChild(Object.assign(document.createElement('span'),{className:'demo-cursor'}));window._demoCursorAdded=true;document.querySelectorAll('.demo-screen-dot').forEach(d=>d.classList.remove('spinning'));}
 const S=window._demoMockupState;
 if(simTime>=T(10,32,0)&&S<1){document.getElementById('demoMockupPlaceholder').style.display='none';document.getElementById('demoScreenVendeur').style.display='block';window._demoMockupState=1;}
 if(simTime>=T(10,32,22)){const e=document.getElementById('mockCoc');e.className='demo-screen-doc demo-screen-ok';e.querySelector('span').textContent='✓';}

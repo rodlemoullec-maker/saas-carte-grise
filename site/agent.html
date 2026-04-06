@@ -152,7 +152,7 @@ document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
             </div>
             <div class="demo-mockup" id="demoMockup">
                 <div class="demo-screen demo-screen-mobile" id="demoScreenClient" style="display:none;">
-                    <div class="demo-screen-bar"><span class="demo-screen-dot"></span><span class="demo-screen-title">📱 Client — Garage Central SIV</span></div>
+                    <div class="demo-screen-bar"><span class="demo-screen-dot" id="logoDot"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10"/></svg></span><span class="demo-screen-title">📱 Client — Garage Central SIV</span></div>
                     <div class="demo-screen-body">
                         <div class="demo-screen-header">Vos documents</div>
                         <div class="demo-screen-section">Documents véhicule</div>
@@ -169,7 +169,7 @@ document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
                     </div>
                 </div>
                 <div class="demo-screen" id="demoScreenCerfa" style="display:none;">
-                    <div class="demo-screen-bar"><span class="demo-screen-dot"></span><span class="demo-screen-title" id="cerfaTitle">Cerfa 13750*07 — Véhicule d'occasion</span></div>
+                    <div class="demo-screen-bar"><span class="demo-screen-dot" id="logoDot"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10"/></svg></span><span class="demo-screen-title" id="cerfaTitle">Cerfa 13750*07 — Véhicule d'occasion</span></div>
                     <div class="demo-screen-body" style="padding:8px;">
                         <img src="assets/cerfa_vo_page1.png?v=1" alt="Cerfa 13750 rempli" style="width:100%;border-radius:6px;border:1px solid rgba(255,255,255,0.1);cursor:zoom-in;" onclick="document.getElementById('cerfaFullscreen').style.display='flex'" title="Cliquez pour agrandir">
                         <div class="demo-cerfa-stamp" id="cerfaStamp" style="display:none;"><div>🔏 Cachet numérique Garage Central SIV</div><div>✍️ Signature numérique enregistrée</div></div>
@@ -696,6 +696,7 @@ const el=document.getElementById('demoTerminal'),timerEl=document.getElementById
 el.innerHTML='';demoTimeout.forEach(t=>clearTimeout(t));demoTimeout=[];if(demoTimerRAF)cancelAnimationFrame(demoTimerRAF);
 demoPaused=false;demoPausedTotal=0;document.getElementById('demoPauseLabel').textContent='Pause';
 window._demoNextLine=0;window._demoCursorAdded=false;window._demoMockupState=0;
+document.querySelectorAll('.demo-screen-dot').forEach(d=>d.classList.add('spinning'));
 document.getElementById('demoMockupPlaceholder').style.display='flex';
 ['demoScreenClient','demoScreenCerfa'].forEach(id=>document.getElementById(id).style.display='none');
 ['mockCg','mockCession','mockCni','mockPermis','mockDomicile'].forEach(id=>{try{const e=document.getElementById(id);e.className='demo-screen-doc';e.querySelector('span').textContent='○';}catch(x){}});
@@ -707,7 +708,7 @@ const SIM_S=cfg.SIM_START,SIM_D=cfg.SIM_END-cfg.SIM_START;
 demoStartTime=performance.now();
 updateDemoTimer=function(){if(demoPaused)return;const elapsed=performance.now()-demoStartTime-demoPausedTotal,progress=Math.min(elapsed/REAL_DURATION,1),simTime=SIM_S+progress*SIM_D;
 while(window._demoNextLine<cfg.lines.length){const line=cfg.lines[window._demoNextLine];if(simTime<line.t)break;if(line.html==='')el.innerHTML+='<div style="height:6px;"></div>';else{const div=document.createElement('div');div.className='demo-line';div.innerHTML=line.html;el.appendChild(div);}el.scrollTop=el.scrollHeight;window._demoNextLine++;}
-if(progress>=1&&!window._demoCursorAdded){el.appendChild(Object.assign(document.createElement('span'),{className:'demo-cursor'}));window._demoCursorAdded=true;}
+if(progress>=1&&!window._demoCursorAdded){el.appendChild(Object.assign(document.createElement('span'),{className:'demo-cursor'}));window._demoCursorAdded=true;document.querySelectorAll('.demo-screen-dot').forEach(d=>d.classList.remove('spinning'));}
 cfg.mockupUpdate(simTime,window._demoMockupState);
 cfg.phases.forEach((phase,i)=>{const pe=el.querySelector(`[data-phase="${i}"]`);if(!pe)return;if(simTime<phase.start)pe.textContent='';else if(simTime<=phase.end){const d=simTime-phase.start;pe.textContent=`${Math.floor(d/60)}:${String(Math.floor(d%60)).padStart(2,'0')}`;pe.style.color='#34d399';pe.style.background='rgba(5,150,105,0.15)';}else{const d=phase.end-phase.start;pe.textContent=`✓ ${Math.floor(d/60)}:${String(Math.floor(d%60)).padStart(2,'0')}`;pe.style.color='rgba(255,255,255,0.4)';pe.style.background='rgba(255,255,255,0.06)';}});
 const te=simTime-SIM_S;timerEl.textContent=`${Math.floor(te/60)}:${String(Math.floor(te%60)).padStart(2,'0')}`;

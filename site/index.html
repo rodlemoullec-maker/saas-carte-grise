@@ -180,7 +180,7 @@
                 <!-- Phase 1 : espace vendeur -->
                 <div class="demo-screen" id="demoScreenVendeur" style="display:none;">
                     <div class="demo-screen-bar">
-                        <span class="demo-screen-dot"></span>
+                        <span class="demo-screen-dot" id="logoDot"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10"/></svg></span>
                         <span class="demo-screen-title">Espace vendeur</span>
                     </div>
                     <div class="demo-screen-body">
@@ -199,7 +199,7 @@
                 <!-- Phase 2-3 : espace client mobile -->
                 <div class="demo-screen demo-screen-mobile" id="demoScreenClient" style="display:none;">
                     <div class="demo-screen-bar">
-                        <span class="demo-screen-dot"></span>
+                        <span class="demo-screen-dot" id="logoDot"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10"/></svg></span>
                         <span class="demo-screen-title">📱 Espace client — Moto Center</span>
                     </div>
                     <div class="demo-screen-body">
@@ -219,7 +219,7 @@
                 <!-- Phase 4 : Cerfa -->
                 <div class="demo-screen demo-screen-mini" id="demoScreenCerfa" style="display:none;">
                     <div class="demo-screen-bar">
-                        <span class="demo-screen-dot"></span>
+                        <span class="demo-screen-dot" id="logoDot"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10"/></svg></span>
                         <span class="demo-screen-title">Cerfa 13749*04 — Véhicule neuf</span>
                     </div>
                     <div class="demo-screen-body" style="padding:8px;">
@@ -767,6 +767,7 @@ function runDemo() {
     document.getElementById('demoPauseIcon').innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
 
     demoStartTime = performance.now();
+    document.querySelectorAll('.demo-screen-dot').forEach(d => d.classList.add('spinning'));
 
     updateDemoTimer = function() {
         if (demoPaused) return;
@@ -793,6 +794,7 @@ function runDemo() {
             cursor.className = 'demo-cursor';
             el.appendChild(cursor);
             window._demoCursorAdded = true;
+            document.querySelectorAll('.demo-screen-dot').forEach(d => d.classList.remove('spinning'));
         }
 
         // ── Mockup synchronisé ──

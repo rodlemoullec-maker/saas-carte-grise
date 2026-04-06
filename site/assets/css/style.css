@@ -1171,9 +1171,24 @@ ul { list-style: none; }
     border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 .demo-screen-dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: #34d399;
+    width: 22px; height: 22px;
+    border-radius: 5px;
+    background: linear-gradient(135deg, #1e40af, #3b82f6);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.demo-screen-dot svg {
+    width: 14px; height: 14px;
+    fill: white;
+}
+.demo-screen-dot.spinning svg {
+    animation: spin-logo 1.2s linear infinite;
+}
+@keyframes spin-logo {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
 .demo-screen-title {
     font-size: 0.72rem;
