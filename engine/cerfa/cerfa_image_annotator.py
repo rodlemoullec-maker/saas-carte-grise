@@ -143,10 +143,10 @@ def annotate_cerfa_vn(
             jj, mm, aaaa = parts[0].zfill(2), parts[1].zfill(2), parts[2].zfill(4)
             date_chars = list(jj) + list(mm) + list(aaaa)
             # X centré dans chaque case (image 200dpi)
-            case_x = [296, 323, 354, 377, 401, 428, 454, 474]
+            case_x = [296, 321, 353, 376, 406, 430, 454, 478]
             for i, ch in enumerate(date_chars):
                 if i < len(case_x):
-                    draw.text((case_x[i], 1163), ch, fill=black, font=font)
+                    draw.text((case_x[i], 1168), ch, fill=black, font=font)
 
     # DEMANDEUR — Personne physique / morale
     if personne_type:
