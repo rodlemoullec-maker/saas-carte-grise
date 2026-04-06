@@ -54,6 +54,7 @@ def annotate_cerfa_vn(
     date_reception: str = "",
     numero_k: str = "",
     origine_hors_ue: bool = False,
+    certificat_source: str = "",  # "constructeur" ou "representant"
     marque_d1: str = "",
     type_variante_d2: str = "",
     cnit_d21: str = "",
@@ -93,7 +94,22 @@ def annotate_cerfa_vn(
     img = Image.open(image_path)
     draw = ImageDraw.Draw(img)
 
+    def _draw_check(d, cx, cy, color=black):
+        """Dessine une coche ✓ centrée sur (cx, cy)."""
+        d.line([(cx-6, cy), (cx-2, cy+6)], fill=color, width=3)
+        d.line([(cx-2, cy+6), (cx+8, cy-6)], fill=color, width=3)
+
     nom_court = vendeur_nom.split(" - ")[0] if " - " in vendeur_nom else vendeur_nom
+
+    # Case constructeur / représentant accrédité
+    if certificat_source:
+        source_positions = {
+            "constructeur": (1015, 394),
+            "representant": (1253, 394),
+        }
+        pos = source_positions.get(certificat_source.lower())
+        if pos:
+            _draw_check(draw, pos[0], pos[1])
 
     # Certificat de conformité — Je soussigné (y=487, x=112)
     if vendeur_nom:
@@ -115,11 +131,6 @@ def annotate_cerfa_vn(
             for i, ch in enumerate(date_chars):
                 if i < len(case_x):
                     draw.text((case_x[i], 1163), ch, fill=black, font=font)
-
-    def _draw_check(draw, cx, cy, color=black):
-        """Dessine une coche ✓ centrée sur (cx, cy)."""
-        draw.line([(cx-6, cy), (cx-2, cy+6)], fill=color, width=3)
-        draw.line([(cx-2, cy+6), (cx+8, cy-6)], fill=color, width=3)
 
     # USAGE (OUI/NON)
     if usage:
