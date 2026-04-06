@@ -33,7 +33,10 @@ class CerfaFiller:
 
     def fill_and_download(self, data: dict, output_path: str | None = None, dossier_type: str = "VO") -> bytes:
         """
-        Remplit le formulaire 4 etapes et telecharge le PDF.
+        Génère le Cerfa PDF rempli.
+
+        - VN (13749) : 100% PIL, zéro Playwright
+        - VO (13750) : Playwright via service-public.gouv.fr
 
         Args:
             data: dict avec vehicule, titulaire, cotitulaire
@@ -42,6 +45,148 @@ class CerfaFiller:
         Returns:
             bytes du PDF genere
         """
+        if dossier_type == "VN":
+            return self._generate_vn_pil(data, output_path)
+
+        return self._generate_vo_playwright(data, output_path)
+
+    def _generate_vn_pil(self, data: dict, output_path: str | None = None) -> bytes:
+        """Génère le Cerfa 13749 VN entièrement via PIL (zéro Playwright)."""
+        import io
+        from engine.cerfa.cerfa_image_annotator import annotate_cerfa_vn
+
+        v = data.get("vehicule", {})
+        t = data.get("titulaire", {})
+        a = t.get("adresse", {})
+        metadata = data.get("metadata", {})
+
+        # Déterminer l'image vierge
+        blank_path = str(Path(__file__).parent.parent.parent / "site" / "assets" / "cerfa_vn_page1_blank.png")
+        if not Path(blank_path).exists():
+            blank_path = str(Path(__file__).parent.parent.parent / "data" / "cerfa_vn_blank.png")
+
+        logger.info(f"[CerfaFiller VN] Génération PIL depuis {blank_path}")
+
+        # Construire le nom du vendeur
+        vendeur_nom = v.get("vendeur_nom", "")
+
+        # Déterminer source constructeur/représentant
+        certificat_source = ""
+        soussigne = v.get("soussigne", "")
+        if soussigne:
+            # Heuristique : si le soussigné contient "Ltd", "GmbH", "Europe", "France" → représentant
+            lower = soussigne.lower()
+            if any(kw in lower for kw in ("ltd", "gmbh", "europe", "france", "sa", "sas")):
+                certificat_source = "representant"
+            else:
+                certificat_source = "constructeur"
+
+        # Déterminer origine hors UE via marque
+        marque = v.get("marque", "").upper()
+        marques_hors_ue = {"HONDA", "YAMAHA", "SUZUKI", "KAWASAKI", "TOYOTA", "NISSAN",
+                           "MAZDA", "MITSUBISHI", "SUBARU", "LEXUS", "INFINITI", "ACURA",
+                           "HYUNDAI", "KIA", "GENESIS", "FORD", "CHEVROLET", "TESLA",
+                           "JEEP", "DODGE", "RAM", "CHRYSLER", "CADILLAC", "GMC"}
+        origine_hors_ue = marque in marques_hors_ue
+
+        # Co-titulaire
+        cotitulaires = metadata.get("cotitulaires", [])
+        cotitulaire_nom = ""
+        if cotitulaires:
+            cot = cotitulaires[0]
+            if cot.get("type") == "morale":
+                cotitulaire_nom = cot.get("raison_sociale", "")
+            else:
+                cotitulaire_nom = f"{cot.get('nom', '')} {cot.get('prenom', '')}".strip()
+
+        # Sexe
+        sexe = t.get("sexe", "")
+        if not sexe:
+            sexe = metadata.get("client_sexe", "")
+
+        # Type personne
+        personne_type = "morale" if t.get("type") == "morale" else "physique"
+
+        # Nom titulaire
+        titulaire_nom = f"{t.get('nom_naissance', '')} {t.get('prenom', '')}".strip()
+
+        out_path = output_path or str(Path(__file__).parent / "cerfa_vn_generated.png")
+
+        annotate_cerfa_vn(
+            image_path=blank_path,
+            vendeur_nom=vendeur_nom,
+            date_vente=v.get("date_achat", ""),
+            cachet_nom=v.get("cachet_nom", vendeur_nom.split(" - ")[0] if " - " in vendeur_nom else vendeur_nom),
+            cachet_adresse=v.get("cachet_adresse", ""),
+            cachet_siret=v.get("cachet_siret", ""),
+            certificat_source=certificat_source,
+            date_reception=v.get("date_reception", ""),
+            numero_k=v.get("numero_k", ""),
+            origine_hors_ue=origine_hors_ue,
+            marque_d1=v.get("marque", ""),
+            type_variante_d2=v.get("type_variante_version", ""),
+            denomination_d3=v.get("denomination_commerciale", ""),
+            cnit_d21=v.get("cnit", ""),
+            vin_e=v.get("numero_identification", ""),
+            masse_f1=str(v.get("masse_f1") or ""),
+            masse_f2=str(v.get("ptac_kg") or ""),
+            masse_f3=str(v.get("masse_f3") or ""),
+            masse_g=str(v.get("masse_g") or ""),
+            poids_vide_g1=str(v.get("poids_vide_g1") or ""),
+            categorie_j=v.get("categorie_j", ""),
+            genre_j1=v.get("genre_national", ""),
+            carrosserie_j2=v.get("carrosserie_j2", ""),
+            carrosserie_j3=v.get("carrosserie_j3", ""),
+            cylindree_p1=str(v.get("cylindree_p1") or ""),
+            puissance_nette_p2=str(v.get("puissance_nette_p2") or ""),
+            energie_p3=v.get("energie", ""),
+            puissance_admin_p6=str(v.get("puissance_cv") or ""),
+            rapport_puiss_masse=str(v.get("rapport_puiss_masse") or ""),
+            places_s1=str(v.get("places") or ""),
+            places_s2=str(v.get("places_debout_s2") or ""),
+            niveau_sonore_u1=str(v.get("niveau_sonore_u1") or ""),
+            vitesse_moteur_u2=str(v.get("vitesse_moteur_u2") or ""),
+            co2_v7=str(v.get("co2_wltp") or ""),
+            classe_env_v9=v.get("classe_env", ""),
+            usage="oui",
+            couleur=v.get("couleur", ""),
+            couleur_nuance=v.get("couleur_nuance", ""),
+            personne_type=personne_type,
+            sexe=sexe,
+            titulaire_nom=titulaire_nom,
+            titulaire_nom_usage=t.get("nom_usage", ""),
+            titulaire_date_naissance=t.get("date_naissance", ""),
+            titulaire_lieu_naissance=t.get("commune_naissance", ""),
+            titulaire_dpt_naissance=t.get("departement_naissance", ""),
+            titulaire_pays_naissance=t.get("pays_naissance", "FRANCE"),
+            multi_propriete=str(metadata.get("nombre_titulaires", 1)),
+            cotitulaire_nom=cotitulaire_nom,
+            adresse_num_voie=a.get("numero_voie", ""),
+            adresse_extension=a.get("extension", ""),
+            adresse_type_voie=a.get("type_voie", ""),
+            adresse_nom_voie=a.get("libelle_voie", ""),
+            adresse_code_postal=a.get("code_postal", ""),
+            adresse_commune=a.get("commune", ""),
+            output_path=out_path,
+        )
+
+        # Convertir PNG en PDF
+        from PIL import Image
+        img = Image.open(out_path)
+        pdf_bytes_io = io.BytesIO()
+        img.save(pdf_bytes_io, "PDF", resolution=200)
+        pdf_bytes = pdf_bytes_io.getvalue()
+
+        if output_path:
+            pdf_path = output_path.replace(".png", ".pdf") if output_path.endswith(".png") else output_path
+            Path(pdf_path).write_bytes(pdf_bytes)
+            logger.info(f"[CerfaFiller VN] PDF sauvé : {pdf_path} ({len(pdf_bytes)} bytes)")
+
+        logger.info(f"[CerfaFiller VN] Cerfa généré : {len(pdf_bytes)} bytes — 100% PIL, zéro Playwright")
+        return pdf_bytes
+
+    def _generate_vo_playwright(self, data: dict, output_path: str | None = None) -> bytes:
+        """Génère le Cerfa 13750 VO via Playwright (service-public.gouv.fr)."""
         from playwright.sync_api import sync_playwright
 
         with sync_playwright() as p:
@@ -51,9 +196,8 @@ class CerfaFiller:
             page.set_default_timeout(30000)
 
             try:
-                cerfa_url = CERFA_URLS.get(dossier_type, CERFA_URLS["VO"])
-                cerfa_num = "13749" if dossier_type == "VN" else "13750"
-                logger.info(f"Ouverture formulaire Cerfa {cerfa_num} ({dossier_type})")
+                cerfa_url = CERFA_URLS["VO"]
+                logger.info(f"Ouverture formulaire Cerfa 13750 (VO)")
                 page.goto(cerfa_url, wait_until="networkidle")
 
                 # Cookies
@@ -61,28 +205,6 @@ class CerfaFiller:
                     page.click("button:has-text('Accepter')", timeout=3000)
                 except Exception:
                     pass
-
-                if dossier_type == "VN":
-                    # ═══ 13749 VN : 4 etapes ═══
-                    self._fill_vn_page1(page, data)
-                    page.click("text=Suivant"); time.sleep(3)
-                    logger.info("VN P1→P2 OK")
-
-                    self._fill_vn_page2(page, data)
-                    page.click("text=Suivant")
-                    page.wait_for_load_state("networkidle", timeout=10000)
-                    time.sleep(2)
-                    logger.info("VN P2→P3 OK")
-
-                    page.screenshot(path="cerfa_vn_p3_before_fill.png")
-                    self._fill_vn_page3(page, data)
-                    page.screenshot(path="cerfa_vn_p3_after_fill.png")
-                    page.click("text=Suivant")
-                    page.wait_for_load_state("networkidle", timeout=10000)
-                    time.sleep(2)
-                    page.screenshot(path="cerfa_vn_p4.png")
-                    logger.info("VN P3→P4 OK")
-                else:
                     # ═══ 13750 VO : 4 etapes ═══
                     self._fill_page1(page, data)
                     page.click("text=Suivant"); time.sleep(2)
@@ -153,90 +275,6 @@ class CerfaFiller:
                 raise
             finally:
                 browser.close()
-
-    # ─── VN (13749) specifique ──────────────────────────────────────
-
-    def _fill_vn_page1(self, page, data: dict):
-        """P1 VN: identification vehicule — tous les champs COC."""
-        page.click("#identification_vehicule_choix_1")  # Du constructeur
-        time.sleep(0.5)
-        v = data.get("vehicule", {})
-
-        # COC = Non EN PREMIER (avant tout remplissage)
-        # Sinon remplir soussigne/K change l'etat et les champs restent masques
-        label = page.query_selector("label[for='identification_vehicule_presence_coc_2']")
-        if label:
-            label.click()
-        time.sleep(2)
-
-        # Soussigné, réception, K — gérés par cerfa_image_annotator.py (PIL)
-
-        # ─── Champs remplis par cerfa_image_annotator.py (PIL) ───
-        # D.1 (marque), D.2 (type variante), D.2.1 (CNIT), E (VIN),
-        # F.1, F.2, F.3, G, G.1, J, J.1, J.2, J.3,
-        # P.1, P.2, P.3, S.1, S.2, U.1, U.2, V.7, V.9,
-        # rapport puiss./masse
-        # → Tous annotés directement sur l'image PNG, pas via Playwright.
-
-        # ─── Tous les champs véhicule (y compris couleur, usage) sont
-        # maintenant gérés par cerfa_image_annotator.py (PIL),
-        # plus aucune dépendance Playwright pour la page 1. ───
-
-    def _fill_vn_page2(self, page, data: dict):
-        """P2 VN: certificat de vente."""
-        v = data.get("vehicule", {})
-        try:
-            self._fill(page, "#certificat_vente_soussignee", v.get("vendeur_nom"))
-            self._fill(page, "#certificat_vente_date", v.get("date_achat"))
-        except Exception as e:
-            logger.warning(f"P2 VN certificat de vente: {e} — certains champs non remplis")
-
-    def _fill_vn_page3(self, page, data: dict):
-        """P3 VN: titulaire + domicile."""
-        t = data.get("titulaire", {})
-        is_pm = t.get("type", "physique") == "morale"
-        def click_label_or_radio(field_id):
-            """Clic sur le label du radio, fallback sur le radio directement, fallback JS."""
-            lbl = page.query_selector(f"label[for='{field_id}']")
-            if lbl and lbl.is_visible():
-                lbl.click()
-                return
-            el = page.query_selector(f"#{field_id}")
-            if el and el.is_visible():
-                el.click(force=True)
-                return
-            page.evaluate(f"document.getElementById('{field_id}')?.click()")
-
-        if is_pm:
-            click_label_or_radio("demandeur_personne_2")
-            time.sleep(1)
-            self._fill(page, "#demandeur_titulaire_raison", t.get("raison_sociale"))
-            self._fill(page, "#demandeur_titulaire_siret", t.get("siren"))
-        else:
-            click_label_or_radio("demandeur_personne_1")
-            time.sleep(1)
-            if t.get("sexe", "M") == "M":
-                click_label_or_radio("demandeur_sexe_1")
-            else:
-                click_label_or_radio("demandeur_sexe_2")
-            nom_prenom = f"{t.get('nom_naissance', '')} {t.get('prenom', '')}".strip()
-            self._fill(page, "#demandeur_titulaire_nom_naissance", nom_prenom)
-            self._fill(page, "#demandeur_titulaire_nom_usage", t.get("nom_usage"))
-        self._fill(page, "#demandeur_titulaire_date_naissance", t.get("date_naissance"))
-        self._fill(page, "#demandeur_titulaire_naissance_lieu", t.get("commune_naissance"))
-        self._fill(page, "#demandeur_titulaire_naissance_dpt", t.get("departement_naissance"))
-        self._fill(page, "#demandeur_titulaire_naissance_pays", t.get("pays_naissance"))
-        click_label_or_radio("demandeur_multi_propriete_2")
-        click_label_or_radio("demandeur_location_2")
-        a = t.get("adresse", {})
-        self._fill(page, "#demandeur_domicile_num_voie", a.get("numero_voie"))
-        self._fill(page, "#demandeur_domicile_extension", a.get("extension"))
-        self._fill(page, "#demandeur_domicile_type_voie", a.get("type_voie"))
-        self._fill(page, "#demandeur_domicile_nom_voie", a.get("libelle_voie"))
-        self._fill(page, "#demandeur_domicile_code_postale", a.get("code_postal"))
-        self._fill(page, "#demandeur_domicile_commune", a.get("commune"))
-        self._fill(page, "#demandeur_domicile_tel_portable", t.get("telephone"))
-        self._fill(page, "#demandeur_domicile_mail", t.get("email"))
 
     # ─── VO (13750) specifique ──────────────────────────────────────
 
