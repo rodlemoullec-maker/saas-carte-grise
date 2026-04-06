@@ -976,15 +976,12 @@ ul { list-style: none; }
     display: grid;
     grid-template-columns: 1fr 380px;
     gap: 16px;
-    align-items: start;
+    align-items: stretch;
 }
 .demo-mockup-stack {
     display: flex;
     flex-direction: column;
     gap: 10px;
-    max-height: 560px;
-    overflow-y: auto;
-    scrollbar-width: thin;
 }
 .demo-mockup-mini {
     transform: scale(1);
