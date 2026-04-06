@@ -170,17 +170,8 @@ document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
                 </div>
                 <div class="demo-screen" id="demoScreenCerfa" style="display:none;">
                     <div class="demo-screen-bar"><span class="demo-screen-dot"></span><span class="demo-screen-title" id="cerfaTitle">Cerfa 13750*07 — Véhicule d'occasion</span></div>
-                    <div class="demo-screen-body demo-screen-cerfa">
-                        <div class="demo-cerfa-section">Véhicule</div>
-                        <div class="demo-cerfa-field"><span class="demo-cerfa-label">A Immatriculation</span><span class="demo-cerfa-val" id="cerfaImmat"></span></div>
-                        <div class="demo-cerfa-field"><span class="demo-cerfa-label">B Mise en circulation</span><span class="demo-cerfa-val" id="cerfaDateCirc"></span></div>
-                        <div class="demo-cerfa-field"><span class="demo-cerfa-label">D.1 Marque</span><span class="demo-cerfa-val" id="cerfaMarque"></span></div>
-                        <div class="demo-cerfa-field"><span class="demo-cerfa-label">D.2.1 CNIT</span><span class="demo-cerfa-val" id="cerfaCnit"></span></div>
-                        <div class="demo-cerfa-field"><span class="demo-cerfa-label">E VIN</span><span class="demo-cerfa-val" id="cerfaVin"></span></div>
-                        <div class="demo-cerfa-field"><span class="demo-cerfa-label">J.1 Genre</span><span class="demo-cerfa-val" id="cerfaGenre"></span></div>
-                        <div class="demo-cerfa-section" style="margin-top:8px;">Nouveau titulaire</div>
-                        <div class="demo-cerfa-field"><span class="demo-cerfa-label">C.1 Nom</span><span class="demo-cerfa-val" id="cerfaTit"></span></div>
-                        <div class="demo-cerfa-field"><span class="demo-cerfa-label">C.3 Adresse</span><span class="demo-cerfa-val" id="cerfaAddr"></span></div>
+                    <div class="demo-screen-body" style="padding:8px;">
+                        <img src="assets/cerfa_vo_page1.png?v=1" alt="Cerfa 13750 rempli" style="width:100%;border-radius:6px;border:1px solid rgba(255,255,255,0.1);cursor:zoom-in;" onclick="document.getElementById('cerfaFullscreen').style.display='flex'" title="Cliquez pour agrandir">
                         <div class="demo-cerfa-stamp" id="cerfaStamp" style="display:none;"><div>🔏 Cachet numérique Garage Central SIV</div><div>✍️ Signature numérique enregistrée</div></div>
                         <div class="demo-screen-msg demo-screen-msg-ok" id="mockCerfaMsg" style="display:none;"></div>
                     </div>
@@ -726,5 +717,9 @@ const demoObs=new IntersectionObserver(e=>{e.forEach(en=>{if(en.isIntersecting){
 const demoEl=document.querySelector('.demo-live');if(demoEl)demoObs.observe(demoEl);
 </script>
 
+<!-- Cerfa plein écran -->
+<div id="cerfaFullscreen" onclick="this.style.display='none'" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;background:rgba(0,0,0,0.9);cursor:zoom-out;align-items:center;justify-content:center;padding:20px;">
+    <img src="assets/cerfa_vo_page1.png?v=1" style="max-height:95vh;max-width:95vw;border-radius:8px;box-shadow:0 0 60px rgba(0,0,0,0.5);">
+</div>
 </body>
 </html>

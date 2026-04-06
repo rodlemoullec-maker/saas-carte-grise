@@ -191,6 +191,7 @@ document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
                             <div>✍️ Signature numérique enregistrée</div>
                         </div>
                         <div class="demo-screen-msg demo-screen-msg-ok" id="mockZipMsg" style="display:none;"></div>
+                        <img src="assets/cerfa_vn_vendeur.png?v=1" alt="Cerfa 13749 rempli" style="width:100%;border-radius:6px;border:1px solid rgba(255,255,255,0.1);margin-top:8px;cursor:zoom-in;" onclick="document.getElementById('cerfaFullscreen').style.display='flex'" title="Cliquez pour agrandir">
                     </div>
                 </div>
                 <div class="demo-mockup-placeholder" id="demoMockupPlaceholder">
@@ -639,5 +640,9 @@ const demoObs=new IntersectionObserver(e=>{e.forEach(en=>{if(en.isIntersecting){
 const demoEl=document.querySelector('.demo-live');if(demoEl)demoObs.observe(demoEl);
 </script>
 
+<!-- Cerfa plein écran -->
+<div id="cerfaFullscreen" onclick="this.style.display='none'" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;background:rgba(0,0,0,0.9);cursor:zoom-out;align-items:center;justify-content:center;padding:20px;">
+    <img src="assets/cerfa_vn_vendeur.png?v=1" style="max-height:95vh;max-width:95vw;border-radius:8px;box-shadow:0 0 60px rgba(0,0,0,0.5);">
+</div>
 </body>
 </html>
