@@ -1415,6 +1415,7 @@ def _check_pro_docs(dossier: dict) -> dict:
             "id": f"doc_{dtype.lower()}",
             "label": dtype,
             "filename": d.get("filename"),
+            "source": d.get("source", "vendeur"),
             "status": doc_status,
             "quality": quality,
             "action": action,
@@ -1469,7 +1470,10 @@ def _check_pro_docs(dossier: dict) -> dict:
         },
         "rappel_assurance": _build_rappel_assurance(dossier),
         "all_ok": all_ok,
-        "client_link_ready": all_ok,
+        # Le lien SMS est envoyable dès que les docs véhicule sont OK,
+        # même si les docs client ont des problèmes (CNI expirée, domicile ancien, etc.)
+        # Le client pourra corriger via le lien.
+        "client_link_ready": docs_ok,
         "blocages": [
             item for section in [info_items, doc_items, missing_docs]
             for item in section
@@ -1597,6 +1601,7 @@ def _check_client_docs(dossier: dict) -> dict:
         checklist.append({
             "type": dtype,
             "filename": d.get("filename"),
+            "source": d.get("source", "client"),
             "status": doc_status,
             "quality": quality,
             "faces": faces,
@@ -1653,13 +1658,113 @@ def _check_client_docs(dossier: dict) -> dict:
         "impact": "Si oui, le co-titulaire recevra un lien pour deposer ses documents et signer.",
     })
 
+    # ─── Alertes client — problèmes détectés sur les docs déjà déposés ───
+    # Ces alertes sont affichées au client pour qu'il sache quoi corriger.
+    alertes = []
+
+    for d in docs_client:
+        dtype = d.get("type", "").upper()
+        ext = d.get("extracted_data", {})
+
+        # CNI / Passeport expiré
+        if dtype in ("CNI", "PASSEPORT") and ext.get("date_expiration"):
+            try:
+                from datetime import date
+                parts = ext["date_expiration"].replace("/", ".").split(".")
+                if len(parts) == 3:
+                    exp = date(int(parts[2]) if len(parts[2]) == 4 else 2000 + int(parts[2]), int(parts[1]), int(parts[0]))
+                    if exp < date.today():
+                        alertes.append({
+                            "type": "erreur",
+                            "doc": dtype,
+                            "message": f"Votre pièce d'identité est expirée (date d'expiration : {ext['date_expiration']}). Déposez une pièce d'identité en cours de validité.",
+                        })
+            except (ValueError, IndexError):
+                pass
+
+        # Permis expiré
+        if dtype == "PERMIS" and ext.get("date_expiration"):
+            try:
+                from datetime import date
+                parts = ext["date_expiration"].replace("/", ".").split(".")
+                if len(parts) == 3:
+                    exp = date(int(parts[2]) if len(parts[2]) == 4 else 2000 + int(parts[2]), int(parts[1]), int(parts[0]))
+                    if exp < date.today():
+                        alertes.append({
+                            "type": "erreur",
+                            "doc": "PERMIS",
+                            "message": f"Votre permis de conduire est expiré (date d'expiration : {ext['date_expiration']}). Déposez un permis en cours de validité.",
+                        })
+            except (ValueError, IndexError):
+                pass
+
+    # Domicile de plus de 6 mois
+    for d in docs_client:
+        dtype = d.get("type", "").upper()
+        ext = d.get("extracted_data", {})
+        if dtype == "DOMICILE" and ext.get("date_document"):
+            try:
+                from datetime import date, timedelta
+                parts = ext["date_document"].replace("/", ".").split(".")
+                if len(parts) == 3:
+                    doc_date = date(int(parts[2]) if len(parts[2]) == 4 else 2000 + int(parts[2]), int(parts[1]), int(parts[0]))
+                    if (date.today() - doc_date).days > 180:
+                        alertes.append({
+                            "type": "erreur",
+                            "doc": "DOMICILE",
+                            "message": f"Votre justificatif de domicile date du {ext['date_document']} — il doit dater de moins de 6 mois. Déposez un document plus récent.",
+                        })
+            except (ValueError, IndexError):
+                pass
+
+    # Nom divergent (hébergement)
+    noms_cni = set()
+    noms_domicile = set()
+    for d in docs_client:
+        dtype = d.get("type", "").upper()
+        ext = d.get("extracted_data", {})
+        if dtype in ("CNI", "PASSEPORT"):
+            nom = ext.get("nom_naissance") or ext.get("nom")
+            if nom:
+                noms_cni.add(nom.upper().strip())
+        if dtype == "DOMICILE":
+            nom = ext.get("nom_titulaire")
+            if nom:
+                noms_domicile.add(nom.upper().strip())
+
+    if noms_cni and noms_domicile:
+        match = any(
+            c in d or d in c
+            for c in noms_cni for d in noms_domicile
+        )
+        if not match:
+            nom_cni_str = ", ".join(noms_cni)
+            nom_dom_str = ", ".join(noms_domicile)
+            alertes.append({
+                "type": "avertissement",
+                "doc": "DOMICILE",
+                "message": (
+                    f"Le nom sur votre pièce d'identité ({nom_cni_str}) ne correspond pas "
+                    f"au nom sur le justificatif de domicile ({nom_dom_str}). "
+                    "Deux options : déposez un justificatif à votre nom, "
+                    "ou fournissez une attestation d'hébergement et la pièce d'identité de votre hébergeant."
+                ),
+            })
+
+    # Verrou client
+    type_vehicule_connu = bool(dossier.get("type"))
+    has_alertes_bloquantes = any(a["type"] == "erreur" for a in alertes)
+    client_verrouille = type_vehicule_connu and all_required_ok and not has_illisible and not has_alertes_bloquantes
+
     return {
         "documents_attendus": docs_attendus,
         "documents": checklist,
         "missing": missing,
         "has_illisible": has_illisible,
         "all_required_ok": all_required_ok,
-        "ready_for_diagnostic": all_required_ok and not has_illisible,
+        "ready_for_diagnostic": all_required_ok and not has_illisible and not has_alertes_bloquantes,
+        "client_verrouille": client_verrouille,
+        "alertes": alertes,
         "infos_deduites": {
             "sexe": dossier.get("client_sexe"),
             "personne_morale": is_pm,
@@ -1961,6 +2066,19 @@ def _get_client_docs_attendus(dossier: dict) -> list:
         docs.append({"type": "PERMIS", "label": "Permis de conduire", "obligatoire": True,
                      "info": "Deposez 1 ou 2 fichiers — le systeme detecte automatiquement chaque face."})
         docs.append({"type": "DOMICILE", "label": "Justificatif de domicile", "obligatoire": True})
+
+        # ─── Co-titulaire : demander CNI si déclaré ───
+        metadata = dossier.get("metadata", {})
+        if metadata.get("has_cotitulaire"):
+            cotitulaires = metadata.get("cotitulaires", [])
+            for i, cot in enumerate(cotitulaires):
+                cot_nom = cot.get("nom", f"co-titulaire {i+1}")
+                docs.append({
+                    "type": f"CNI_COTITULAIRE_{i+1}",
+                    "label": f"Pièce d'identité du co-titulaire ({cot_nom})",
+                    "obligatoire": True,
+                    "info": "CNI ou passeport du co-titulaire. Déposez 1 ou 2 fichiers.",
+                })
 
         # ─── Detection hebergement : nom CNI ≠ nom domicile ───
         # Si les deux sont deposes et que les noms divergent,

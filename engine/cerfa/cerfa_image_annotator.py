@@ -57,6 +57,13 @@ def annotate_cerfa_vn(
     titulaire_lieu_naissance: str = "",
     titulaire_dpt_naissance: str = "",
     titulaire_pays_naissance: str = "",
+    adresse_num_voie: str = "",
+    adresse_extension: str = "",  # bis, ter, quater
+    adresse_type_voie: str = "",
+    adresse_nom_voie: str = "",
+    adresse_code_postal: str = "",
+    adresse_commune: str = "",
+    multi_propriete: str = "",  # nombre de titulaires (C.4.1)
     output_path: str | None = None,
     # Champs techniques
     date_reception: str = "",
@@ -190,6 +197,38 @@ def annotate_cerfa_vn(
     # Pays de naissance
     if titulaire_pays_naissance:
         draw.text((1238, 1486), titulaire_pays_naissance, fill=black, font=font_xl)
+
+    # Adresse — numéro de voie
+    if adresse_num_voie:
+        draw.text((98, 1845), adresse_num_voie, fill=black, font=font_xl)
+
+    # Adresse — extension (bis, ter...)
+    if adresse_extension:
+        draw.text((240, 1845), adresse_extension, fill=black, font=font_xl)
+
+    # Adresse — type de voie
+    if adresse_type_voie:
+        draw.text((374, 1845), adresse_type_voie, fill=black, font=font_xl)
+
+    # Adresse — code postal (cases individuelles)
+    if adresse_code_postal:
+        cp_chars = list(adresse_code_postal.zfill(5)[:5])
+        cp_x = [98, 132, 158, 188, 220]
+        for i, ch in enumerate(cp_chars):
+            if i < len(cp_x):
+                draw.text((cp_x[i], 1900), ch, fill=black, font=font_xl)
+
+    # Multi-propriété (nombre de titulaires C.4.1)
+    if multi_propriete:
+        draw.text((1165, 1313), multi_propriete, fill=black, font=font_xl)
+
+    # Adresse — commune
+    if adresse_commune:
+        draw.text((290, 1900), adresse_commune, fill=black, font=font_xl)
+
+    # Adresse — nom de la voie
+    if adresse_nom_voie:
+        draw.text((592, 1845), adresse_nom_voie, fill=black, font=font_xl)
 
     # Nom d'usage
     if titulaire_nom_usage:

@@ -39,6 +39,11 @@ class ChoixCPIRequest(BaseModel):
     email: str | None = None
 
 
+class CotitulaireRequest(BaseModel):
+    has_cotitulaire: bool
+    cotitulaires: list[dict] | None = None  # [{"nom": "...", "prenom": "...", "date_naissance": "..."}]
+
+
 @router.get("/{token}")
 async def get_client_page(token: str, db: AsyncSession = Depends(get_db)):
     """Page d'upload client — moteur realtime connecte."""
@@ -135,6 +140,13 @@ async def get_client_page(token: str, db: AsyncSession = Depends(get_db)):
                 {"id": "email", "label": "Je souhaite recevoir mon CPI par email", "champ_email_requis": True},
             ],
         },
+        "cotitulaire": {
+            "question": "Y a-t-il un co-titulaire pour ce véhicule ? (conjoint, parent, etc.)",
+            "info": "Le co-titulaire n'a pas besoin de figurer sur le document d'achat. Il devra fournir sa pièce d'identité.",
+            "has_cotitulaire": metadata.get("has_cotitulaire", False),
+            "nombre_titulaires": metadata.get("nombre_titulaires", 1),
+            "cotitulaires": metadata.get("cotitulaires", []),
+        },
         "cession": {
             "signature_requise": bool(
                 pro.type_compte != "AGENT_HABILITE"  # L'agent ne génère pas de cession
@@ -200,6 +212,43 @@ async def choix_cpi(token: str, req: ChoixCPIRequest, db: AsyncSession = Depends
     else:
         msg = MSG_CLIENT["cpi_main_propre"].format(nom_commerce=nom_commerce)
     return {"status": "ok", "message": msg}
+
+
+# ─── Co-titulaire ────────────────────────────────────────────────────────────
+
+
+@router.post("/{token}/cotitulaire")
+async def declarer_cotitulaire(token: str, req: CotitulaireRequest, db: AsyncSession = Depends(get_db)):
+    """
+    Le client déclare s'il y a un co-titulaire.
+    Si oui, le co-titulaire devra fournir sa pièce d'identité.
+    Le co-titulaire n'a pas besoin de figurer sur le certificat de cession ou la facture.
+    """
+    dossier = await _get_dossier_by_token(db, token)
+    metadata = dossier.metadata_ or {}
+
+    metadata["has_cotitulaire"] = req.has_cotitulaire
+    if req.has_cotitulaire and req.cotitulaires:
+        metadata["cotitulaires"] = req.cotitulaires
+        metadata["nombre_titulaires"] = 1 + len(req.cotitulaires)
+    else:
+        metadata["cotitulaires"] = []
+        metadata["nombre_titulaires"] = 1
+
+    dossier.metadata_ = metadata
+    flag_modified(dossier, "metadata_")
+    await db.flush()
+
+    if req.has_cotitulaire:
+        return {
+            "status": "ok",
+            "message": f"{metadata['nombre_titulaires']} titulaire(s) déclaré(s). Le co-titulaire devra fournir sa pièce d'identité.",
+            "docs_supplementaires": ["CNI ou passeport du co-titulaire"],
+        }
+    return {
+        "status": "ok",
+        "message": "Vous êtes le seul titulaire du véhicule.",
+    }
 
 
 # ─── Signature mandats 13757 par OTP SMS ────────────────────────────────────
