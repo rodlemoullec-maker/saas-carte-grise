@@ -425,6 +425,8 @@ def annotate_cerfa_vn(
 
 def annotate_cerfa_vo(
     image_path: str,
+    # Type de demande
+    type_demande: str = "",  # "certificat", "duplicata", "correction", "changement_civil", "changement_tech"
     # Véhicule
     immatriculation_a: str = "",
     date_achat: str = "",
@@ -475,6 +477,15 @@ def annotate_cerfa_vo(
     def _draw_check(d, cx, cy, color=black):
         d.line([(cx-6, cy), (cx-2, cy+6)], fill=color, width=3)
         d.line([(cx-2, cy+6), (cx+8, cy-6)], fill=color, width=3)
+
+    # Type de demande (cases à cocher en haut)
+    if type_demande:
+        vo_demande_positions = {
+            "certificat": (423, 215),
+        }
+        pos = vo_demande_positions.get(type_demande.lower())
+        if pos:
+            _draw_check(draw, pos[0], pos[1])
 
     # Immatriculation A
     if immatriculation_a:
