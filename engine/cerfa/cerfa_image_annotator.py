@@ -443,6 +443,10 @@ def annotate_cerfa_vo(
     sexe: str = "",
     titulaire_nom: str = "",
     titulaire_nom_usage: str = "",
+    titulaire_date_naissance: str = "",
+    titulaire_lieu_naissance: str = "",
+    titulaire_dpt_naissance: str = "",
+    titulaire_pays_naissance: str = "",
     siret: str = "",
     output_path: str | None = None,
 ) -> str:
@@ -550,6 +554,33 @@ def annotate_cerfa_vo(
     # Titulaire nom
     if titulaire_nom:
         draw.text((212, 863), titulaire_nom, fill=black, font=font_xl)
+
+    # Date de naissance (cases individuelles)
+    if titulaire_date_naissance and "/" in titulaire_date_naissance:
+        parts = titulaire_date_naissance.split("/")
+        if len(parts) == 3:
+            jj, mm, aaaa = parts[0].zfill(2), parts[1].zfill(2), parts[2].zfill(4)
+            date_chars = list(jj) + list(mm) + list(aaaa)
+            vo_nais_x = [169, 200, 235, 266, 305, 340, 370, 401]
+            for i, ch in enumerate(date_chars):
+                if i < len(vo_nais_x):
+                    draw.text((vo_nais_x[i], 915), ch, fill=black, font=font_xl)
+
+    # Lieu de naissance
+    if titulaire_lieu_naissance:
+        draw.text((482, 918), titulaire_lieu_naissance, fill=black, font=font_xl)
+
+    # Département naissance (cases individuelles)
+    if titulaire_dpt_naissance:
+        dpt_chars = list(titulaire_dpt_naissance.ljust(3)[:3])
+        vo_dpt_x = [1060, 1090, 1122]
+        for i, ch in enumerate(dpt_chars):
+            if ch.strip() and i < len(vo_dpt_x):
+                draw.text((vo_dpt_x[i], 918), ch, fill=black, font=font_xl)
+
+    # Pays de naissance
+    if titulaire_pays_naissance:
+        draw.text((1185, 918), titulaire_pays_naissance, fill=black, font=font_xl)
 
     # Nom d'usage
     if titulaire_nom_usage:
