@@ -436,6 +436,9 @@ def annotate_cerfa_vo(
     type_variante_d2: str = "",
     vin_e: str = "",
     genre_j1: str = "",
+    num_exploitation_agricole: str = "",
+    couleur: str = "",
+    couleur_nuance: str = "",
     output_path: str | None = None,
 ) -> str:
     """
@@ -500,6 +503,10 @@ def annotate_cerfa_vo(
     if genre_j1:
         draw.text((635, 616), genre_j1, fill=black, font=font_xl)
 
+    # Numéro d'exploitation agricole
+    if num_exploitation_agricole:
+        draw.text((110, 683), num_exploitation_agricole, fill=black, font=font_xl)
+
     # Dénomination commerciale D.3
     if denomination_d3:
         draw.text((635, 503), denomination_d3, fill=black, font=font_xl)
@@ -514,6 +521,33 @@ def annotate_cerfa_vo(
             for i, ch in enumerate(date_chars):
                 if i < len(dimmat_x):
                     draw.text((dimmat_x[i], 360), ch, fill=black, font=font_xl)
+
+    # COULEUR DOMINANTE
+    if couleur:
+        vo_couleur_positions = {
+            "noir":    (1177, 577),
+            "marron":  (1177, 615),
+            "rouge":   (1177, 653),
+            "orange":  (1177, 691),
+            "jaune":   (1307, 578),
+            "vert":    (1307, 614),
+            "bleu":    (1307, 653),
+            "beige":   (1307, 692),
+            "gris":    (1424, 578),
+            "blanc":   (1424, 617),
+        }
+        pos = vo_couleur_positions.get(couleur.lower())
+        if pos:
+            _draw_check(draw, pos[0], pos[1])
+
+    if couleur_nuance:
+        vo_nuance_positions = {
+            "clair": (1047, 604),
+            "fonce": (1047, 674),
+        }
+        pos = vo_nuance_positions.get(couleur_nuance.lower())
+        if pos:
+            _draw_check(draw, pos[0], pos[1])
 
     out = output_path or image_path
     img.save(out, "PNG")
