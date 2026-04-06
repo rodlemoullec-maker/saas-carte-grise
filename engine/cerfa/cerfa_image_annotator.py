@@ -455,6 +455,7 @@ def annotate_cerfa_vo(
     adresse_commune: str = "",
     multi_propriete: str = "",
     cotitulaire_nom: str = "",
+    cotitulaire_siret: str = "",
     siret: str = "",
     output_path: str | None = None,
 ) -> str:
@@ -624,6 +625,14 @@ def annotate_cerfa_vo(
     # Co-titulaire nom
     if cotitulaire_nom:
         draw.text((239, 1177), cotitulaire_nom, fill=black, font=font_xl)
+
+    # SIRET co-titulaire
+    if cotitulaire_siret:
+        cot_siret_clean = cotitulaire_siret.replace(" ", "")[:14]
+        vo_cot_siret_x = [1124, 1155, 1186, 1216, 1251, 1281, 1312, 1344, 1377, 1407, 1440, 1472, 1502, 1534]
+        for i, ch in enumerate(cot_siret_clean):
+            if i < len(vo_cot_siret_x):
+                draw.text((vo_cot_siret_x[i], 1177), ch, fill=black, font=font_xl)
 
     # SIRET (personne morale) — même espacement que VN
     if siret:
