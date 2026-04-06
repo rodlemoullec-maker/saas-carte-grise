@@ -851,8 +851,10 @@ function runDemo() {
             window._demoMockupState = 4;
         }
 
-        // Phase 4 : Cerfa (10:43)
+        // Phase 4 : Cerfa (10:43) — cacher vendeur + client pour laisser place au Cerfa
         if (simTime >= T(10,43,0) && S < 5) {
+            sv.style.display = 'none';
+            sc.style.display = 'none';
             sf.style.display = 'block'; window._demoMockupState = 5;
         }
         if (simTime >= T(10,43,10)) document.getElementById('cerfaStamp').style.display = 'block';
