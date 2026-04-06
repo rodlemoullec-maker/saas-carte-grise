@@ -47,6 +47,7 @@ def annotate_cerfa_vn(
     cachet_adresse: str = "",
     cachet_siret: str = "",
     couleur: str = "",
+    couleur_nuance: str = "",  # "clair" ou "fonce"
     output_path: str | None = None,
     # Champs techniques (pour compléter si Playwright ne les a pas remplis)
     marque_d1: str = "",
@@ -111,7 +112,37 @@ def annotate_cerfa_vn(
                 if i < len(case_x):
                     draw.text((case_x[i], 1163), ch, fill=black, font=font)
 
-    # USAGE et COULEUR — déjà cochés par Playwright, pas besoin d'annoter
+    # COULEUR DOMINANTE — cocher la case correspondante
+    def _draw_check(draw, cx, cy, color=black):
+        """Dessine une coche ✓ centrée sur (cx, cy)."""
+        draw.line([(cx-6, cy), (cx-2, cy+6)], fill=color, width=3)
+        draw.line([(cx-2, cy+6), (cx+8, cy-6)], fill=color, width=3)
+
+    if couleur:
+        couleur_positions = {
+            "noir":    (1311, 1140),
+            "marron":  (1311, 1171),
+            "rouge":   (1311, 1202),
+            "orange":  (1311, 1233),
+            "jaune":   (1311, 1264),
+            "vert":    (1470, 1141),
+            "bleu":    (1470, 1172),
+            "beige":   (1470, 1203),
+            "gris":    (1470, 1234),
+            "blanc":   (1470, 1265),
+        }
+        pos = couleur_positions.get(couleur.lower())
+        if pos:
+            _draw_check(draw, pos[0], pos[1])
+    # Nuance CLAIR/FONCE
+    if couleur_nuance:
+        nuance_positions = {
+            "clair": (1219, 1170),
+            "fonce": (1217, 1261),
+        }
+        pos = nuance_positions.get(couleur_nuance.lower())
+        if pos:
+            _draw_check(draw, pos[0], pos[1])
 
     # ─── Champs techniques du tableau véhicule (200 DPI) ───
     # Ligne Marque (D.1) — à droite du label, y≈380
