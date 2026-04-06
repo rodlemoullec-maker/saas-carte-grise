@@ -64,6 +64,7 @@ def annotate_cerfa_vn(
     adresse_code_postal: str = "",
     adresse_commune: str = "",
     multi_propriete: str = "",  # nombre de titulaires (C.4.1)
+    cotitulaire_nom: str = "",
     output_path: str | None = None,
     # Champs techniques
     date_reception: str = "",
@@ -209,6 +210,10 @@ def annotate_cerfa_vn(
     # Adresse — type de voie
     if adresse_type_voie:
         draw.text((374, 1845), adresse_type_voie, fill=black, font=font_xl)
+
+    # Co-titulaire nom
+    if cotitulaire_nom:
+        draw.text((218, 1545), cotitulaire_nom, fill=black, font=font_xl)
 
     # Adresse — code postal (cases individuelles)
     if adresse_code_postal:

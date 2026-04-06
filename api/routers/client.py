@@ -41,7 +41,9 @@ class ChoixCPIRequest(BaseModel):
 
 class CotitulaireRequest(BaseModel):
     has_cotitulaire: bool
-    cotitulaires: list[dict] | None = None  # [{"nom": "...", "prenom": "...", "date_naissance": "..."}]
+    # Personne physique: {"type": "physique", "nom": "...", "prenom": "...", "date_naissance": "..."}
+    # Personne morale: {"type": "morale", "raison_sociale": "...", "siren": "..."}
+    cotitulaires: list[dict] | None = None
 
 
 @router.get("/{token}")

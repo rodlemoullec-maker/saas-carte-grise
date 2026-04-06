@@ -2067,18 +2067,26 @@ def _get_client_docs_attendus(dossier: dict) -> list:
                      "info": "Deposez 1 ou 2 fichiers — le systeme detecte automatiquement chaque face."})
         docs.append({"type": "DOMICILE", "label": "Justificatif de domicile", "obligatoire": True})
 
-        # ─── Co-titulaire : demander CNI si déclaré ───
+        # ─── Co-titulaire : demander docs selon type ───
         metadata = dossier.get("metadata", {})
         if metadata.get("has_cotitulaire"):
             cotitulaires = metadata.get("cotitulaires", [])
             for i, cot in enumerate(cotitulaires):
-                cot_nom = cot.get("nom", f"co-titulaire {i+1}")
-                docs.append({
-                    "type": f"CNI_COTITULAIRE_{i+1}",
-                    "label": f"Pièce d'identité du co-titulaire ({cot_nom})",
-                    "obligatoire": True,
-                    "info": "CNI ou passeport du co-titulaire. Déposez 1 ou 2 fichiers.",
-                })
+                if cot.get("type") == "morale":
+                    cot_nom = cot.get("raison_sociale", f"co-titulaire {i+1}")
+                    docs.append({
+                        "type": f"KBIS_COTITULAIRE_{i+1}",
+                        "label": f"Kbis du co-titulaire ({cot_nom})",
+                        "obligatoire": True,
+                    })
+                else:
+                    cot_nom = f"{cot.get('nom', '')} {cot.get('prenom', '')}".strip() or f"co-titulaire {i+1}"
+                    docs.append({
+                        "type": f"CNI_COTITULAIRE_{i+1}",
+                        "label": f"Pièce d'identité du co-titulaire ({cot_nom})",
+                        "obligatoire": True,
+                        "info": "CNI ou passeport du co-titulaire. Déposez 1 ou 2 fichiers.",
+                    })
 
         # ─── Detection hebergement : nom CNI ≠ nom domicile ───
         # Si les deux sont deposes et que les noms divergent,
