@@ -447,6 +447,12 @@ def annotate_cerfa_vo(
     titulaire_lieu_naissance: str = "",
     titulaire_dpt_naissance: str = "",
     titulaire_pays_naissance: str = "",
+    adresse_num_voie: str = "",
+    adresse_extension: str = "",
+    adresse_type_voie: str = "",
+    adresse_nom_voie: str = "",
+    adresse_code_postal: str = "",
+    adresse_commune: str = "",
     siret: str = "",
     output_path: str | None = None,
 ) -> str:
@@ -585,6 +591,29 @@ def annotate_cerfa_vo(
     # Nom d'usage
     if titulaire_nom_usage:
         draw.text((1093, 865), titulaire_nom_usage, fill=black, font=font_xl)
+
+    # Adresse — numéro de voie
+    if adresse_num_voie:
+        draw.text((238, 1016), adresse_num_voie, fill=black, font=font_xl)
+    # Adresse — extension
+    if adresse_extension:
+        draw.text((380, 1016), adresse_extension, fill=black, font=font_xl)
+    # Adresse — type de voie
+    if adresse_type_voie:
+        draw.text((531, 1016), adresse_type_voie, fill=black, font=font_xl)
+    # Adresse — nom de voie
+    if adresse_nom_voie:
+        draw.text((764, 1016), adresse_nom_voie, fill=black, font=font_xl)
+    # Adresse — code postal
+    if adresse_code_postal:
+        cp_chars = list(adresse_code_postal.zfill(5)[:5])
+        vo_cp_x = [242, 276, 302, 332, 364]
+        for i, ch in enumerate(cp_chars):
+            if i < len(vo_cp_x):
+                draw.text((vo_cp_x[i], 1096), ch, fill=black, font=font_xl)
+    # Adresse — commune
+    if adresse_commune:
+        draw.text((429, 1098), adresse_commune, fill=black, font=font_xl)
 
     # SIRET (personne morale) — même espacement que VN
     if siret:
