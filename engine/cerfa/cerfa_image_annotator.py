@@ -50,6 +50,8 @@ def annotate_cerfa_vn(
     couleur_nuance: str = "",  # "clair" ou "fonce"
     usage: str = "",  # "oui" ou "non"
     personne_type: str = "",  # "physique" ou "morale"
+    raison_sociale: str = "",
+    siret: str = "",
     sexe: str = "",  # "M" ou "F"
     titulaire_nom: str = "",
     titulaire_nom_usage: str = "",
@@ -152,11 +154,22 @@ def annotate_cerfa_vn(
     if personne_type:
         personne_positions = {
             "physique": (696, 1313),
-            "morale": (700, 1310),
+            "morale": (697, 1341),
         }
         pos = personne_positions.get(personne_type.lower())
         if pos:
             _draw_check(draw, pos[0], pos[1])
+
+    # Personne morale — raison sociale
+    if raison_sociale:
+        draw.text((204, 1372), raison_sociale, fill=black, font=font_xl)
+
+    # Personne morale — SIRET (cases individuelles, 14 chiffres)
+    if siret:
+        siret_clean = siret.replace(" ", "")[:14]
+        siret_x = [209, 240, 271, 301, 336, 366, 397, 429, 462, 492, 525, 557, 587, 619]
+        for i, ch in enumerate(siret_clean):
+            draw.text((siret_x[i], 1430), ch, fill=black, font=font_xl)
 
     # Sexe M/F
     if sexe:
