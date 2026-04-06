@@ -320,9 +320,6 @@ def annotate_cerfa_vn(
     # Type Variante Version (D.2) — y≈418
     if type_variante_d2:
         draw.text((519, 548), type_variante_d2, fill=black, font=font_xl)
-    # Dénomination commerciale D.3
-    if denomination_d3:
-        draw.text((1058, 548), denomination_d3, fill=black, font=font_xl)
     # CNIT D.2.1
     if cnit_d21:
         draw.text((519, 600), cnit_d21, fill=black, font=font_xl)
