@@ -55,8 +55,8 @@ document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
     <div class="hero-inner">
         <div class="hero-text">
             <div class="hero-eyebrow">Pour les agents habilités SIV</div>
-            <h1>Des dossiers complets et vérifiés.<br><em>Vous contrôlez et soumettez.</em></h1>
-            <p class="hero-desc">Deux canaux de réception, une seule plateforme. Vos <strong>clients directs</strong> déposent via votre URL permanente. Vos <strong>vendeurs partenaires</strong> vous envoient des dossiers partagés avec mandats signés. Dans les deux cas, chaque document est lu, extrait et croisé automatiquement. Vous recevez un dossier de qualité prêt à soumettre au SIV.<br><strong>Zéro OCR manuel. Cerfa pré-rempli. URL permanente incluse.</strong></p>
+            <h1>Fini les dossiers incomplets<br><em>et les relances sans fin.</em></h1>
+            <p class="hero-desc">Vos clients directs déposent via votre URL permanente. Vos vendeurs partenaires vous envoient des dossiers déjà vérifiés avec les autorisations signées. Hébergement détecté automatiquement. Cerfa pré-rempli avec votre cachet. <strong>Vous contrôlez et soumettez — c'est tout.</strong></p>
             <div class="hero-actions">
                 <a href="#contact" class="btn btn-cta btn-lg btn-glow">Traiter mon premier dossier</a>
                 <a href="comment-ca-marche.html" class="btn btn-ghost btn-lg">Comment ça marche</a>
@@ -129,6 +129,29 @@ document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
     </div>
 </section>
 
+<!-- ═══════════════════════════ LE PROBLÈME ═══════════════════════════ -->
+<section class="section section-alt">
+    <div class="container">
+        <div class="section-header">
+            <h2>Collecter les documents, c'est le vrai problème</h2>
+        </div>
+        <div class="pain-grid">
+            <div class="pain-card fade-in">
+                <h4><span class="dot"></span>Clients directs : collecte chaotique</h4>
+                <p>Documents par email, WhatsApp, en main propre. CNI sans verso, domicile illisible, hébergement non signalé. Vous relancez, vous attendez, vous re-vérifiez.</p>
+            </div>
+            <div class="pain-card fade-in">
+                <h4><span class="dot"></span>Vendeurs : dossiers incomplets</h4>
+                <p>Le vendeur envoie un dossier par email — pièces manquantes, autorisations mal remplies. Vous finissez par faire le travail vous-même.</p>
+            </div>
+            <div class="pain-card fade-in">
+                <h4><span class="dot"></span>Rejets SIV sur des erreurs bêtes</h4>
+                <p>CNI expirée, nom divergent, permis inadapté. Vous le découvrez au rejet. 40 minutes de correction pour une erreur que le système aurait pu détecter au dépôt.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
 <!-- ═══════════════════════════ SIMULATION LIVE ══════════════════════════ -->
 <section class="section demo-live-section">
     <div class="container">
@@ -185,29 +208,6 @@ document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
               <button onclick="togglePause()" class="btn btn-outline" style="font-size:0.8rem;padding:8px 20px;"><svg id="demoPauseIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg><span id="demoPauseLabel">Pause</span></button>
               <button onclick="runDemo()" class="btn btn-outline" style="font-size:0.8rem;padding:8px 20px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg> Relancer</button>
           </div>
-        </div>
-    </div>
-</section>
-
-<!-- ═══════════════════════════════════ LE PROBLÈME ═══════════════════════ -->
-<section class="section section-alt">
-    <div class="container">
-        <div class="section-header">
-            <h2>Collecter les documents, c'est le vrai problème</h2>
-        </div>
-        <div class="pain-grid">
-            <div class="pain-card fade-in">
-                <h4><span class="dot"></span>Clients directs : collecte chaotique</h4>
-                <p>Documents par email, WhatsApp, en main propre. CNI sans verso, domicile illisible. Vous relancez, vous attendez, vous re-vérifiez. Des heures par dossier.</p>
-            </div>
-            <div class="pain-card fade-in">
-                <h4><span class="dot"></span>Vendeurs : dossiers incomplets</h4>
-                <p>Le vendeur envoie un dossier par email — pièces manquantes, mandats mal remplis, cession absente. Vous finissez par faire le travail vous-même.</p>
-            </div>
-            <div class="pain-card fade-in">
-                <h4><span class="dot"></span>Rejets SIV évitables</h4>
-                <p>CNI expirée, nom divergent entre CNI et domicile, permis inadapté au véhicule. Vous le découvrez au rejet SIV. Correction, renvoi, perte de temps et de crédibilité.</p>
-            </div>
         </div>
     </div>
 </section>
@@ -414,24 +414,32 @@ document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
         </div>
         <div class="faq-list">
             <div class="faq-item">
+                <h4>J'ai déjà un logiciel SIV, pourquoi ajouter AutoDoc Pro ?</h4>
+                <p>Votre logiciel SIV transmet au SIV. AutoDoc Pro fait tout ce qui se passe <strong>avant</strong> : collecte des documents du client, vérification automatique, détection d'hébergement, pré-remplissage du Cerfa. Les deux sont complémentaires — AutoDoc prépare, votre logiciel soumet.</p>
+            </div>
+            <div class="faq-item">
+                <h4>Je traite 40+ dossiers par mois. Le prix reste le même ?</h4>
+                <p>Oui. 12 € moto, 14 € voiture, quel que soit le volume. Pas d'abonnement, pas de palier. À 40 dossiers/mois, AutoDoc Pro vous coûte ~540 €/mois et vous économise des dizaines d'heures de collecte et vérification.</p>
+            </div>
+            <div class="faq-item">
+                <h4>L'hébergement est vraiment détecté automatiquement ?</h4>
+                <p>Oui. Si le nom sur le justificatif de domicile diffère de celui de la CNI, le système demande automatiquement l'attestation d'hébergement et la CNI de l'hébergeant. Le client est guidé — pas besoin de lui expliquer.</p>
+            </div>
+            <div class="faq-item">
                 <h4>Quelle différence entre les deux voies ?</h4>
-                <p><strong>Client direct</strong> : le client dépose ses documents via votre URL (CG barrée, cession signée, CNI, permis, domicile). Pas de mandat nécessaire, vous êtes habilité. Cerfa 13750 (VO).<br><strong>Vendeur partenaire</strong> : le vendeur crée le dossier, le client signe les mandats 13757 par SMS. Vous recevez tout vérifié. Cerfa 13749 (VN) ou 13750 (VO).</p>
-            </div>
-            <div class="faq-item">
-                <h4>Qui signe les mandats 13757 ?</h4>
-                <p>Le <strong>client</strong> signe les 2 mandats par code OTP SMS. Votre signature agent est apposée automatiquement à la génération du mandat. Vous n'avez rien à faire.</p>
-            </div>
-            <div class="faq-item">
-                <h4>Est-ce que je dois encore saisir le Cerfa ?</h4>
-                <p>Non. Le Cerfa est pré-rempli automatiquement depuis les documents vérifiés. Votre cachet et signature sont apposés. Vous vérifiez, téléchargez et soumettez.</p>
+                <p><strong>Client direct</strong> : le client dépose via votre URL permanente. Pas d'autorisation nécessaire, vous êtes habilité.<br><strong>Vendeur partenaire</strong> : le vendeur crée le dossier, le client signe les autorisations par SMS. Vous recevez tout vérifié.</p>
             </div>
             <div class="faq-item">
                 <h4>Mon client voit AutoDoc Pro ?</h4>
-                <p>Non. Le client voit votre nom de commerce, votre adresse. Marque blanche complète.</p>
+                <p>Non. Marque blanche complète. Le client voit votre nom de commerce, votre adresse. C'est votre service.</p>
+            </div>
+            <div class="faq-item">
+                <h4>Mes données et celles de mes clients sont en sécurité ?</h4>
+                <p>Documents stockés en France (AWS Paris), chiffrés, supprimés automatiquement après génération du Cerfa. Conforme RGPD. <a href="confidentialite.html" style="color: var(--primary);">Voir la politique &rarr;</a></p>
             </div>
             <div class="faq-item">
                 <h4>Je suis engagé ?</h4>
-                <p>Non. 5 dossiers pour tester, sans rien avancer. Si vous continuez, vous réglez. Si vous arrêtez, vous ne devez rien.</p>
+                <p>Non. 5 dossiers pour tester, sans avancer un centime. Pas de carte bancaire. Si vous arrêtez, vous ne devez rien.</p>
             </div>
         </div>
     </div>
@@ -457,6 +465,10 @@ document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
             <div class="form-group">
                 <label for="habilitation">Numéro d'habilitation SIV</label>
                 <input type="text" id="habilitation" name="habilitation" placeholder="Optionnel — renseignable plus tard">
+            </div>
+            <div class="form-group" style="flex-direction: row; align-items: flex-start; gap: 8px;">
+                <input type="checkbox" id="rgpd" name="rgpd" required style="margin-top: 4px;">
+                <label for="rgpd" style="font-size: 0.75rem; color: var(--slate-400); line-height: 1.4;">J'accepte que mes données soient traitées conformément à la <a href="confidentialite.html" style="color: var(--primary);">politique de confidentialité</a> et aux <a href="cgv.html" style="color: var(--primary);">CGV</a>.</label>
             </div>
             <button type="submit" class="btn btn-cta btn-lg btn-glow">Traiter mon premier dossier</button>
             <div class="form-reassurance">
