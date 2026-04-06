@@ -49,6 +49,11 @@ def annotate_cerfa_vn(
     couleur: str = "",
     couleur_nuance: str = "",  # "clair" ou "fonce"
     usage: str = "",  # "oui" ou "non"
+    personne_type: str = "",  # "physique" ou "morale"
+    sexe: str = "",  # "M" ou "F"
+    titulaire_nom: str = "",
+    titulaire_nom_usage: str = "",
+    titulaire_date_naissance: str = "",
     output_path: str | None = None,
     # Champs techniques
     date_reception: str = "",
@@ -131,6 +136,45 @@ def annotate_cerfa_vn(
             for i, ch in enumerate(date_chars):
                 if i < len(case_x):
                     draw.text((case_x[i], 1163), ch, fill=black, font=font)
+
+    # DEMANDEUR — Personne physique / morale
+    if personne_type:
+        personne_positions = {
+            "physique": (696, 1313),
+            "morale": (700, 1310),
+        }
+        pos = personne_positions.get(personne_type.lower())
+        if pos:
+            _draw_check(draw, pos[0], pos[1])
+
+    # Sexe M/F
+    if sexe:
+        sexe_positions = {
+            "M": (935, 1314),
+            "F": (1018, 1314),
+        }
+        pos = sexe_positions.get(sexe.upper())
+        if pos:
+            _draw_check(draw, pos[0], pos[1])
+
+    # Titulaire nom
+    if titulaire_nom:
+        draw.text((204, 1372), titulaire_nom, fill=black, font=font_xl)
+
+    # Date de naissance — un chiffre par case (JJ/MM/AAAA)
+    if titulaire_date_naissance and "/" in titulaire_date_naissance:
+        parts = titulaire_date_naissance.split("/")
+        if len(parts) == 3:
+            jj, mm, aaaa = parts[0].zfill(2), parts[1].zfill(2), parts[2].zfill(4)
+            date_chars = list(jj) + list(mm) + list(aaaa)
+            nais_x = [189, 220, 255, 286, 325, 360, 390, 421]
+            for i, ch in enumerate(date_chars):
+                if i < len(nais_x):
+                    draw.text((nais_x[i], 1486), ch, fill=black, font=font_xl)
+
+    # Nom d'usage
+    if titulaire_nom_usage:
+        draw.text((1097, 1372), titulaire_nom_usage, fill=black, font=font_xl)
 
     # USAGE (OUI/NON)
     if usage:
