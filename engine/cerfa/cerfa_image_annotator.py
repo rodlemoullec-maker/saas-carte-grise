@@ -54,6 +54,9 @@ def annotate_cerfa_vn(
     titulaire_nom: str = "",
     titulaire_nom_usage: str = "",
     titulaire_date_naissance: str = "",
+    titulaire_lieu_naissance: str = "",
+    titulaire_dpt_naissance: str = "",
+    titulaire_pays_naissance: str = "",
     output_path: str | None = None,
     # Champs techniques
     date_reception: str = "",
@@ -171,6 +174,22 @@ def annotate_cerfa_vn(
             for i, ch in enumerate(date_chars):
                 if i < len(nais_x):
                     draw.text((nais_x[i], 1486), ch, fill=black, font=font_xl)
+
+    # Lieu de naissance
+    if titulaire_lieu_naissance:
+        draw.text((492, 1486), titulaire_lieu_naissance, fill=black, font=font_xl)
+
+    # Département de naissance — cases individuelles
+    if titulaire_dpt_naissance:
+        dpt_chars = list(titulaire_dpt_naissance.ljust(3)[:3])
+        dpt_x = [1080, 1110, 1142]
+        for i, ch in enumerate(dpt_chars):
+            if ch.strip() and i < len(dpt_x):
+                draw.text((dpt_x[i], 1486), ch, fill=black, font=font_xl)
+
+    # Pays de naissance
+    if titulaire_pays_naissance:
+        draw.text((1238, 1486), titulaire_pays_naissance, fill=black, font=font_xl)
 
     # Nom d'usage
     if titulaire_nom_usage:
