@@ -54,6 +54,11 @@
     </style>
 </head>
 <body>
+<!-- MAINTENANCE MODE -->
+<div id="maintenance-overlay" style="position:fixed;inset:0;z-index:99999;background:#f8fafc;display:flex;align-items:center;justify-content:center;font-family:Outfit,sans-serif;"><div style="text-align:center;padding:2rem;"><svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto 1rem;animation:spin 3s linear infinite"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><h1 style="font-size:1.75rem;font-weight:700;color:#1e293b;margin-bottom:0.5rem;">Maintenance en cours</h1><p style="color:#64748b;max-width:400px;margin:0 auto;">AutoDoc Pro est en cours de maintenance. Nous serons de retour très bientôt.</p></div></div>
+<style>@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}</style>
+<script>document.querySelectorAll("body > *:not(#maintenance-overlay):not(style):not(script)").forEach(el=>el.style.display="none")</script>
+<!-- FIN MAINTENANCE -->
 
 <div class="demo-nav">
     <div class="demo-nav-inner">
