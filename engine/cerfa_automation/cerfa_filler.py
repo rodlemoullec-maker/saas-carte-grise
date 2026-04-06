@@ -174,46 +174,30 @@ class CerfaFiller:
         self._fill(page, "#identification_vehicule_reception", v.get("date_reception"))
         self._fill(page, "#identification_vehicule_numero_K", v.get("numero_k"))
 
-        # Champs obligatoires
-        self._fill(page, "#identification_vehicule_marque_D_1", v.get("marque"))
-        self._fill(page, "#identification_vehicule_type_D_2", v.get("type_variante_version"))
-        self._fill(page, "#identification_vehicule_code_national_D_2_1", v.get("cnit"))
-        self._fill(page, "#identification_vehicule_id_vehicule_E", v.get("numero_identification"))
-        self._fill(page, "#identification_vehicule_denomination_D3", v.get("denomination_commerciale"))
+        # ─── Champs remplis par cerfa_image_annotator.py (PIL) ───
+        # D.1 (marque), D.2 (type variante), D.2.1 (CNIT), E (VIN),
+        # F.1, F.2, F.3, G, G.1, J, J.1, J.2, J.3,
+        # P.1, P.2, P.3, S.1, S.2, U.1, U.2, V.7, V.9,
+        # rapport puiss./masse
+        # → Tous annotés directement sur l'image PNG, pas via Playwright.
 
-        # Champs techniques (visibles seulement avec COC=Non)
-        self._fill(page, "#identification_vehicule_genre_national_J_1", v.get("genre_national"))
-        self._fill(page, "#identification_vehicule_carburant_P_3", v.get("energie"))
+        # Champs encore gérés par Playwright (pas encore dans l'annotateur)
+        self._fill(page, "#identification_vehicule_denomination_D3", v.get("denomination_commerciale"))
         self._fill(page, "#identification_vehicule_puissance_admin_P_6", v.get("puissance_cv"))
-        self._fill(page, "#identification_vehicule_co2_V_7", v.get("co2_wltp"))
-        self._fill(page, "#identification_vehicule_places_assises_S_1", v.get("places"))
-        self._fill(page, "#identification_vehicule_masse_tech_F_1", v.get("masse_f1"))
-        self._fill(page, "#identification_vehicule_masse_etat_F_2", v.get("ptac_kg"))
-        self._fill(page, "#identification_vehicule_masse_ensemble_F_3", v.get("masse_f3"))
-        self._fill(page, "#identification_vehicule_masse_service_G", v.get("masse_g"))
-        self._fill(page, "#identification_vehicule_pds_vide_G_1", v.get("poids_vide_g1"))
-        self._fill(page, "#identification_vehicule_categorie_J", v.get("categorie_j"))
-        self._fill(page, "#identification_vehicule_genre_national_J_1", v.get("genre_national"))
-        self._fill(page, "#identification_vehicule_carroserie_J_2", v.get("carrosserie_j2"))
-        self._fill(page, "#identification_vehicule_carr_nat_J_3", v.get("carrosserie_j3"))
-        self._fill(page, "#identification_vehicule_cylindree_P_1", v.get("cylindree_p1"))
-        self._fill(page, "#identification_vehicule_puissance_nette_P_2", v.get("puissance_nette_p2"))
-        self._fill(page, "#identification_vehicule_places_debout_S_2", v.get("places_debout_s2"))
-        self._fill(page, "#identification_vehicule_niv_sonore_U_1", v.get("niveau_sonore_u1"))
-        self._fill(page, "#identification_vehicule_vit_moteur_U_2", v.get("vitesse_moteur_u2"))
-        self._fill(page, "#identification_vehicule_classe_env_V_9", v.get("classe_env"))
         # Couleur
         nuance = v.get("couleur_nuance", "")
         if nuance == "fonce":
-            page.check("#identification_vehicule_nuance_2")
+            try: page.check("#identification_vehicule_nuance_2")
+            except Exception: pass
         elif nuance == "clair":
-            page.check("#identification_vehicule_nuance_1")
+            try: page.check("#identification_vehicule_nuance_1")
+            except Exception: pass
         couleur_map = {"noir":"1","marron":"2","rouge":"3","orange":"4","jaune":"5",
                        "vert":"6","bleu":"7","beige":"8","gris":"9","blanc":"10"}
         cid = couleur_map.get((v.get("couleur") or "").lower(), "")
         if cid:
             try: page.check(f"#identification_vehicule_couleur_{cid}")
-            except: pass
+            except Exception: pass
 
     def _fill_vn_page2(self, page, data: dict):
         """P2 VN: certificat de vente."""

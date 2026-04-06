@@ -51,19 +51,26 @@ def annotate_cerfa_vn(
     # Champs techniques (pour compléter si Playwright ne les a pas remplis)
     marque_d1: str = "",
     type_variante_d2: str = "",
+    cnit_d21: str = "",
+    vin_e: str = "",
     masse_f1: str = "",
     masse_f2: str = "",
     masse_f3: str = "",
     masse_g: str = "",
     poids_vide_g1: str = "",
+    categorie_j: str = "",
+    genre_j1: str = "",
     carrosserie_j2: str = "",
     carrosserie_j3: str = "",
     cylindree_p1: str = "",
     puissance_nette_p2: str = "",
     places_s1: str = "",
     places_s2: str = "",
+    energie_p3: str = "",
+    rapport_puiss_masse: str = "",
     niveau_sonore_u1: str = "",
     vitesse_moteur_u2: str = "",
+    co2_v7: str = "",
     classe_env_v9: str = "",
 ) -> str:
     """
@@ -107,10 +114,16 @@ def annotate_cerfa_vn(
     # ─── Champs techniques du tableau véhicule (200 DPI) ───
     # Ligne Marque (D.1) — à droite du label, y≈380
     if marque_d1:
-        draw.text((538, 379), marque_d1, fill=black, font=font)
+        draw.text((519, 490), marque_d1, fill=black, font=font_xl)
     # Type Variante Version (D.2) — y≈418
     if type_variante_d2:
-        draw.text((280, 418), type_variante_d2, fill=black, font=font)
+        draw.text((519, 548), type_variante_d2, fill=black, font=font_xl)
+    # CNIT D.2.1
+    if cnit_d21:
+        draw.text((519, 600), cnit_d21, fill=black, font=font_xl)
+    # VIN E
+    if vin_e:
+        draw.text((1058, 600), vin_e, fill=black, font=font_xl)
     # Masse F.1 (masse en charge max tech)
     if masse_f1:
         draw.text((518, 660), masse_f1, fill=black, font=font_xl)
@@ -126,6 +139,12 @@ def annotate_cerfa_vn(
     # Poids vide G.1
     if poids_vide_g1:
         draw.text((1383, 660), poids_vide_g1, fill=black, font=font_xl)
+    # Catégorie J
+    if categorie_j:
+        draw.text((520, 752), categorie_j, fill=black, font=font_xl)
+    # Genre national J.1
+    if genre_j1:
+        draw.text((694, 752), genre_j1, fill=black, font=font_xl)
     # Carrosserie CE J.2
     if carrosserie_j2:
         draw.text((868, 752), carrosserie_j2, fill=black, font=font_xl)
@@ -144,12 +163,21 @@ def annotate_cerfa_vn(
     # Places debout S.2
     if places_s2:
         draw.text((1390, 806), places_s2, fill=black, font=font_xl)
+    # Énergie P.3
+    if energie_p3:
+        draw.text((517, 806), energie_p3, fill=black, font=font_xl)
+    # Rapport puissance/masse (motos)
+    if rapport_puiss_masse:
+        draw.text((945, 806), rapport_puiss_masse, fill=black, font=font_xl)
     # Niveau sonore U.1
     if niveau_sonore_u1:
         draw.text((522, 895), niveau_sonore_u1, fill=black, font=font_xl)
     # Vitesse moteur U.2
     if vitesse_moteur_u2:
         draw.text((748, 895), vitesse_moteur_u2, fill=black, font=font_xl)
+    # CO2 V.7
+    if co2_v7:
+        draw.text((1063, 895), co2_v7, fill=black, font=font_xl)
     # Classe environnementale V.9
     if classe_env_v9:
         draw.text((1301, 895), classe_env_v9, fill=black, font=font_xl)
