@@ -639,43 +639,36 @@ mockupUpdate: function(simTime, S) {
 // MODE 2 : Dossier reçu d'un vendeur non habilité
 const vendeurConfig={
 SIM_START:10*3600+32*60, SIM_END:10*3600+36*60+5,
-subtitle:'Un vendeur non habilité vous transmet un dossier déjà vérifié avec mandats signés.',
-phases:[{label:'Mandat reçu + signé',start:T(10,32,0),end:T(10,32,45)},{label:'Dossier complet',start:T(10,33,0),end:T(10,34,5)},{label:'Contrôle agent',start:T(10,34,10),end:T(10,35,5)}],
+subtitle:'Moto Center (vendeur non habilité) demande l\'envoi de mandat — envoi auto activé.',
+phases:[{label:'Demande mandat reçue',start:T(10,32,0),end:T(10,32,25)},{label:'Attente signature client',start:T(10,32,30),end:T(10,33,10)},{label:'Dossier + mandats reçus',start:T(10,33,15),end:T(10,34,5)},{label:'Contrôle agent',start:T(10,34,10),end:T(10,35,5)}],
 lines:[
-{t:T(10,32,0),html:'<span class="demo-dim">── Mandat reçu de Moto Center</span> <span class="demo-phase-timer" data-phase="0"></span>',phase:0},
-{t:T(10,32,5),html:'<span class="demo-tag demo-tag-cerfa">MANDAT</span> Mandat 1 : client → Moto Center (13757) reçu'},
-{t:T(10,32,10),html:'<span class="demo-tag demo-tag-check">VERIF</span> <span class="demo-check">✓</span> Signé par le client (OTP) + vendeur (numérique)'},
-{t:T(10,32,18),html:''},
-{t:T(10,32,20),html:'<span class="demo-tag demo-tag-cerfa">MANDAT</span> Mandat 2 : client → Garage Central SIV (13757) reçu'},
-{t:T(10,32,25),html:'<span class="demo-tag demo-tag-check">VERIF</span> <span class="demo-check">✓</span> Mandataire : votre signature apposée automatiquement lors de la génération'},
-{t:T(10,32,30),html:'<span class="demo-tag demo-tag-check">VERIF</span> <span class="demo-check">✓</span> Mandant : MARTIN Jean — signé numériquement (OTP)'},
-{t:T(10,32,38),html:'<span class="demo-tag demo-tag-done">OK</span> <span class="demo-highlight">2 mandats complets — toutes signatures valides</span> <span class="demo-check">✓</span>'},
-{t:T(10,32,45),html:''},
-{t:T(10,33,0),html:'<span class="demo-dim">── Dossier complet reçu</span> <span class="demo-phase-timer" data-phase="1"></span>',phase:1},
-{t:T(10,33,5),html:'<span class="demo-tag demo-tag-done">ZIP</span> Dossier_CG-2026-63241_MARTIN.zip <span class="demo-dim">— 4.2 MB</span>'},
-{t:T(10,33,10),html:'<span class="demo-tag demo-tag-check">VERIF</span> <span class="demo-check">✓</span> Cerfa 13749 pré-rempli · cachet + signature Moto Center'},
-{t:T(10,33,18),html:'<span class="demo-tag demo-tag-check">VERIF</span> <span class="demo-check">✓</span> Mandat client → vendeur (13757) — signé (client + vendeur)'},
-{t:T(10,33,25),html:'<span class="demo-tag demo-tag-check">VERIF</span> <span class="demo-check">✓</span> Mandat client → agent (13757) — signé (client + agent)'},
-{t:T(10,33,35),html:'<span class="demo-tag demo-tag-check">VERIF</span> <span class="demo-check">✓</span> COC · HONDA CB125R · VIN : JMZKECW105SJ08739 · CNIT : MH01-01-001-0'},
-{t:T(10,33,45),html:'<span class="demo-tag demo-tag-check">VERIF</span> <span class="demo-check">✓</span> Facture · VIN cohérent · Passeport non expiré · Permis adapté'},
+{t:T(10,32,0),html:'<span class="demo-dim">── Demande de mandat reçue</span> <span class="demo-phase-timer" data-phase="0"></span>',phase:0},
+{t:T(10,32,5),html:'<span class="demo-tag demo-tag-extract">NOTIF</span> Moto Center demande l\'envoi de mandat pour le client MARTIN Jean'},
+{t:T(10,32,10),html:'<span class="demo-tag demo-tag-cerfa">AUTO</span> Envoi automatique activé — génération mandat client → Garage Central SIV (13757)'},
+{t:T(10,32,14),html:'<span class="demo-tag demo-tag-check">SIGN</span> <span class="demo-check">✓</span> Votre signature (agent) apposée automatiquement'},
+{t:T(10,32,18),html:'<span class="demo-tag demo-tag-extract">SMS</span> Proposition de mandat envoyée au client par SMS'},
+{t:T(10,32,25),html:''},
+{t:T(10,32,30),html:'<span class="demo-dim">── Attente signature client</span> <span class="demo-phase-timer" data-phase="1"></span>',phase:1},
+{t:T(10,32,35),html:'<span class="demo-tag demo-tag-extract">INFO</span> <span class="demo-dim">Le client a reçu le lien de Moto Center — upload docs + signature mandats en cours...</span>'},
+{t:T(10,33,0),html:'<span class="demo-tag demo-tag-extract">INFO</span> <span class="demo-dim">⏳ En attente...</span>'},
+{t:T(10,33,10),html:''},
+{t:T(10,33,15),html:'<span class="demo-dim">── Mandats signés + dossier complet reçu</span> <span class="demo-phase-timer" data-phase="2"></span>',phase:2},
+{t:T(10,33,18),html:'<span class="demo-tag demo-tag-done">OTP</span> <span class="demo-check">✓</span> Client a signé les 2 mandats (code OTP validé)'},
+{t:T(10,33,25),html:'<span class="demo-tag demo-tag-done">ZIP</span> Dossier_CG-2026-63241_MARTIN.zip reçu <span class="demo-dim">— 4.2 MB</span>'},
+{t:T(10,33,30),html:'<span class="demo-tag demo-tag-check">VERIF</span> <span class="demo-check">✓</span> Mandat client → vendeur (13757) — signé (client OTP + vendeur)'},
+{t:T(10,33,35),html:'<span class="demo-tag demo-tag-check">VERIF</span> <span class="demo-check">✓</span> Mandat client → agent (13757) — signé (client OTP + agent)'},
+{t:T(10,33,40),html:'<span class="demo-tag demo-tag-check">VERIF</span> <span class="demo-check">✓</span> Cerfa 13749 pré-rempli · cachet + signature Moto Center'},
+{t:T(10,33,48),html:'<span class="demo-tag demo-tag-check">VERIF</span> <span class="demo-check">✓</span> COC · Facture · Passeport · Permis — tous cohérents'},
 {t:T(10,33,55),html:'<span class="demo-tag demo-tag-extract">INFO</span> 200+ contrôles passés — 0 alerte'},
 {t:T(10,34,5),html:''},
-{t:T(10,34,10),html:'<span class="demo-dim">── Votre contrôle</span> <span class="demo-phase-timer" data-phase="2"></span>',phase:2},
+{t:T(10,34,10),html:'<span class="demo-dim">── Votre contrôle</span> <span class="demo-phase-timer" data-phase="3"></span>',phase:3},
 {t:T(10,34,20),html:'<span class="demo-tag demo-tag-extract">INFO</span> <span class="demo-dim">Vous restez responsable de la conformité du dossier soumis au SIV</span>'},
 {t:T(10,34,40),html:'<span class="demo-tag demo-tag-check">AGENT</span> <span class="demo-highlight">Contrôle OK — dossier vérifié par l\'agent</span>'},
 {t:T(10,35,0),html:''},
-{t:T(10,35,5),html:'<span class="demo-tag demo-tag-done">PRÊT</span> <span class="demo-highlight" style="color:#34d399;">Dossier complet — 2 mandats signés — contrôlez, téléchargez le ZIP et soumettez au SIV.</span>'},
+{t:T(10,35,5),html:'<span class="demo-tag demo-tag-done">PRÊT</span> <span class="demo-highlight" style="color:#34d399;">Dossier complet — 2 mandats signés — contrôlez, téléchargez et soumettez au SIV.</span>'},
 ],
 mockupUpdate: function(simTime, S) {
-    if(simTime>=T(10,32,0)&&S<1){document.getElementById('demoMockupPlaceholder').style.display='none';document.getElementById('demoScreenCerfa').style.display='block';window._demoMockupState=1;}
-    if(simTime>=T(10,32,0)){try{document.getElementById('cerfaTitle').textContent='Cerfa 13749*04 — Véhicule neuf';}catch(x){}}
-    if(simTime>=T(10,33,10))document.getElementById('cerfaMarque').textContent='HONDA';
-    if(simTime>=T(10,33,13)){try{document.getElementById('cerfaCnit').textContent='MH01-01-001-0';}catch(x){}}
-    if(simTime>=T(10,33,16))document.getElementById('cerfaVin').textContent='JMZKECW105SJ08739';
-    if(simTime>=T(10,33,19)){try{document.getElementById('cerfaGenre').textContent='MTL';}catch(x){}}
-    if(simTime>=T(10,33,22))document.getElementById('cerfaTit').textContent='MARTIN Jean';
-    if(simTime>=T(10,33,25))document.getElementById('cerfaAddr').textContent='15 avenue Foch, 75016 Paris';
-    if(simTime>=T(10,33,28))document.getElementById('cerfaImmat').textContent='En attente SIV';
+    if(simTime>=T(10,33,40)&&S<1){document.getElementById('demoMockupPlaceholder').style.display='none';document.getElementById('demoScreenCerfa').style.display='block';document.getElementById('cerfaTitle').textContent='Cerfa 13749*04 — Véhicule neuf';window._demoMockupState=1;}
     if(simTime>=T(10,34,40))document.getElementById('cerfaStamp').style.display='block';
     if(simTime>=T(10,35,5)&&S<2){const m=document.getElementById('mockCerfaMsg');m.style.display='block';m.textContent='2 mandats signés · 200+ contrôles · 0 alerte — soumettez au SIV.';window._demoMockupState=2;}
 }};
