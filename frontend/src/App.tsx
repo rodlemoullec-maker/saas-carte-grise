@@ -29,19 +29,6 @@ function clearAuth() {
   localStorage.removeItem('autodoc_pro_id')
 }
 
-/** Fetch avec Authorization header automatique + fallback pro_id query param */
-function authFetch(url: string, opts: RequestInit = {}): Promise<Response> {
-  const token = getToken()
-  const proId = getProId()
-  const headers: Record<string, string> = { ...(opts.headers as Record<string, string> || {}) }
-  if (token) headers['Authorization'] = `Bearer ${token}`
-
-  // Ajouter pro_id en query param pour compatibilité backend transition
-  const separator = url.includes('?') ? '&' : '?'
-  const finalUrl = proId ? `${url}${separator}pro_id=${proId}` : url
-
-  return fetch(finalUrl, { ...opts, headers })
-}
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
