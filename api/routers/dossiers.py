@@ -7,6 +7,7 @@ GET    /dossiers/{id}                   Détail d'un dossier
 GET    /dossiers/{id}/checklist         Checklist d'avancement
 POST   /dossiers/{id}/run-diagnostic    Lancer le diagnostic complet
 GET    /dossiers/{id}/cerfa             Générer / récupérer le Cerfa (100% PIL)
+GET    /dossiers/{id}/relance-email     Email de relance pré-rédigé (à copier-coller)
 GET    /dossiers/{id}/admin             Vue admin/debug du dossier
 GET    /dossiers/{id}/download-zip      Télécharger le dossier complet en ZIP
 DELETE /dossiers/{id}                   Supprimer un dossier
@@ -198,6 +199,34 @@ async def run_diagnostic_endpoint(dossier_id: str, db: AsyncSession = Depends(ge
     dossier.status = "DIAGNOSTIC"
     await db.flush()
     return result
+
+
+# ─── Email de relance pré-rédigé ─────────────────────────────────────────────
+
+
+@router.get("/{dossier_id}/relance-email")
+async def get_relance_email(dossier_id: str, db: AsyncSession = Depends(get_db)):
+    """
+    Génère le texte d'un email de relance pour ce dossier.
+
+    L'agent reçoit un sujet + un corps prêt à coller dans son client email
+    habituel (Gmail, Outlook, Thunderbird). Aucun email n'est envoyé par
+    AutoDoc Pro — l'éditeur n'a accès à aucune communication.
+
+    Si le dossier est en VERT (complet), retourne un email "Cerfa prêt".
+    Sinon, retourne un email de relance personnalisé avec la liste des
+    points à corriger, dérivée des codes de blocage du diagnostic.
+    """
+    dossier = await db.get(DossierDB, dossier_id)
+    if not dossier:
+        raise HTTPException(404, "Dossier non trouvé")
+
+    agent = await get_current_agent(db)
+    if not agent:
+        raise HTTPException(404, "Aucun agent configuré sur cette installation")
+
+    from notifications.relance_emails import generate_relance_email
+    return generate_relance_email(dossier=dossier, agent=agent)
 
 
 # ─── Génération du Cerfa (100% PIL local) ────────────────────────────────────
