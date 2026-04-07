@@ -70,7 +70,6 @@ def _update_setup_complete(pro: Professionnel) -> None:
         and pro.nom_commerce
         and pro.adresse
         and pro.cachet_path
-        and pro.signature_path
         and pro.numero_habilitation
     )
 

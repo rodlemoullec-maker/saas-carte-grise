@@ -56,3 +56,9 @@ data/demo_uploads/
 
 # Credentials Google (ne jamais commiter)
 gen-lang-client-*.json
+
+data/.encryption_key
+data/.license/
+data/imatra.db
+data/imatra.db-*
+data/documents/
