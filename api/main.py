@@ -97,3 +97,50 @@ async def info():
             "soumis au SIV. AutoDoc Pro est un outil d'aide à la décision."
         ),
     }
+
+
+# ─── Frontend statique (production Docker uniquement) ───────────────────
+#
+# En développement, le frontend tourne séparément sur Vite (port 5173) avec
+# un proxy vers /api → http://127.0.0.1:8001. En production / dans Docker,
+# le frontend buildé est copié dans frontend/dist et servi directement par
+# FastAPI sur la racine /.
+#
+# Cette section est conditionnelle : elle ne s'active que si le dossier
+# frontend/dist existe au démarrage.
+from pathlib import Path
+
+_frontend_dist = Path(__file__).parent.parent / "frontend" / "dist"
+if _frontend_dist.is_dir():
+    from fastapi.responses import FileResponse
+    from fastapi.staticfiles import StaticFiles
+
+    # Servir les assets buildés (JS, CSS, images) sous /assets
+    _assets_dir = _frontend_dist / "assets"
+    if _assets_dir.is_dir():
+        app.mount("/assets", StaticFiles(directory=_assets_dir), name="assets")
+
+    # Servir les fichiers à la racine (favicon, manifest, etc.)
+    _index = _frontend_dist / "index.html"
+
+    @app.get("/", include_in_schema=False)
+    async def serve_index():
+        return FileResponse(_index)
+
+    # Catch-all pour le routing client React (SPA)
+    # Toute route non matchée par une API renvoie index.html — le routeur
+    # React prend ensuite le relais côté navigateur.
+    @app.get("/{full_path:path}", include_in_schema=False)
+    async def serve_spa(full_path: str):
+        # Si c'est un fichier réel à la racine de dist (favicon, robots.txt…)
+        candidate = _frontend_dist / full_path
+        if candidate.is_file():
+            return FileResponse(candidate)
+        return FileResponse(_index)
+
+    logger.info(f"[Startup] Frontend statique servi depuis {_frontend_dist}")
+else:
+    logger.info(
+        "[Startup] frontend/dist absent — mode développement "
+        "(lancez 'npm run dev' dans frontend/ pour servir l'UI)"
+    )
