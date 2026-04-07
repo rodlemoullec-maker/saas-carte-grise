@@ -252,6 +252,54 @@ def sign_license(payload: dict, private_key_hex: str) -> str:
     return f"{_b64url_encode(payload_bytes)}.{_b64url_encode(signature)}"
 
 
+def sign_payload(payload_bytes: bytes, private_key_hex: str) -> str:
+    """
+    Signe des bytes arbitraires avec la clé privée Ed25519.
+
+    Utilisé pour signer aussi bien les licences que les bundles de règles.
+    Retourne la signature encodée en base64url.
+    """
+    try:
+        from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+    except ImportError as e:
+        raise LicenseError("Le package `cryptography` est requis") from e
+
+    private_key = Ed25519PrivateKey.from_private_bytes(bytes.fromhex(private_key_hex))
+    signature = private_key.sign(payload_bytes)
+    return _b64url_encode(signature)
+
+
+def verify_payload(payload_bytes: bytes, signature_b64: str, public_key_hex: str | None = None) -> None:
+    """
+    Vérifie qu'une signature Ed25519 correspond à un payload.
+
+    Utilisé pour vérifier aussi bien les licences que les bundles de règles.
+    Lève LicenseInvalidSignature si la signature est invalide.
+    """
+    pub_hex = (public_key_hex or PUBLIC_KEY_HEX).strip()
+    if not pub_hex or pub_hex == "00" * 32:
+        raise LicenseError(
+            "Clé publique d'éditeur non configurée. "
+            "Lancez `python scripts/generate_license_keypair.py`."
+        )
+
+    try:
+        signature_bytes = _b64url_decode(signature_b64)
+    except Exception as e:
+        raise LicenseFormatError(f"Signature base64 invalide : {e}") from e
+
+    try:
+        from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+        public_key = Ed25519PublicKey.from_public_bytes(bytes.fromhex(pub_hex))
+        public_key.verify(signature_bytes, payload_bytes)
+    except ImportError as e:
+        raise LicenseError(
+            "Le package `cryptography` est requis pour vérifier les signatures."
+        ) from e
+    except Exception as e:
+        raise LicenseInvalidSignature(f"Signature invalide : {e}") from e
+
+
 def generate_keypair() -> tuple[str, str]:
     """
     Génère une nouvelle paire de clés Ed25519.
