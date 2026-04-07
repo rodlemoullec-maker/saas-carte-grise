@@ -1,13 +1,16 @@
 """
 Modèle Dossier — une demande de carte grise en cours de traitement.
+
+Version locale : tous les champs liés au paiement par dossier, à la collecte
+client à distance (lien SMS), et à la source de création (PRO/CLIENT) ont été
+supprimés. Le dossier est créé localement par l'agent via le drag & drop d'emails.
 """
 from __future__ import annotations
 
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Float, ForeignKey, String, Text, Boolean
-from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy import JSON, Boolean, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from api.models.base import Base, TimestampMixin
@@ -16,78 +19,53 @@ from api.models.base import Base, TimestampMixin
 class DossierDB(Base, TimestampMixin):
     __tablename__ = "dossiers"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     reference: Mapped[str] = mapped_column(String(20), unique=True, index=True)  # CG-2026-00001
 
     # Type et statut
     type: Mapped[str | None] = mapped_column(String(40), nullable=True)  # Déduit auto (VN/VO) après upload docs
     status: Mapped[str] = mapped_column(String(20), default="PENDING", index=True)
 
-    # Source de création : "PRO" (flux classique) ou "CLIENT" (URL permanente)
-    created_by_source: Mapped[str] = mapped_column(String(10), default="PRO")
-
     # Véhicule
     vin: Mapped[str | None] = mapped_column(String(17), nullable=True, index=True)
     immatriculation: Mapped[str | None] = mapped_column(String(10), nullable=True, index=True)
 
-    # Client final (acheteur)
+    # Client final (acheteur) — données saisies/extraites par l'agent en local
     client_nom: Mapped[str | None] = mapped_column(String(255), nullable=True)
     client_prenom: Mapped[str | None] = mapped_column(String(255), nullable=True)
     client_email: Mapped[str | None] = mapped_column(String(255), nullable=True)
     client_telephone: Mapped[str | None] = mapped_column(String(20), nullable=True)
 
-    # Professionnel
-    professionnel_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("professionnels.id"), index=True,
+    # Professionnel (l'agent — toujours le même en local, mais on garde la relation)
+    professionnel_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("professionnels.id"), index=True,
     )
 
-    # Lien client sécurisé (token SMS)
-    client_link_token: Mapped[str | None] = mapped_column(String(64), nullable=True, unique=True, index=True)
-    client_link_sent_at: Mapped[datetime | None] = mapped_column(nullable=True)
+    # Métadonnées du dossier (consentement RGPD client, choix CPI, etc.)
+    metadata_: Mapped[dict | None] = mapped_column("metadata", JSON, nullable=True)
 
-    # Métadonnées client (consentement RGPD, choix CPI, assurance, etc.)
-    metadata_: Mapped[dict | None] = mapped_column("metadata", JSONB, nullable=True)
-
-    # Phase 1 — Diagnostic binaire (VERT / ROUGE)
+    # Phase 1 — Diagnostic tri-couleur (VERT / ORANGE / ROUGE)
     diagnostic: Mapped[str | None] = mapped_column(String(10), nullable=True)
-    blocages: Mapped[dict | None] = mapped_column(JSONB, nullable=True)   # Liste V-XX declenches
-    cross_check_results: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
-    validation_errors: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
-    validation_warnings: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    blocages: Mapped[dict | None] = mapped_column(JSON, nullable=True)   # Liste V-XX déclenchés
+    cross_check_results: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    validation_errors: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    validation_warnings: Mapped[dict | None] = mapped_column(JSON, nullable=True)
 
-    # Taxes estimation
-    tax_estimate: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    # Estimation des taxes (Y1, Y3-Y6)
+    tax_estimate: Mapped[dict | None] = mapped_column(JSON, nullable=True)
 
-    # Phase 2 — Soumission
+    # Préparation pour soumission SIV (l'agent soumet lui-même)
+    siv_payload: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     submitted_at: Mapped[datetime | None] = mapped_column(nullable=True)
     siv_reference: Mapped[str | None] = mapped_column(String(50), nullable=True)
-    siv_payload: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
-    siv_response: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
-    cpi_generated: Mapped[bool] = mapped_column(Boolean, default=False)
+    cerfa_generated: Mapped[bool] = mapped_column(Boolean, default=False)
 
     # Contexte acheteur
     is_personne_morale: Mapped[bool] = mapped_column(Boolean, default=False)
     is_mineur: Mapped[bool] = mapped_column(Boolean, default=False)
     is_etranger: Mapped[bool] = mapped_column(Boolean, default=False)
 
-    # Paiement honoraires (argent du porteur de projet)
-    payment_preauth_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    payment_captured: Mapped[bool] = mapped_column(Boolean, default=False)
-    montant_honoraires: Mapped[float | None] = mapped_column(Float, nullable=True)
-
-    # Paiement taxes SIV (argent de l'Etat — mecanisme a confirmer apres reponse ANTS)
-    tax_payment_method: Mapped[str | None] = mapped_column(String(30), nullable=True)
-    tax_payment_status: Mapped[str | None] = mapped_column(String(20), nullable=True)
-
-    # Relances
-    relance_nb: Mapped[int] = mapped_column(default=0)
-    relance_derniere: Mapped[datetime | None] = mapped_column(nullable=True)
-    relance_prochaine: Mapped[datetime | None] = mapped_column(nullable=True)
-    relance_escalade: Mapped[bool] = mapped_column(Boolean, default=False)
-
-    # Agent override
-    agent_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
-    agent_decision: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    # Notes libres de l'agent
     agent_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     # Relations
