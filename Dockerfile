@@ -1,4 +1,4 @@
-# AutoDoc Pro — Image locale (logiciel installé chez l'agent habilité SIV)
+# Imatra — Image locale (logiciel installé chez l'agent habilité SIV)
 #
 # Multi-stage build :
 #   1. node-build : compile le frontend React/Vite en fichiers statiques
@@ -38,10 +38,10 @@ RUN npm run build
 FROM python:3.11-slim AS runtime
 
 # Métadonnées
-LABEL org.opencontainers.image.title="AutoDoc Pro"
+LABEL org.opencontainers.image.title="Imatra"
 LABEL org.opencontainers.image.description="Logiciel local de préparation de dossiers carte grise pour agents habilités SIV"
 LABEL org.opencontainers.image.version="2.0.0-local"
-LABEL org.opencontainers.image.vendor="AutoDoc Pro"
+LABEL org.opencontainers.image.vendor="Imatra"
 
 WORKDIR /app
 
@@ -82,12 +82,12 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     APP_HOST=0.0.0.0 \
     APP_PORT=8001 \
-    DATABASE_URL=sqlite+aiosqlite:////app/data/autodoc_pro.db \
+    DATABASE_URL=sqlite+aiosqlite:////app/data/imatra.db \
     STORAGE_PATH=/app/data/documents \
     OCR_PROVIDER=paddle
 
 # Le volume /app/data contient :
-#   - autodoc_pro.db        (SQLite)
+#   - imatra.db        (SQLite)
 #   - documents/            (documents chiffrés Fernet)
 #   - .license/             (license.key + trial_started.json)
 #   - .encryption_key       (clé Fernet du store)

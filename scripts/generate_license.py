@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-Génère une licence AutoDoc Pro signée pour un client.
+Génère une licence Imatra signée pour un client.
 
 À LANCER PAR L'ÉDITEUR uniquement (nécessite la clé privée).
 
 La licence générée est un token signé en Ed25519 que le client copie-colle
-dans son interface AutoDoc Pro pour activer son installation locale.
+dans son interface Imatra pour activer son installation locale.
 
 Usage :
     python scripts/generate_license.py \\
@@ -46,7 +46,7 @@ DEFAULT_DAYS = {
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Génère une licence AutoDoc Pro signée pour un client.",
+        description="Génère une licence Imatra signée pour un client.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument("--email", required=True, help="Email du client")
@@ -121,7 +121,7 @@ def main() -> None:
     print()
     print("Instructions à inclure dans l'email au client :")
     print()
-    print("  1. Ouvrez AutoDoc Pro sur votre ordinateur")
+    print("  1. Ouvrez Imatra sur votre ordinateur")
     print("  2. Allez dans Paramètres → Licence")
     print("  3. Collez le token ci-dessus dans le champ d'activation")
     print("  4. Cliquez sur \"Activer\"")

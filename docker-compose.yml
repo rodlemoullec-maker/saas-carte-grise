@@ -1,4 +1,4 @@
-# AutoDoc Pro — Logiciel local pour agents habilités SIV
+# Imatra — Logiciel local pour agents habilités SIV
 #
 # Lance le logiciel sur la machine de l'agent. Tout est local :
 #   - SQLite pour la base de données
@@ -22,12 +22,12 @@
 #     documents chiffrés, licence). Sauvegardez-le régulièrement.
 
 services:
-  autodocpro:
+  imatra:
     build:
       context: .
       dockerfile: Dockerfile
-    image: autodocpro:local-2.0
-    container_name: autodocpro
+    image: imatra:local-2.0
+    container_name: imatra
 
     # Port exposé sur l'hôte (modifiable si conflit avec un autre service)
     ports:
@@ -35,7 +35,7 @@ services:
 
     # Volume persistant pour toutes les données locales
     # ./data contient :
-    #   - autodoc_pro.db        (SQLite)
+    #   - imatra.db        (SQLite)
     #   - documents/            (documents chiffrés Fernet)
     #   - .license/             (license.key + trial_started.json)
     #   - .encryption_key       (clé Fernet du store)
@@ -48,7 +48,7 @@ services:
     environment:
       APP_HOST: 0.0.0.0
       APP_PORT: 8001
-      DATABASE_URL: sqlite+aiosqlite:////app/data/autodoc_pro.db
+      DATABASE_URL: sqlite+aiosqlite:////app/data/imatra.db
       STORAGE_PATH: /app/data/documents
       OCR_PROVIDER: paddle
       OCR_LANGUAGE: fr

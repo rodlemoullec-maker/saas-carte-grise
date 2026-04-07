@@ -1,7 +1,7 @@
 """
 Provider OCR PaddleOCR — local, gratuit, open source.
 
-PaddleOCR remplace Google Document AI dans la version locale d'AutoDoc Pro.
+PaddleOCR remplace Google Document AI dans la version locale d'Imatra.
 Tout tourne sur la machine de l'agent, aucun appel cloud.
 
 Précision en français : ~90-93% sur documents standards (CNI, factures, etc.).

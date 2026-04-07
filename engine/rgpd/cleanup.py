@@ -1,5 +1,5 @@
 """
-Nettoyage RGPD — version locale d'AutoDoc Pro.
+Nettoyage RGPD — version locale d'Imatra.
 
 Quand un dossier passe en CERFA_GENERE :
 1. Tous les fichiers documents sont supprimés du stockage local chiffré

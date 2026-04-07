@@ -174,7 +174,7 @@ def _ocr_google_docai(file_bytes: bytes, mime_type: str) -> dict:
     """
     DEPRECATED — conservé pour compatibilité avec les anciens appels du pipeline.
 
-    Dans la version locale d'AutoDoc Pro, l'OCR passe par PaddleOCR (ou
+    Dans la version locale d'Imatra, l'OCR passe par PaddleOCR (ou
     Tesseract en fallback) via la factory `get_ocr_provider()`. Cette
     fonction reste un proxy synchrone pour les anciens appels du moteur.
 
@@ -1178,13 +1178,13 @@ def _build_recap_validation(dossier: dict) -> dict:
             "responsabilite_soumission": (
                 "En tant que professionnel habilite SIV, vous restez seul responsable "
                 "de la veracite et de la completude du dossier soumis a l'administration. "
-                "AutoDoc Pro est un outil d'aide a la constitution du dossier et ne se "
+                "Imatra est un outil d'aide a la constitution du dossier et ne se "
                 "substitue pas a votre obligation de verification."
             ),
             "verification_ocr": (
                 "Les donnees extraites automatiquement des documents (OCR via Google Document AI "
                 "et IA via Claude/Anthropic) peuvent contenir des erreurs. Il vous appartient de "
-                "verifier les informations avant toute soumission au SIV. AutoDoc Pro ne peut etre "
+                "verifier les informations avant toute soumission au SIV. Imatra ne peut etre "
                 "tenu responsable des erreurs d'extraction."
             ),
             "sous_traitants": (
@@ -1203,7 +1203,7 @@ def _build_recap_validation(dossier: dict) -> dict:
                 "Voir notre politique de confidentialite."
             ),
             "limitation_responsabilite": (
-                "AutoDoc Pro ne garantit pas l'acceptation du dossier par le SIV. "
+                "Imatra ne garantit pas l'acceptation du dossier par le SIV. "
                 "En cas de rejet, les honoraires factures ne sont pas remboursables "
                 "si le rejet est du a des documents incorrects fournis par le vendeur ou le client."
             ),

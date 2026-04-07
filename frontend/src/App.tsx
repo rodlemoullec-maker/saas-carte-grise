@@ -1,5 +1,5 @@
 /**
- * AutoDoc Pro — Application locale (version 2.0)
+ * Imatra — Application locale (version 2.0)
  *
  * Logiciel installé localement chez l'agent habilité SIV.
  * Communique uniquement avec le backend FastAPI sur localhost:8001.
@@ -156,7 +156,7 @@ function Sidebar({ current, onNav }: { current: Page; onNav: (p: Page) => void }
             <Zap className="w-4 h-4 text-white" strokeWidth={2.5} />
           </span>
           <div>
-            <div className="text-sm font-extrabold text-slate-900">AutoDoc Pro</div>
+            <div className="text-sm font-extrabold text-slate-900">Imatra</div>
             <div className="text-[10px] text-slate-400">Local — v2.0</div>
           </div>
         </div>

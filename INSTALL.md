@@ -1,6 +1,6 @@
-# Installation d'AutoDoc Pro local
+# Installation d'Imatra local
 
-Ce guide vous explique comment installer et lancer **AutoDoc Pro** sur votre
+Ce guide vous explique comment installer et lancer **Imatra** sur votre
 ordinateur. Le logiciel s'exécute entièrement en local : vos données et celles
 de vos clients ne quittent jamais votre machine.
 
@@ -40,14 +40,14 @@ au premier démarrage. Cette opération est faite une seule fois.
 
 ## Installation
 
-### 1. Téléchargez AutoDoc Pro
+### 1. Téléchargez Imatra
 
 Créez un dossier dédié sur votre ordinateur, par exemple :
 
-- **Windows** : `C:\AutoDocPro`
-- **macOS / Linux** : `~/AutoDocPro`
+- **Windows** : `C:\ImatraPro`
+- **macOS / Linux** : `~/ImatraPro`
 
-Téléchargez les deux fichiers fournis par AutoDoc Pro :
+Téléchargez les deux fichiers fournis par Imatra :
 
 - `Dockerfile`
 - `docker-compose.yml`
@@ -78,7 +78,7 @@ Une fois le démarrage terminé, ouvrez votre navigateur web et allez à :
 
 <http://localhost:8001>
 
-Vous voyez l'interface AutoDoc Pro. Bienvenue !
+Vous voyez l'interface Imatra. Bienvenue !
 
 ---
 
@@ -116,7 +116,7 @@ Si vous n'avez pas encore de licence, vous bénéficiez automatiquement d'un
 ### Voir les logs
 
 ```bash
-docker compose logs -f autodocpro
+docker compose logs -f imatra
 ```
 
 ### Arrêter le logiciel
@@ -148,7 +148,7 @@ service de sauvegarde de votre choix.
 
 ```bash
 # Exemple avec tar
-tar -czf autodocpro-backup-$(date +%Y%m%d).tar.gz data/
+tar -czf imatra-backup-$(date +%Y%m%d).tar.gz data/
 ```
 
 ### Restaurer une sauvegarde
@@ -158,7 +158,7 @@ tar -czf autodocpro-backup-$(date +%Y%m%d).tar.gz data/
 docker compose down
 
 # Restaurer le dossier
-tar -xzf autodocpro-backup-20260415.tar.gz
+tar -xzf imatra-backup-20260415.tar.gz
 
 # Relancer
 docker compose up -d
@@ -187,7 +187,7 @@ Vérifiez que Docker Desktop est bien lancé :
 Vérifiez les logs :
 
 ```bash
-docker compose logs autodocpro
+docker compose logs imatra
 ```
 
 ### PaddleOCR met du temps à démarrer
@@ -218,16 +218,16 @@ Doit retourner :
 - Tous les documents stockés sur le disque sont **chiffrés en AES-128** via
   Fernet. La clé de chiffrement est générée au premier démarrage et reste
   sur votre machine (`data/.encryption_key`, lecture restreinte).
-- AutoDoc Pro **n'envoie aucun email, SMS, ni notification** à un service
+- Imatra **n'envoie aucun email, SMS, ni notification** à un service
   tiers. Les emails de relance générés sont du texte que vous copiez-collez
   dans votre client email habituel (Gmail, Outlook, Thunderbird).
 - Vous êtes seul responsable de la conformité des dossiers que vous soumettez
-  au SIV. AutoDoc Pro est un outil d'aide à la décision.
+  au SIV. Imatra est un outil d'aide à la décision.
 
 ---
 
 ## Support
 
-- Consultez la documentation : <https://autodocpro.fr/docs>
-- Email : <support@autodocpro.fr>
-- En cas de bug, joignez les logs (`docker compose logs autodocpro > logs.txt`)
+- Consultez la documentation : <https://imatra.fr/docs>
+- Email : <support@imatra.fr>
+- En cas de bug, joignez les logs (`docker compose logs imatra > logs.txt`)

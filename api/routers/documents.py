@@ -1,5 +1,5 @@
 """
-Router documents — version locale d'AutoDoc Pro.
+Router documents — version locale d'Imatra.
 
 POST   /documents/{dossier_id}/upload     Uploader un document (depuis fichier local)
 GET    /documents/{document_id}           Détail + résultat d'extraction

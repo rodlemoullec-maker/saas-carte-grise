@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tarifs — Imatra</title>
+    <meta name="description" content="Licence annuelle 800 €/an. Essai gratuit 30 jours, 10 dossiers inclus. Aucun coût caché. Pas d'abonnement par dossier.">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter','sans-serif'], display: ['Outfit','sans-serif'] }, colors: { navy: { 50: '#f1f5f9', 700: '#1e293b', 800: '#0f172a', 900: '#020617' } } } } }
+    </script>
+    <style>body{font-family:Inter,sans-serif}h1,h2,h3{font-family:Outfit,sans-serif}</style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased">
+
+<header class="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-slate-200">
+  <nav class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+    <a href="index.html" class="flex items-center gap-2.5">
+      <span class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-emerald-500 flex items-center justify-center text-white font-bold">⚡</span>
+      <span class="font-display font-extrabold text-navy-800 text-lg">Imatra</span>
+    </a>
+    <div class="hidden md:flex items-center gap-1">
+      <a href="comment-ca-marche.html" class="px-3 py-2 text-sm font-medium text-slate-600 hover:text-navy-800 rounded-lg">Comment ça marche</a>
+      <a href="securite.html" class="px-3 py-2 text-sm font-medium text-slate-600 hover:text-navy-800 rounded-lg">Sécurité</a>
+      <a href="tarifs.html" class="px-3 py-2 text-sm font-medium text-blue-600 rounded-lg">Tarifs</a>
+      <a href="telecharger.html" class="ml-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg">Télécharger</a>
+    </div>
+  </nav>
+</header>
+
+<main class="max-w-5xl mx-auto px-6 py-16">
+
+  <div class="text-center mb-12">
+    <h1 class="font-display font-extrabold text-4xl text-navy-800 mb-3">Un seul tarif, simple et transparent</h1>
+    <p class="text-lg text-slate-600">
+      Imatra est un logiciel installé sur votre ordinateur.<br>
+      Une licence annuelle vous donne droit à toutes les fonctionnalités, sans limite de dossiers.
+    </p>
+  </div>
+
+  <!-- Pricing card -->
+  <div class="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+
+    <!-- Essai -->
+    <div class="bg-white rounded-2xl border-2 border-slate-200 p-7">
+      <h3 class="font-display font-bold text-xl text-navy-800 mb-2">Essai gratuit</h3>
+      <p class="text-sm text-slate-500 mb-5">Pour découvrir Imatra sans engagement</p>
+      <div class="text-4xl font-display font-extrabold text-navy-800 mb-1">0 €</div>
+      <p class="text-xs text-slate-500 mb-6">pendant 30 jours</p>
+
+      <ul class="space-y-2 text-sm text-slate-700 mb-7">
+        <li class="flex items-start gap-2"><span class="text-emerald-500 mt-0.5">✓</span><span>30 jours d'essai complet</span></li>
+        <li class="flex items-start gap-2"><span class="text-emerald-500 mt-0.5">✓</span><span>10 dossiers inclus</span></li>
+        <li class="flex items-start gap-2"><span class="text-emerald-500 mt-0.5">✓</span><span>Toutes les fonctionnalités</span></li>
+        <li class="flex items-start gap-2"><span class="text-emerald-500 mt-0.5">✓</span><span>Aucune carte bancaire</span></li>
+        <li class="flex items-start gap-2"><span class="text-emerald-500 mt-0.5">✓</span><span>Vos données restent chez vous</span></li>
+      </ul>
+
+      <a href="telecharger.html" class="block w-full text-center px-5 py-3 bg-white border border-blue-600 text-blue-600 hover:bg-blue-50 font-semibold rounded-lg">
+        Télécharger maintenant
+      </a>
+    </div>
+
+    <!-- Licence annuelle -->
+    <div class="bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-2xl p-7 shadow-xl relative">
+      <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-400 text-amber-900 text-xs font-bold px-3 py-1 rounded-full">Le plus populaire</span>
+      <h3 class="font-display font-bold text-xl mb-2">Licence annuelle</h3>
+      <p class="text-sm text-blue-100 mb-5">Pour les agents qui souhaitent utiliser Imatra au quotidien</p>
+      <div class="text-4xl font-display font-extrabold mb-1">800 €</div>
+      <p class="text-xs text-blue-100 mb-6">HT / an · facturation unique</p>
+
+      <ul class="space-y-2 text-sm mb-7">
+        <li class="flex items-start gap-2"><span class="text-emerald-300 mt-0.5">✓</span><span><strong>Dossiers illimités</strong> pendant un an</span></li>
+        <li class="flex items-start gap-2"><span class="text-emerald-300 mt-0.5">✓</span><span>Toutes les fonctionnalités</span></li>
+        <li class="flex items-start gap-2"><span class="text-emerald-300 mt-0.5">✓</span><span>Mises à jour des règles V-XX/C-XX incluses</span></li>
+        <li class="flex items-start gap-2"><span class="text-emerald-300 mt-0.5">✓</span><span>Mises à jour du logiciel pendant 1 an</span></li>
+        <li class="flex items-start gap-2"><span class="text-emerald-300 mt-0.5">✓</span><span>Support email prioritaire</span></li>
+        <li class="flex items-start gap-2"><span class="text-emerald-300 mt-0.5">✓</span><span>Vos données restent chez vous</span></li>
+      </ul>
+
+      <a href="mailto:contact@imatra.fr?subject=Achat%20licence%20Imatra%20Pro" class="block w-full text-center px-5 py-3 bg-white text-blue-600 hover:bg-slate-100 font-bold rounded-lg">
+        Acheter une licence
+      </a>
+    </div>
+
+  </div>
+
+  <!-- FAQ -->
+  <section class="max-w-3xl mx-auto mt-16">
+    <h2 class="font-display font-bold text-2xl text-navy-800 mb-6 text-center">Questions fréquentes</h2>
+
+    <div class="space-y-4">
+
+      <div class="bg-white border border-slate-200 rounded-xl p-5">
+        <h3 class="font-semibold text-navy-800 mb-2">Pourquoi pas d'abonnement par dossier ?</h3>
+        <p class="text-sm text-slate-600">
+          Parce qu'Imatra est un logiciel installé sur votre machine — pas un service en ligne. Il
+          tourne en local, sans coût marginal pour nous, donc nous ne facturons pas à l'usage. Une seule
+          licence annuelle vous donne accès à tout, dossiers illimités.
+        </p>
+      </div>
+
+      <div class="bg-white border border-slate-200 rounded-xl p-5">
+        <h3 class="font-semibold text-navy-800 mb-2">Que se passe-t-il après la fin de la licence ?</h3>
+        <p class="text-sm text-slate-600">
+          Si vous ne renouvelez pas, le logiciel passe en mode lecture seule : vous gardez accès à
+          tous vos dossiers passés et aux Cerfa déjà générés, mais vous ne pouvez plus en créer de
+          nouveaux. Vos données restent chez vous, Imatra ne peut rien supprimer à distance.
+        </p>
+      </div>
+
+      <div class="bg-white border border-slate-200 rounded-xl p-5">
+        <h3 class="font-semibold text-navy-800 mb-2">Combien de postes par licence ?</h3>
+        <p class="text-sm text-slate-600">
+          Une licence est valable pour un poste (un agent). Si vous avez plusieurs collaborateurs qui
+          utilisent Imatra en parallèle, contactez-nous pour un tarif réseau.
+        </p>
+      </div>
+
+      <div class="bg-white border border-slate-200 rounded-xl p-5">
+        <h3 class="font-semibold text-navy-800 mb-2">Et si je suis insatisfait ?</h3>
+        <p class="text-sm text-slate-600">
+          Les 30 jours d'essai gratuit existent pour ça : testez le logiciel sur 10 dossiers réels avant
+          d'acheter. Aucune carte bancaire à fournir pour l'essai. Si vous achetez et que vous changez d'avis
+          dans les 14 jours, vous êtes remboursé intégralement.
+        </p>
+      </div>
+
+      <div class="bg-white border border-slate-200 rounded-xl p-5">
+        <h3 class="font-semibold text-navy-800 mb-2">Vous prélevez automatiquement l'an prochain ?</h3>
+        <p class="text-sm text-slate-600">
+          Non. Aucun prélèvement automatique. Vous achetez par virement ou carte (paiement unique),
+          et vous renouvelez explicitement chaque année si vous le souhaitez. Pas de mauvaise surprise.
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+  <div class="text-center mt-12">
+    <p class="text-slate-600 mb-4">Une question avant d'acheter ?</p>
+    <a href="mailto:contact@imatra.fr" class="text-blue-600 hover:underline font-semibold">
+      contact@imatra.fr
+    </a>
+  </div>
+
+</main>
+
+<footer class="bg-slate-100 border-t border-slate-200 py-10 mt-16">
+  <div class="max-w-6xl mx-auto px-6 text-center text-sm text-slate-500">
+    <p>© 2026 Imatra · <a href="cgv.html" class="hover:text-blue-600">Conditions de licence</a> · <a href="confidentialite.html" class="hover:text-blue-600">Confidentialité</a> · <a href="mentions-legales.html" class="hover:text-blue-600">Mentions légales</a></p>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -226,7 +226,7 @@ class LicenseManager:
         else:
             message = (
                 "Votre période d'essai gratuit est terminée. "
-                "Pour continuer à utiliser AutoDoc Pro, activez une licence."
+                "Pour continuer à utiliser Imatra, activez une licence."
             )
 
         return LicenseStatus(

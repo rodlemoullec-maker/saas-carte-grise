@@ -215,7 +215,7 @@ def verify_license(token: str, public_key_hex: str | None = None) -> LicensePayl
     if payload.is_expired:
         raise LicenseExpired(
             f"Licence expirée le {payload.expires_at}. "
-            f"Renouvelez votre licence pour continuer à utiliser AutoDoc Pro."
+            f"Renouvelez votre licence pour continuer à utiliser Imatra."
         )
 
     return payload

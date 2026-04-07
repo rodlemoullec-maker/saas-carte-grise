@@ -1,4 +1,4 @@
-# AutoDoc Pro — version locale (logiciel installé chez l'agent)
+# Imatra — version locale (logiciel installé chez l'agent)
 # Toutes les dépendances cloud (Twilio, Stripe, Google DocAI, AWS) ont été retirées
 
 # ─── Framework web ──────────────────────────────────────────

@@ -71,7 +71,7 @@ async def activate_license(req: ActivateRequest):
     Active une licence avec le token fourni par l'éditeur.
 
     Le token est vérifié cryptographiquement (signature Ed25519 + expiration).
-    En cas de succès, il est stocké localement (~/.autodoc-pro/license.key).
+    En cas de succès, il est stocké localement (~/.imatra/license.key).
     """
     if not req.token or len(req.token.strip()) < 20:
         raise HTTPException(422, "Token de licence vide ou invalide")
@@ -83,7 +83,7 @@ async def activate_license(req: ActivateRequest):
         raise HTTPException(403, detail={
             "error": "license_invalid_signature",
             "message": (
-                "Cette licence ne provient pas d'AutoDoc Pro. "
+                "Cette licence ne provient pas d'Imatra. "
                 "Vérifiez que vous avez bien copié l'intégralité du token "
                 "fourni dans votre email d'achat."
             ),

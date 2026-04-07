@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# AutoDoc Pro — Script d'installation Linux/macOS
+# Imatra — Script d'installation Linux/macOS
 #
 # Usage :
 #     bash install.sh
@@ -20,7 +20,7 @@ NC='\033[0m' # No Color
 print_header() {
     echo
     echo -e "${BLUE}═══════════════════════════════════════════════════════════════${NC}"
-    echo -e "${BLUE}  AutoDoc Pro — Installation${NC}"
+    echo -e "${BLUE}  Imatra — Installation${NC}"
     echo -e "${BLUE}═══════════════════════════════════════════════════════════════${NC}"
     echo
 }
@@ -83,8 +83,8 @@ check_files() {
     if (( ${#missing[@]} > 0 )); then
         print_error "Fichiers manquants : ${missing[*]}"
         echo
-        echo "Téléchargez l'archive complète d'AutoDoc Pro depuis :"
-        echo "  https://autodocpro.fr/telecharger"
+        echo "Téléchargez l'archive complète d'Imatra depuis :"
+        echo "  https://imatra.fr/telecharger"
         exit 1
     fi
     print_success "Tous les fichiers nécessaires sont présents"
@@ -121,7 +121,7 @@ wait_for_health() {
     local max_attempts=60
     while (( attempts < max_attempts )); do
         if curl -sf http://localhost:8001/health > /dev/null 2>&1; then
-            print_success "AutoDoc Pro est démarré et opérationnel"
+            print_success "Imatra est démarré et opérationnel"
             return 0
         fi
         sleep 1
@@ -131,7 +131,7 @@ wait_for_health() {
         fi
     done
     print_warning "Le healthcheck n'a pas répondu après ${max_attempts}s."
-    print_warning "Vérifiez les logs : docker compose logs autodocpro"
+    print_warning "Vérifiez les logs : docker compose logs imatra"
     return 1
 }
 
@@ -140,7 +140,7 @@ wait_for_health() {
 print_final_instructions() {
     echo
     echo -e "${GREEN}═══════════════════════════════════════════════════════════════${NC}"
-    echo -e "${GREEN}  ✓ AutoDoc Pro est installé et démarré${NC}"
+    echo -e "${GREEN}  ✓ Imatra est installé et démarré${NC}"
     echo -e "${GREEN}═══════════════════════════════════════════════════════════════${NC}"
     echo
     echo "  Ouvrez votre navigateur web et allez à :"
@@ -149,7 +149,7 @@ print_final_instructions() {
     echo
     echo "  Commandes utiles :"
     echo
-    echo "    docker compose logs -f autodocpro    # voir les logs"
+    echo "    docker compose logs -f imatra    # voir les logs"
     echo "    docker compose stop                   # arrêter"
     echo "    docker compose start                  # redémarrer"
     echo "    docker compose down                   # arrêter et supprimer"

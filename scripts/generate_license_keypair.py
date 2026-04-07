@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Génère une paire de clés Ed25519 pour signer les licences AutoDoc Pro.
+Génère une paire de clés Ed25519 pour signer les licences Imatra.
 
 À LANCER UNE SEULE FOIS par l'éditeur, au début du projet.
 
@@ -29,7 +29,7 @@ from engine.license.signer import generate_keypair
 
 def main() -> None:
     print("=" * 70)
-    print("AutoDoc Pro — Génération d'une paire de clés Ed25519")
+    print("Imatra — Génération d'une paire de clés Ed25519")
     print("=" * 70)
     print()
 

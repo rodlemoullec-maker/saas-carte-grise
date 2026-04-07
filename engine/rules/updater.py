@@ -2,7 +2,7 @@
 Updater du bundle de règles — récupère la dernière version depuis l'éditeur.
 
 Architecture :
-- L'éditeur publie un fichier signé sur licenses.autodocpro.fr/rules/latest
+- L'éditeur publie un fichier signé sur licenses.imatra.fr/rules/latest
 - Le format attendu côté serveur :
     {
         "bundle": { version, description, released_at, ... },

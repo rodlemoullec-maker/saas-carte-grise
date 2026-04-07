@@ -1,5 +1,5 @@
 """
-Application FastAPI principale — AutoDoc Pro local.
+Application FastAPI principale — Imatra local.
 
 Logiciel installé localement chez l'agent habilité SIV.
 Aucune dépendance à un service cloud (sauf vérification de licence
@@ -31,12 +31,12 @@ async def lifespan(app: FastAPI):
     from api.models.base import init_db
     logger.info("[Startup] Initialisation de la base SQLite locale")
     await init_db()
-    logger.info("[Startup] AutoDoc Pro local prêt sur http://%s:%s", _settings.app_host, _settings.app_port)
+    logger.info("[Startup] Imatra local prêt sur http://%s:%s", _settings.app_host, _settings.app_port)
     yield
 
 
 app = FastAPI(
-    title="AutoDoc Pro — Local",
+    title="Imatra — Local",
     description="Logiciel local de préparation de dossiers carte grise pour agents habilités SIV",
     version="2.0.0-local",
     docs_url="/docs",
@@ -84,17 +84,17 @@ async def health():
 async def info():
     """Informations sur l'instance locale."""
     return {
-        "service": "AutoDoc Pro",
+        "service": "Imatra",
         "version": "2.0.0-local",
         "mode": "local",
         "description": (
             "Logiciel installé localement chez l'agent habilité SIV. "
             "Aucune donnée client ne quitte cette machine. "
-            "L'éditeur (AutoDoc Pro) ne traite aucune donnée personnelle."
+            "L'éditeur (Imatra) ne traite aucune donnée personnelle."
         ),
         "responsabilite": (
             "L'agent habilité SIV est seul responsable de la conformité des dossiers "
-            "soumis au SIV. AutoDoc Pro est un outil d'aide à la décision."
+            "soumis au SIV. Imatra est un outil d'aide à la décision."
         ),
     }
 

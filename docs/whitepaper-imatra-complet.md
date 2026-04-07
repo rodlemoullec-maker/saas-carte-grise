@@ -1,4 +1,4 @@
-# AutoDoc Pro — Whitepaper Complet
+# Imatra — Whitepaper Complet
 
 **Plateforme SaaS B2B d'automatisation des demandes d'immatriculation pour les professionnels de l'automobile**
 
@@ -11,7 +11,7 @@
 1. [Resume executif](#1-resume-executif)
 2. [Le marche et son contexte](#2-le-marche-et-son-contexte)
 3. [Le probleme](#3-le-probleme)
-4. [La solution AutoDoc Pro](#4-la-solution-autodoc-pro)
+4. [La solution Imatra](#4-la-solution-imatra)
 5. [Architecture technique](#5-architecture-technique)
 6. [Moteur de regles et controles](#6-moteur-de-regles-et-controles)
 7. [Pipeline de traitement](#7-pipeline-de-traitement)
@@ -29,7 +29,7 @@
 
 ## 1. Resume executif
 
-AutoDoc Pro est une plateforme SaaS B2B qui automatise de bout en bout les demandes de certificat d'immatriculation (carte grise) pour les professionnels de l'automobile en France : concessionnaires, garages, revendeurs, mandataires et agents habilites SIV.
+Imatra est une plateforme SaaS B2B qui automatise de bout en bout les demandes de certificat d'immatriculation (carte grise) pour les professionnels de l'automobile en France : concessionnaires, garages, revendeurs, mandataires et agents habilites SIV.
 
 ### Le constat
 
@@ -39,7 +39,7 @@ Le taux de rejet SIV oscille entre **15% et 25%** des soumissions. Chaque rejet 
 
 ### La reponse
 
-AutoDoc Pro reduit le temps de traitement a **moins de 5 minutes** par dossier grace a un moteur d'automatisation qui enchaine :
+Imatra reduit le temps de traitement a **moins de 5 minutes** par dossier grace a un moteur d'automatisation qui enchaine :
 - **OCR intelligent** (Google Document AI + fallback Claude IA)
 - **Classification automatique** de 31 types de documents
 - **Extraction structuree** des donnees cles
@@ -162,13 +162,13 @@ Le controle humain seul ne peut pas garantir la detection systematique de ces ca
 
 ---
 
-## 4. La solution AutoDoc Pro
+## 4. La solution Imatra
 
 ### 4.1 Proposition de valeur
 
-AutoDoc Pro est un **assistant administratif post-vente invisible** pour les professionnels de l'automobile. Il ne remplace pas le professionnel — il elimine le travail administratif repetitif pour que le pro se concentre sur son metier : vendre et entretenir des vehicules.
+Imatra est un **assistant administratif post-vente invisible** pour les professionnels de l'automobile. Il ne remplace pas le professionnel — il elimine le travail administratif repetitif pour que le pro se concentre sur son metier : vendre et entretenir des vehicules.
 
-**Ce que fait AutoDoc Pro :**
+**Ce que fait Imatra :**
 - Collecte les documents automatiquement (du pro et/ou du client via SMS)
 - Lit et comprend chaque document par OCR + IA
 - Verifie la conformite en temps reel (38 regles + 21 croisements)
@@ -177,7 +177,7 @@ AutoDoc Pro est un **assistant administratif post-vente invisible** pour les pro
 - Estime les taxes d'immatriculation
 - Livre un dossier pret a soumettre (SaaS) ou soumet directement (Full Service)
 
-**Ce que ne fait pas AutoDoc Pro :**
+**Ce que ne fait pas Imatra :**
 - Il ne se substitue pas au professionnel habilite (le pro reste responsable)
 - Il ne soumet pas au SIV sans validation explicite du pro
 - Il n'est pas un service de carte grise en ligne pour particuliers
@@ -185,18 +185,18 @@ AutoDoc Pro est un **assistant administratif post-vente invisible** pour les pro
 
 ### 4.2 Les trois profils professionnels
 
-AutoDoc Pro s'adapte a trois types de professionnels, chacun avec un parcours distinct :
+Imatra s'adapte a trois types de professionnels, chacun avec un parcours distinct :
 
 #### Profil 1 : Vendeur habilite SIV
 
 Le cas le plus simple. Le vendeur a sa propre habilitation SIV et soumet ses dossiers lui-meme.
 
 ```
-Vendeur → Cree le dossier dans AutoDoc Pro
+Vendeur → Cree le dossier dans Imatra
        → Depose les docs vehicule (COC/CG barree, facture)
        → Envoie un lien SMS au client pour les docs personnels
        → Client uploade CNI, permis, domicile via le lien
-       → AutoDoc Pro verifie tout en temps reel
+       → Imatra verifie tout en temps reel
        → Diagnostic VERT : dossier pret
        → Vendeur telecharge le Cerfa pre-rempli + dossier complet
        → Vendeur soumet dans son SIV
@@ -209,7 +209,7 @@ Vendeur → Cree le dossier dans AutoDoc Pro
 Le vendeur n'a pas d'habilitation SIV. Il travaille avec un agent habilite qui soumet pour lui.
 
 ```
-Vendeur → Cree le dossier dans AutoDoc Pro
+Vendeur → Cree le dossier dans Imatra
        → Depose les docs vehicule
        → Declenche une demande de mandat a son agent
        → Agent recoit la demande (auto ou manuel selon config)
@@ -224,12 +224,12 @@ Vendeur → Cree le dossier dans AutoDoc Pro
 
 #### Profil 3 : Agent habilite independant
 
-L'agent habilite utilise AutoDoc Pro pour ses propres clients ou pour les dossiers transmis par des vendeurs partenaires.
+L'agent habilite utilise Imatra pour ses propres clients ou pour les dossiers transmis par des vendeurs partenaires.
 
 ```
 Agent → Cree le dossier OU recoit un dossier d'un vendeur partenaire
      → Depose docs vehicule + client (ou delegue au client via SMS)
-     → AutoDoc Pro verifie tout
+     → Imatra verifie tout
      → Diagnostic VERT : agent telecharge le dossier
      → Agent soumet dans son SIV
 ```
@@ -238,13 +238,13 @@ Agent → Cree le dossier OU recoit un dossier d'un vendeur partenaire
 
 ### 4.3 La double voie de collecte
 
-AutoDoc Pro offre deux modes de collecte complementaires que le pro utilise selon la situation :
+Imatra offre deux modes de collecte complementaires que le pro utilise selon la situation :
 
 **Voie 1 — Pro-initiee (flux classique)**
 Le pro cree le dossier, depose les documents qu'il a, puis envoie un lien SMS au client pour les documents manquants.
 
 **Voie 2 — Client-initiee (URL permanente)**
-Chaque pro dispose d'une URL permanente (`autodocpro.fr/nom-commerce`) qu'il peut afficher sur son site, ses reseaux sociaux, sa vitrine ou ses emails. Le client accede a cette URL, entre ses informations et depose ses documents. Le dossier apparait dans l'espace pro avec le statut "Nouveau — initie par le client".
+Chaque pro dispose d'une URL permanente (`imatra.fr/nom-commerce`) qu'il peut afficher sur son site, ses reseaux sociaux, sa vitrine ou ses emails. Le client accede a cette URL, entre ses informations et depose ses documents. Le dossier apparait dans l'espace pro avec le statut "Nouveau — initie par le client".
 
 Les deux voies coexistent. Le pro choisit selon la situation. L'URL permanente genere egalement un benefice SEO : chaque page pro est indexable avec le nom du commerce, la ville et le mot-cle "carte grise".
 
@@ -343,7 +343,7 @@ Le pro voit la **liste detaillee des blocages et avertissements**, pas un score 
 | **IA fallback** | Anthropic Claude | Classification et extraction complexe |
 | **Paiement** | Stripe | Pre-autorisation, debit, SEPA |
 | **SMS** | Twilio | Liens securises, OTP, relances |
-| **Email** | SMTP (noreply@autodocpro.fr) | Notifications, relances, factures |
+| **Email** | SMTP (noreply@imatra.fr) | Notifications, relances, factures |
 | **Authentification** | JWT (HS256, 60 min) | Tokens d'acces pro |
 | **Rate limiting** | Middleware custom | 60 requetes/minute par IP |
 | **CI/CD** | GitHub Actions | Tests, build, deploiement |
@@ -353,7 +353,7 @@ Le pro voit la **liste detaillee des blocages et avertissements**, pas un score 
 
 #### Table `professionnel`
 
-Le professionnel est le client B2B d'AutoDoc Pro. Le modele supporte les 3 profils :
+Le professionnel est le client B2B d'Imatra. Le modele supporte les 3 profils :
 
 | Champ | Type | Description |
 |-------|------|-------------|
@@ -364,7 +364,7 @@ Le professionnel est le client B2B d'AutoDoc Pro. Le modele supporte les 3 profi
 | `habilite_siv` | bool | Habilitation SIV active |
 | `numero_habilitation` | string | Numero d'habilitation SIV |
 | `nom_commerce` | string | Nom commercial (affiche) |
-| `slug` | string | URL permanente (autodocpro.fr/slug) |
+| `slug` | string | URL permanente (imatra.fr/slug) |
 | `cachet_path` / `signature_path` | string | Cachet et signature numerises |
 | `service_mode` | enum | FULL_SERVICE / SAAS |
 | `mode_facturation` | enum | UNITAIRE / ABONNEMENT |
@@ -704,7 +704,7 @@ Le tarif regional par CV varie selon le departement (43 EUR/CV par defaut). L'es
 
 ### 7.4 Mode batch
 
-Pour les professionnels a volume (concessionnaires), AutoDoc Pro offre un mode batch :
+Pour les professionnels a volume (concessionnaires), Imatra offre un mode batch :
 
 - **Creation en lot** — Jusqu'a 50 dossiers en un seul appel
 - **Traitement parallele** — Phase 0 + Phase 1 executees simultanement sur tous les dossiers
@@ -732,7 +732,7 @@ Quand un dossier est ROUGE ou en attente client, le systeme gere les relances :
 
 ```
 1. CONNEXION
-   Le pro se connecte a son dashboard AutoDoc Pro
+   Le pro se connecte a son dashboard Imatra
 
 2. CREATION DOSSIER
    → Nouveau dossier (VN ou VO, detection auto)
@@ -765,7 +765,7 @@ Quand un dossier est ROUGE ou en attente client, le systeme gere les relances :
    → Cachet et signature du pro apposes automatiquement
    → PDF pret a telecharger
 
-7. SOUMISSION (SaaS : le pro soumet lui-meme / Full Service : AutoDoc soumet)
+7. SOUMISSION (SaaS : le pro soumet lui-meme / Full Service : Imatra soumet)
 ```
 
 ### 8.2 Parcours client via SMS
@@ -798,7 +798,7 @@ Quand un dossier est ROUGE ou en attente client, le systeme gere les relances :
 
 ```
 1. ACCES URL
-   → Le client accede a autodocpro.fr/nom-commerce
+   → Le client accede a imatra.fr/nom-commerce
    → Page publique avec informations du commerce
 
 2. FORMULAIRE
@@ -889,9 +889,9 @@ Le pro n'a **rien a remplir manuellement**. Le Cerfa sort pret a imprimer et sig
 
 ## 10. Conformite reglementaire et RGPD
 
-### 10.1 Cadre juridique d'AutoDoc Pro
+### 10.1 Cadre juridique d'Imatra
 
-AutoDoc Pro est un **prestataire technique** au service du professionnel habilite SIV. Il ne se substitue pas au professionnel et ne porte pas la responsabilite des dossiers soumis. Le professionnel reste le seul responsable legal de chaque soumission au SIV.
+Imatra est un **prestataire technique** au service du professionnel habilite SIV. Il ne se substitue pas au professionnel et ne porte pas la responsabilite des dossiers soumis. Le professionnel reste le seul responsable legal de chaque soumission au SIV.
 
 Ce positionnement est conforme a la convention d'habilitation SIV qui autorise le recours a des outils techniques pour la preparation des dossiers, tant que le professionnel habilite conserve la maitrise et la responsabilite de la verification et de la soumission.
 
@@ -946,7 +946,7 @@ Le moteur RGPD supprime automatiquement apres generation du Cerfa :
 
 ### 10.4 Conditions Generales de Vente
 
-Les CGV d'AutoDoc Pro incluent :
+Les CGV d'Imatra incluent :
 - 14 articles couvrant l'ensemble du service
 - Clause `cgv_acceptees` obligatoire avant toute utilisation
 - **Clause anti-concurrence** : les plateformes en ligne de carte grise sont exclues du service
@@ -966,7 +966,7 @@ Les CGV d'AutoDoc Pro incluent :
 | Phase 0 + Phase 1 (OCR, diagnostic) | **Absorbe** par la plateforme |
 | Essai | **5 dossiers sans avance de frais** |
 
-Le tarif est **fixe et independant du prix facture par le pro a son client**. AutoDoc Pro ne prend pas de commission sur le service du professionnel.
+Le tarif est **fixe et independant du prix facture par le pro a son client**. Imatra ne prend pas de commission sur le service du professionnel.
 
 ### 11.2 Flux de paiement
 
@@ -999,10 +999,10 @@ Le systeme distingue clairement deux flux financiers :
 
 | Flux | Quoi | A qui | Comment |
 |------|------|-------|---------|
-| **Honoraires** | Remuneration AutoDoc Pro | A AutoDoc Pro | Stripe (pre-auth → debit sur CPI) |
+| **Honoraires** | Remuneration Imatra | A Imatra | Stripe (pre-auth → debit sur CPI) |
 | **Taxes SIV** | Taxes d'immatriculation (Y1+Y3+Y4+Y5+Y6) | A l'Etat | Payees par le pro dans le SIV |
 
-AutoDoc Pro ne collecte pas les taxes pour le compte de l'Etat. Le pro les paie directement dans le formulaire SIV.
+Imatra ne collecte pas les taxes pour le compte de l'Etat. Le pro les paie directement dans le formulaire SIV.
 
 ### 11.6 Projections financieres
 
@@ -1030,13 +1030,13 @@ La marge brute elevee s'explique par :
 | **AutoCerfa / Centre SIV** | Logiciel SIV | Pre-remplissage depuis saisie manuelle + soumission SIV | Pas d'OCR, pas de verification automatique, pas de collecte client |
 | **Plateformes en ligne** (Eplaque, Cartegrise.com, etc.) | B2C | Service complet pour particuliers | Ne s'adressent pas aux pros en B2B |
 | **DMS (logiciels garage)** | ERP garage | Gestion vehicules, factures, atelier | Pas de traitement CG avance |
-| **AutoDoc Pro** | **SaaS B2B** | **OCR + IA + 200 controles + collecte client SMS + Cerfa auto** | Ne soumet pas au SIV (en mode SaaS) |
+| **Imatra** | **SaaS B2B** | **OCR + IA + 200 controles + collecte client SMS + Cerfa auto** | Ne soumet pas au SIV (en mode SaaS) |
 
 ### 12.2 Avantage differentiel
 
-AutoDoc Pro se positionne comme **complementaire** aux logiciels SIV existants, pas concurrent :
+Imatra se positionne comme **complementaire** aux logiciels SIV existants, pas concurrent :
 
-| Critere | Logiciel SIV classique | AutoDoc Pro |
+| Critere | Logiciel SIV classique | Imatra |
 |---------|----------------------|-------------|
 | Saisie des donnees | Manuelle (le pro tape tout) | Automatique (OCR + extraction) |
 | Verification conformite | Aucune (verification humaine) | 38 regles + 21 croisements temps reel |
@@ -1047,7 +1047,7 @@ AutoDoc Pro se positionne comme **complementaire** aux logiciels SIV existants, 
 
 ### 12.3 Chiffres comparatifs
 
-| Metrique | Methode actuelle | Avec AutoDoc Pro |
+| Metrique | Methode actuelle | Avec Imatra |
 |----------|-----------------|------------------|
 | Temps par dossier | 30-45 min | < 5 min |
 | Taux de rejet SIV | 15-25% | < 2% (objectif) |
@@ -1070,7 +1070,7 @@ AutoDoc Pro se positionne comme **complementaire** aux logiciels SIV existants, 
 
 ### 13.2 Filtre NAF (legitimite commerciale)
 
-Avant toute inscription, AutoDoc Pro verifie le code NAF de l'entreprise via l'API Recherche Entreprises (gratuite, sans cle) :
+Avant toute inscription, Imatra verifie le code NAF de l'entreprise via l'API Recherche Entreprises (gratuite, sans cle) :
 
 **Codes autorises** (15 activites automobiles legitimes) :
 - 45.11Z (vente automobiles), 45.20A/B (reparation), 45.31Z/32Z (pieces auto)
@@ -1250,7 +1250,7 @@ Un rapport de surveillance mensuel recense les anomalies de volume.
 
 ---
 
-*AutoDoc Pro — Automatiser l'administratif pour que les professionnels de l'automobile se concentrent sur leur metier.*
+*Imatra — Automatiser l'administratif pour que les professionnels de l'automobile se concentrent sur leur metier.*
 
 *Version 3.0 — Avril 2026*
 *Document confidentiel — Ne pas diffuser sans autorisation.*

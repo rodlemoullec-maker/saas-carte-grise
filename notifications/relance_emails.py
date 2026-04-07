@@ -5,7 +5,7 @@ Lit les blocages d'un dossier (codes V-XX) et produit un texte d'email
 prêt à coller dans le client email habituel de l'agent (Gmail, Outlook,
 Thunderbird).
 
-L'agent ne fait que copier-coller — l'éditeur AutoDoc Pro n'envoie aucun
+L'agent ne fait que copier-coller — l'éditeur Imatra n'envoie aucun
 email, ne stocke aucun email, et n'a accès à aucun email transmis. Le pro
 conserve la maîtrise totale de la communication avec son client.
 

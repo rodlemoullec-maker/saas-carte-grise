@@ -1,4 +1,4 @@
-# Audit complet — AutoDoc Pro — 4 avril 2026
+# Audit complet — Imatra — 4 avril 2026
 
 ## 1. SERVICES EXTERNES — État, coûts, limites
 
@@ -268,7 +268,7 @@ AWS_S3_BUCKET=
 | # | Tâche | Effort | Bloquant |
 |---|---|---|---|
 | 1 | Formspree — remplacer VOTRE_ID | 5 min | Formulaire ne marche pas |
-| 2 | Domaine — connecter autodocpro.fr sur Hostinger | 30 min | URL pas pro |
+| 2 | Domaine — connecter imatra.fr sur Hostinger | 30 min | URL pas pro |
 | 3 | SSL — activer HTTPS | 5 min | Sécurité navigateur |
 | 4 | Twilio — intégrer envoi SMS réel | 2h | Client ne reçoit pas le lien |
 | 5 | Cerfa PDF — générer vrai PDF avec pdfrw | 1-2 jours | Pro ne peut pas télécharger le Cerfa |

@@ -1,5 +1,5 @@
 """
-Router dossiers — version locale d'AutoDoc Pro.
+Router dossiers — version locale d'Imatra.
 
 POST   /dossiers/                       Créer un dossier (saisie agent)
 GET    /dossiers/                       Lister les dossiers de l'agent
@@ -211,7 +211,7 @@ async def get_relance_email(dossier_id: str, db: AsyncSession = Depends(get_db))
 
     L'agent reçoit un sujet + un corps prêt à coller dans son client email
     habituel (Gmail, Outlook, Thunderbird). Aucun email n'est envoyé par
-    AutoDoc Pro — l'éditeur n'a accès à aucune communication.
+    Imatra — l'éditeur n'a accès à aucune communication.
 
     Si le dossier est en VERT (complet), retourne un email "Cerfa prêt".
     Sinon, retourne un email de relance personnalisé avec la liste des

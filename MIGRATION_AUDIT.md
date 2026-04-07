@@ -164,7 +164,7 @@ Branche de migration : `local/main`
 - `OCR_PROVIDER=paddle` (par défaut)
 - `STORAGE_PATH=./data/documents` (stockage local)
 - `STORAGE_ENCRYPTION_KEY=<auto-généré au premier démarrage>`
-- `LICENSE_SERVER_URL=https://licenses.autodocpro.fr` (votre serveur de licences)
+- `LICENSE_SERVER_URL=https://licenses.imatra.fr` (votre serveur de licences)
 
 ## Prochaines étapes
 

@@ -1,5 +1,5 @@
 """
-Stockage local chiffré des documents — version locale d'AutoDoc Pro.
+Stockage local chiffré des documents — version locale d'Imatra.
 
 Tous les documents sont stockés sur le disque local de l'agent, chiffrés
 avec une clé symétrique générée à l'installation. La clé est conservée

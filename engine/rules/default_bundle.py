@@ -12,7 +12,7 @@ puissance fiscale par région, etc.), il :
 1. Modifie les valeurs ci-dessous
 2. Incrémente la version
 3. Génère un bundle JSON signé via scripts/sign_rules_bundle.py
-4. Le dépose sur licenses.autodocpro.fr/rules/latest
+4. Le dépose sur licenses.imatra.fr/rules/latest
 
 Les agents installés téléchargent automatiquement la nouvelle version
 à leur prochaine vérification (par défaut une fois par jour).

@@ -3,147 +3,180 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Politique de confidentialité — AutoDoc Pro</title>
+    <title>Politique de confidentialité — Imatra</title>
+    <meta name="description" content="Politique de confidentialité d'Imatra. Aucun traitement de données client par l'éditeur — tout reste en local.">
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="assets/css/style.css?v=6">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        .legal { max-width: 760px; margin: 0 auto; padding: 120px 24px 80px; }
-        .legal h1 { font-size: 1.8rem; font-weight: 800; color: var(--navy); margin-bottom: 8px; letter-spacing: -0.03em; }
-        .legal .legal-update { font-size: 0.75rem; color: var(--slate-400); margin-bottom: 40px; }
-        .legal h2 { font-size: 1.1rem; font-weight: 700; color: var(--navy); margin: 32px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--slate-200); }
-        .legal p { font-size: 0.85rem; color: var(--navy-600); line-height: 1.7; margin-bottom: 8px; }
-        .legal ul { margin: 8px 0 12px 20px; }
-        .legal ul li { font-size: 0.85rem; color: var(--navy-600); line-height: 1.7; margin-bottom: 4px; list-style: disc; }
-        .legal table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 0.82rem; }
-        .legal table th, .legal table td { padding: 10px 14px; text-align: left; border: 1px solid var(--slate-200); }
-        .legal table th { background: var(--slate-50); color: var(--navy); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; }
-        .legal table td { color: var(--navy-600); }
-        .legal a { color: var(--primary); }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter','sans-serif'], display: ['Outfit','sans-serif'] }, colors: { navy: { 50: '#f1f5f9', 700: '#1e293b', 800: '#0f172a', 900: '#020617' } } } } }
+    </script>
+    <style>body{font-family:Inter,sans-serif}h1,h2,h3{font-family:Outfit,sans-serif}</style>
 </head>
-<body>
+<body class="bg-slate-50 text-slate-800 antialiased">
 
-<header class="header">
-    <nav class="nav">
-        <a href="index.html" class="logo">
-            <span class="logo-mark"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></span>
-            AutoDoc Pro
-        </a>
-        <ul class="nav-links">
-            <li><a href="index.html">Vendeur habilité</a></li>
-            <li><a href="vendeur.html">Vendeur non habilité</a></li>
-            <li><a href="agent.html">Agent SIV</a></li>
-            <li><a href="comment-ca-marche.html">Comment ça marche</a></li>
-            <li><a href="index.html#tarifs">Tarifs</a></li>
-            <li><a href="index.html#faq">FAQ</a></li>
-            <li><a href="index.html#contact" class="btn btn-cta btn-nav">Essai sans engagement</a></li>
-        </ul>
-        <button class="menu-toggle" aria-label="Menu"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="7" x2="21" y2="7"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="17" x2="21" y2="17"/></svg></button>
-    </nav>
+<header class="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-slate-200">
+  <nav class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+    <a href="index.html" class="flex items-center gap-2.5">
+      <span class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-emerald-500 flex items-center justify-center text-white font-bold">⚡</span>
+      <span class="font-display font-extrabold text-navy-800 text-lg">Imatra</span>
+    </a>
+    <div class="hidden md:flex items-center gap-1">
+      <a href="comment-ca-marche.html" class="px-3 py-2 text-sm font-medium text-slate-600 hover:text-navy-800 rounded-lg">Comment ça marche</a>
+      <a href="securite.html" class="px-3 py-2 text-sm font-medium text-slate-600 hover:text-navy-800 rounded-lg">Sécurité</a>
+      <a href="tarifs.html" class="px-3 py-2 text-sm font-medium text-slate-600 hover:text-navy-800 rounded-lg">Tarifs</a>
+      <a href="telecharger.html" class="ml-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg">Télécharger</a>
+    </div>
+  </nav>
 </header>
 
-<div class="legal">
-    <h1>Politique de confidentialité</h1>
-    <p class="legal-update">Dernière mise à jour : 4 avril 2026</p>
+<main class="max-w-3xl mx-auto px-6 py-16">
 
-    <h2>1. Responsable du traitement</h2>
-    <p><strong>AutoDoc Pro</strong> — coordonnées complètes dans les <a href="mentions-legales.html">mentions légales</a>.</p>
-    <p>Contact délégué à la protection des données : <a href="mailto:rgpd@cartegrisepro.fr">rgpd@cartegrisepro.fr</a></p>
+  <h1 class="font-display font-extrabold text-3xl text-navy-800 mb-3">Politique de confidentialité</h1>
+  <p class="text-sm text-slate-500 mb-10">Dernière mise à jour : 1<sup>er</sup> avril 2026</p>
 
-    <h2>2. Données collectées</h2>
-    <p>Dans le cadre de la constitution de dossiers de carte grise, nous collectons :</p>
-    <ul>
-        <li><strong>Pièces d'identité</strong> (CNI, passeport) : nom, prénom, date de naissance, lieu de naissance, numéro de document, date d'expiration</li>
-        <li><strong>Permis de conduire</strong> : catégories, dates d'obtention, date d'expiration</li>
-        <li><strong>Justificatif de domicile</strong> : nom du titulaire, adresse, code postal, ville, date du document</li>
-        <li><strong>Documents véhicule</strong> (COC, carte grise, facture, cession) : VIN, immatriculation, marque, modèle, puissance, catégorie</li>
-        <li><strong>Coordonnées</strong> : téléphone, email</li>
-        <li><strong>Choix CPI</strong> : mode de réception (main propre ou email) et adresse email le cas échéant</li>
-        <li><strong>Données d'inscription professionnelle</strong> : SIRET, raison sociale, nom commerce, cachet, signature, Kbis</li>
+  <!-- Résumé en haut -->
+  <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-6 mb-10">
+    <h2 class="font-display font-bold text-lg text-emerald-900 mb-2">📌 Résumé en une phrase</h2>
+    <p class="text-emerald-900 text-sm leading-relaxed">
+      Imatra est un logiciel installé localement chez l'agent. <strong>L'éditeur ne traite
+      aucune donnée client</strong> — toutes les données restent sur la machine du Licencié et
+      ne sont jamais transmises à Imatra ni à un quelconque tiers. Cette politique décrit néanmoins
+      les rares données collectées par le site web public et le serveur de licences.
+    </p>
+  </div>
+
+  <section class="mb-8">
+    <h2 class="font-display font-bold text-xl text-navy-800 mb-3">1. Le logiciel Imatra (installé chez vous)</h2>
+    <p class="text-slate-700 leading-relaxed mb-2">
+      Le logiciel Imatra que vous installez sur votre ordinateur s'exécute <strong>entièrement
+      en local</strong>. Tous les documents que vous traitez (CNI, permis, COC, factures, cartes
+      grises, etc.), tous les dossiers, toutes les bases de données, restent sur votre machine.
+    </p>
+    <p class="text-slate-700 leading-relaxed mb-2">
+      Imatra <strong>n'a aucun accès</strong> à ces données. Nous ne sommes pas hébergeur de vos
+      données. Nous ne sommes pas sous-traitant RGPD au sens de l'article 28 du règlement.
+    </p>
+    <p class="text-slate-700 leading-relaxed">
+      Vous restez <strong>seul responsable de traitement</strong> des données de vos clients,
+      comme avec n'importe quel logiciel professionnel installé localement (Sage, Cegid, EBP,
+      etc.).
+    </p>
+  </section>
+
+  <section class="mb-8">
+    <h2 class="font-display font-bold text-xl text-navy-800 mb-3">2. Sécurité des données locales</h2>
+    <p class="text-slate-700 leading-relaxed mb-2">
+      Le logiciel Imatra implémente plusieurs mesures de sécurité par défaut sur votre machine :
+    </p>
+    <ul class="list-disc list-inside text-slate-700 ml-4 space-y-1">
+      <li>Chiffrement Fernet AES-128 + HMAC SHA-256 de tous les documents stockés</li>
+      <li>Clé de chiffrement générée aléatoirement à l'installation, conservée localement avec permissions restreintes</li>
+      <li>Suppression automatique des données client sensibles après génération du Cerfa (cleanup RGPD intégré)</li>
+      <li>Conservation pour archivage légal limitée au strict nécessaire (nom titulaire + référence dossier, 5 ans)</li>
     </ul>
+  </section>
 
-    <h2>3. Finalités et bases légales</h2>
-    <table>
-        <tr><th>Données</th><th>Finalité</th><th>Base légale</th></tr>
-        <tr><td>Documents client final</td><td>Constitution du dossier d'immatriculation</td><td>Consentement (art. 6.1.a RGPD)</td></tr>
-        <tr><td>Documents client public (URL permanente)</td><td>Pré-dépôt de documents en vue d'une carte grise</td><td>Consentement (art. 6.1.a RGPD)</td></tr>
-        <tr><td>Données professionnel</td><td>Exécution du contrat de service</td><td>Exécution contractuelle (art. 6.1.b RGPD)</td></tr>
-        <tr><td>Données de facturation</td><td>Obligations comptables et fiscales</td><td>Obligation légale (art. 6.1.c RGPD)</td></tr>
-        <tr><td>Choix CPI (email)</td><td>Transmission du CPI selon le mode choisi</td><td>Consentement (art. 6.1.a RGPD)</td></tr>
-        <tr><td>Volume mensuel par professionnel</td><td>Prévention des abus et respect des CGV</td><td>Intérêt légitime (art. 6.1.f RGPD)</td></tr>
-    </table>
+  <section class="mb-8">
+    <h2 class="font-display font-bold text-xl text-navy-800 mb-3">3. Le site web imatra.fr</h2>
+    <p class="text-slate-700 leading-relaxed mb-2">
+      Le site public <a href="https://imatra.fr" class="text-blue-600">imatra.fr</a> est un site
+      vitrine statique. Il n'utilise <strong>aucun cookie de tracking</strong>, aucun service
+      d'analytique, aucun outil publicitaire.
+    </p>
+    <p class="text-slate-700 leading-relaxed">
+      Si vous nous écrivez à <a href="mailto:contact@imatra.fr" class="text-blue-600">contact@imatra.fr</a>,
+      nous traitons votre email pour répondre à votre demande puis nous le supprimons quand
+      l'échange est clos.
+    </p>
+  </section>
 
-    <h2>4. Sous-traitants et transferts de données</h2>
-    <p>Le traitement des documents fait appel aux sous-traitants suivants :</p>
-    <table>
-        <tr><th>Sous-traitant</th><th>Rôle</th><th>Pays</th><th>Rétention</th></tr>
-        <tr>
-            <td><strong>Google LLC</strong><br>Google Document AI</td>
-            <td>Lecture optique des documents (OCR) — conversion image/PDF en texte</td>
-            <td>États-Unis</td>
-            <td>Aucune — traitement en temps réel</td>
-        </tr>
-        <tr>
-            <td><strong>Anthropic PBC</strong><br>Claude (API)</td>
-            <td>Extraction et structuration des informations, classification, vérification de cohérence</td>
-            <td>États-Unis</td>
-            <td>Aucune — Anthropic ne conserve pas les données API et ne les utilise pas pour l'entraînement</td>
-        </tr>
-        <tr>
-            <td><strong>Neon Inc.</strong><br>PostgreSQL hébergé</td>
-            <td>Stockage temporaire des dossiers en cours</td>
-            <td>Union Européenne (Francfort)</td>
-            <td>Documents client supprimés à la finalisation — référence dossier et nom titulaire conservés 5 ans</td>
-        </tr>
-    </table>
-    <p>Les transferts vers les États-Unis (Google, Anthropic) sont encadrés par des <strong>clauses contractuelles types (CCT)</strong> conformément à l'article 46 du RGPD. Aucune donnée n'est conservée aux États-Unis au-delà du traitement immédiat.</p>
-
-    <h2>5. Durée de conservation</h2>
-    <table>
-        <tr><th>Données</th><th>Durée</th><th>Justification</th></tr>
-        <tr><td>Documents d'identité du client (fichiers)</td><td>Supprimés à la finalisation du dossier</td><td>Minimisation (art. 5.1.c RGPD)</td></tr>
-        <tr><td>Prénom, téléphone, email du client</td><td>Supprimés à la finalisation du dossier</td><td>Minimisation (art. 5.1.c RGPD)</td></tr>
-        <tr><td>Nom du titulaire + référence dossier</td><td>5 ans</td><td>Archivage professionnel (art. R.350-3 du Code de la route)</td></tr>
-        <tr><td>Données de facturation</td><td>10 ans</td><td>Obligation comptable (art. L.123-22 du Code de commerce)</td></tr>
-    </table>
-
-    <h2>6. Vos droits</h2>
-    <p>Conformément au RGPD, vous disposez des droits suivants :</p>
-    <ul>
-        <li><strong>Droit d'accès</strong> — obtenir une copie de vos données</li>
-        <li><strong>Droit de rectification</strong> — corriger des données inexactes</li>
-        <li><strong>Droit à l'effacement</strong> — demander la suppression de vos données</li>
-        <li><strong>Droit à la portabilité</strong> — recevoir vos données dans un format structuré</li>
-        <li><strong>Droit d'opposition</strong> — vous opposer au traitement</li>
-        <li><strong>Droit de retrait du consentement</strong> — retirer votre consentement à tout moment</li>
+  <section class="mb-8">
+    <h2 class="font-display font-bold text-xl text-navy-800 mb-3">4. Le serveur de licences</h2>
+    <p class="text-slate-700 leading-relaxed mb-2">
+      Pour valider votre licence d'utilisation, votre logiciel local contacte une fois par jour
+      <code class="bg-slate-100 px-1 rounded text-xs">licenses.imatra.fr</code>.
+    </p>
+    <p class="text-slate-700 leading-relaxed mb-2">
+      Les seules données transmises sont :
+    </p>
+    <ul class="list-disc list-inside text-slate-700 ml-4 mb-3 space-y-1">
+      <li>L'identifiant unique de votre licence (UUID)</li>
+      <li>L'adresse IP publique de votre ordinateur (transmise par votre navigateur réseau, comme pour toute requête HTTP)</li>
     </ul>
-    <p>Pour exercer vos droits : <a href="mailto:rgpd@cartegrisepro.fr">rgpd@cartegrisepro.fr</a></p>
-    <p>Vous pouvez également introduire une réclamation auprès de la <strong>CNIL</strong> : <a href="https://www.cnil.fr">www.cnil.fr</a></p>
+    <p class="text-slate-700 leading-relaxed">
+      <strong>Aucune donnée de vos clients</strong>, aucun document, aucune information sur les
+      dossiers traités n'est transmise. Le serveur répond uniquement par "valide" ou "révoquée".
+      Vous pouvez utiliser Imatra hors-ligne 30 jours sans aucune connexion à ce serveur.
+    </p>
+  </section>
 
-    <h2>7. Recueil du consentement</h2>
-    <p>Le consentement du client final est recueilli avant tout traitement de ses documents, via une case à cocher dans le parcours en ligne. Le consentement est horodaté et conservé tant que le dossier est actif.</p>
-    <p>Le client peut modifier ou supprimer ses documents à tout moment tant qu'il n'a pas confirmé l'envoi.</p>
+  <section class="mb-8">
+    <h2 class="font-display font-bold text-xl text-navy-800 mb-3">5. Le serveur de mises à jour des règles</h2>
+    <p class="text-slate-700 leading-relaxed">
+      Une fois par jour, votre logiciel vérifie également si une nouvelle version des règles
+      V-XX/C-XX est disponible (évolutions réglementaires SIV, nouveaux tarifs régionaux, nouveaux
+      barèmes malus CO2). Cette vérification est une simple requête HTTP GET anonyme. Aucune
+      donnée client n'est transmise.
+    </p>
+  </section>
 
-    <h2>8. URL permanente et dossiers client-initiés</h2>
-    <p>Chaque professionnel dispose d'une URL publique personnalisée (ex : autodocpro.fr/votre-commerce). Les clients peuvent déposer leurs documents via cette URL de manière autonome. Les données sont traitées dans les mêmes conditions que les dossiers initiés par le professionnel.</p>
+  <section class="mb-8">
+    <h2 class="font-display font-bold text-xl text-navy-800 mb-3">6. Données de facturation</h2>
+    <p class="text-slate-700 leading-relaxed">
+      Lors de l'achat d'une licence annuelle, nous collectons les informations nécessaires à la
+      facturation : raison sociale, adresse, email, et SIRET. Ces données sont conservées 10 ans
+      conformément à l'obligation comptable (Code de commerce L.123-22) puis supprimées.
+    </p>
+  </section>
 
-    <h2>9. Sécurité</h2>
-    <p>Nous mettons en œuvre des mesures techniques et organisationnelles appropriées : chiffrement en transit (HTTPS/TLS), stockage sécurisé en Union Européenne, accès restreint aux données, suppression automatique des documents client après finalisation.</p>
-</div>
+  <section class="mb-8">
+    <h2 class="font-display font-bold text-xl text-navy-800 mb-3">7. Vos droits</h2>
+    <p class="text-slate-700 leading-relaxed mb-2">
+      Pour les seules données vous concernant que nous traitons (email de contact, données de
+      facturation), vous disposez des droits RGPD suivants :
+    </p>
+    <ul class="list-disc list-inside text-slate-700 ml-4 mb-3 space-y-1">
+      <li>Droit d'accès à vos données</li>
+      <li>Droit de rectification</li>
+      <li>Droit à l'effacement</li>
+      <li>Droit à la limitation du traitement</li>
+      <li>Droit à la portabilité</li>
+      <li>Droit d'opposition</li>
+    </ul>
+    <p class="text-slate-700 leading-relaxed">
+      Pour exercer ces droits : <a href="mailto:contact@imatra.fr" class="text-blue-600">contact@imatra.fr</a>.
+      Nous répondons sous 30 jours maximum. En cas de désaccord, vous pouvez introduire une
+      réclamation auprès de la CNIL (<a href="https://www.cnil.fr" target="_blank" rel="noopener" class="text-blue-600">cnil.fr</a>).
+    </p>
+  </section>
 
-<footer class="footer">
-    <div class="container">
-        <div class="footer-bottom">
-            <p>&copy; 2026 AutoDoc Pro. Tous droits réservés. <a href="index.html" style="color: var(--slate-400);">Retour à l'accueil</a></p>
-        </div>
-    </div>
+  <section class="mb-8">
+    <h2 class="font-display font-bold text-xl text-navy-800 mb-3">8. Données de vos clients</h2>
+    <p class="text-slate-700 leading-relaxed">
+      <strong>Important :</strong> les données des clients de l'agent (les particuliers ou
+      personnes morales pour lesquels vous effectuez des cartes grises) ne sont jamais traitées
+      par Imatra. Elles restent sur votre machine, sous votre responsabilité de traitement,
+      conformément au RGPD. C'est à vous de respecter les obligations RGPD vis-à-vis de vos
+      propres clients (information, consentement, durées de conservation, droit d'accès, etc.).
+    </p>
+  </section>
+
+  <section class="mb-8">
+    <h2 class="font-display font-bold text-xl text-navy-800 mb-3">9. Contact</h2>
+    <p class="text-slate-700 leading-relaxed">
+      Pour toute question relative à cette politique de confidentialité :<br>
+      <a href="mailto:rgpd@imatra.fr" class="text-blue-600">rgpd@imatra.fr</a>
+    </p>
+  </section>
+
+</main>
+
+<footer class="bg-slate-100 border-t border-slate-200 py-10 mt-16">
+  <div class="max-w-6xl mx-auto px-6 text-center text-sm text-slate-500">
+    <p>© 2026 Imatra · <a href="cgv.html" class="hover:text-blue-600">Conditions de licence</a> · <a href="confidentialite.html" class="hover:text-blue-600">Confidentialité</a> · <a href="mentions-legales.html" class="hover:text-blue-600">Mentions légales</a></p>
+  </div>
 </footer>
 
-<script>
-document.querySelector('.menu-toggle')?.addEventListener('click', function() { document.querySelector('.nav-links').classList.toggle('open'); });
-window.addEventListener('scroll', () => document.querySelector('.header').classList.toggle('scrolled', scrollY > 50));
-</script>
 </body>
 </html>

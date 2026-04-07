@@ -1,14 +1,14 @@
 """
-Système de licences AutoDoc Pro local.
+Système de licences Imatra local.
 
 Modèle de protection :
 - Une paire de clés Ed25519 (privée chez l'éditeur, publique embarquée
   dans le logiciel local)
 - Une licence = un payload JSON signé en Ed25519
 - L'agent achète une licence, reçoit un fichier .key par email
-- Il colle le contenu dans son interface AutoDoc Pro pour activer
+- Il colle le contenu dans son interface Imatra pour activer
 - Le logiciel vérifie la signature avec la clé publique embarquée
-- La licence est stockée localement (~/.autodoc-pro/license.key)
+- La licence est stockée localement (~/.imatra/license.key)
 
 Mode essai :
 - 30 jours sans clé requise au premier démarrage

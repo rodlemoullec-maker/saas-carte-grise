@@ -1,5 +1,5 @@
 """
-Modèle Agent — l'utilisateur unique du logiciel local AutoDoc Pro.
+Modèle Agent — l'utilisateur unique du logiciel local Imatra.
 
 L'agent habilité SIV est seul utilisateur de l'instance locale.
 Il est responsable de ses dossiers, de ses clients, et de la conformité.

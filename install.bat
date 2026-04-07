@@ -1,6 +1,6 @@
 @echo off
 REM ============================================================
-REM  AutoDoc Pro - Script d'installation Windows
+REM  Imatra - Script d'installation Windows
 REM
 REM  Usage : double-cliquez sur ce fichier
 REM  ou dans une invite de commandes : install.bat
@@ -10,7 +10,7 @@ setlocal enabledelayedexpansion
 
 echo.
 echo ================================================================
-echo   AutoDoc Pro - Installation
+echo   Imatra - Installation
 echo ================================================================
 echo.
 
@@ -88,7 +88,7 @@ docker compose up -d --build
 if errorlevel 1 (
     echo.
     echo ERREUR pendant le build ou le demarrage.
-    echo Verifiez les logs : docker compose logs autodocpro
+    echo Verifiez les logs : docker compose logs imatra
     echo.
     pause
     exit /b 1
@@ -96,7 +96,7 @@ if errorlevel 1 (
 
 echo.
 echo ================================================================
-echo   AutoDoc Pro est demarre
+echo   Imatra est demarre
 echo ================================================================
 echo.
 echo   Ouvrez votre navigateur web et allez a :
@@ -105,7 +105,7 @@ echo      http://localhost:8001
 echo.
 echo   Commandes utiles :
 echo.
-echo     docker compose logs -f autodocpro    : voir les logs
+echo     docker compose logs -f imatra    : voir les logs
 echo     docker compose stop                   : arreter
 echo     docker compose start                  : redemarrer
 echo     docker compose down                   : arreter et supprimer

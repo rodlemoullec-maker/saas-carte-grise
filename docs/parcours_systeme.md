@@ -83,7 +83,7 @@ Ces verifications s'appliquent uniquement quand le pro a demande l'attestation a
 
 > "C'est note ! L'attestation sera demandee a votre client. De notre cote, on verifiera que c'est bien une assurance auto et que le nom correspond au dossier. Pensez a verifier vous-meme que l'assurance couvre bien le vehicule avant de soumettre au SIV — c'est un point que vous maitrisez mieux que nous !"
 
-Le ton est bienveillant mais le message est clair : AutoDoc Pro fait les verifications de base (type de doc + nom), le pro garde la main sur la verification de couverture.
+Le ton est bienveillant mais le message est clair : Imatra fait les verifications de base (type de doc + nom), le pro garde la main sur la verification de couverture.
 
 ### Etape 1 : Creation du dossier (saisie ultra-minimale)
 Le vendeur cree un nouveau dossier dans son espace admin. Il ne saisit que **le numero de portable du client** — tout le reste est deduit automatiquement.
@@ -228,11 +228,11 @@ Une fois tous les docs pro lisibles et valides, un **recapitulatif** s'affiche d
 ### Etape 4 : Envoi du lien client (SMS personnalise)
 Une fois que le pro a valide le recapitulatif, le systeme envoie un **SMS personnalise** au client :
 
-> Bonjour Jean, **Moto Center Paris** a choisi **AutoDoc Pro** pour votre carte grise. Deposez **gratuitement** vos documents ici : https://... Infos & confidentialite : cartegrisepro.fr/confidentialite — Contact : Moto Center Paris au 01 23 45 67 89
+> Bonjour Jean, **Moto Center Paris** a choisi **Imatra** pour votre carte grise. Deposez **gratuitement** vos documents ici : https://... Infos & confidentialite : cartegrisepro.fr/confidentialite — Contact : Moto Center Paris au 01 23 45 67 89
 
 **~250 caracteres** (2 SMS max). Contient l'essentiel :
 - **Qui** : le commerce (Moto Center Paris)
-- **Via quoi** : notre service (AutoDoc Pro)
+- **Via quoi** : notre service (Imatra)
 - **Pourquoi** : carte grise
 - **Gratuit** : "deposez gratuitement"
 - **Lien securise** vers la page de depot
@@ -242,16 +242,16 @@ Une fois que le pro a valide le recapitulatif, le systeme envoie un **SMS person
 **Conformite RGPD — approche en deux niveaux :**
 
 **Niveau 1 — le SMS (information minimale) :**
-- Identite du responsable de traitement (AutoDoc Pro)
+- Identite du responsable de traitement (Imatra)
 - Finalite implicite (carte grise)
 - Lien vers la politique de confidentialite complete
 
 **Niveau 2 — la page d'upload (information complete) :**
 Quand le client ouvre le lien, la page doit afficher avant le premier upload :
-- Identite et coordonnees du responsable de traitement (AutoDoc Pro)
+- Identite et coordonnees du responsable de traitement (Imatra)
 - Finalite du traitement : demande d'immatriculation vehicule
 - Base legale : consentement (article 6.1.a RGPD)
-- Destinataires : le vendeur pro, le systeme AutoDoc Pro
+- Destinataires : le vendeur pro, le systeme Imatra
 - Duree de conservation : documents supprimes apres finalisation de la demarche
 - Droits du client : acces, rectification, suppression, portabilite, opposition
 - Contact DPO : adresse email dediee
@@ -288,14 +288,14 @@ La page affiche immediatement les infos du commerce pour que le client sache d'o
 - Nom du commerce (ex: "Moto Center Paris")
 - Adresse du commerce
 - Telephone du commerce
-- Mention "a choisi AutoDoc Pro pour votre demarche de carte grise"
+- Mention "a choisi Imatra pour votre demarche de carte grise"
 
 **2. Mentions RGPD (affichees avant toute action) :**
 Conformement a l'article 13 du RGPD, la page affiche :
-- **Responsable de traitement** : AutoDoc Pro
+- **Responsable de traitement** : Imatra
 - **Finalite** : traitement de la demande d'immatriculation vehicule (carte grise) initiee par le vendeur
 - **Base legale** : consentement (article 6.1.a RGPD)
-- **Destinataires** : le vendeur pro et AutoDoc Pro
+- **Destinataires** : le vendeur pro et Imatra
 - **Conservation** : documents supprimes automatiquement une fois le dossier finalise
 - **Droits** : acces, rectification, suppression, portabilite, opposition — contact : rgpd@cartegrisepro.fr
 - **Lien** vers la politique de confidentialite complete (cartegrisepro.fr/confidentialite)
@@ -303,7 +303,7 @@ Conformement a l'article 13 du RGPD, la page affiche :
 **3. Consentement obligatoire (case a cocher) :**
 Le client doit cocher avant de pouvoir deposer son premier document :
 
-> ☐ J'accepte que mes documents d'identite soient traites par AutoDoc Pro et transmis a [Moto Center Paris] dans le seul but de realiser ma demande de carte grise. J'ai pris connaissance de la politique de confidentialite.
+> ☐ J'accepte que mes documents d'identite soient traites par Imatra et transmis a [Moto Center Paris] dans le seul but de realiser ma demande de carte grise. J'ai pris connaissance de la politique de confidentialite.
 
 **Tant que le consentement n'est pas coche, l'upload est bloque** (le bouton de depot reste grise).
 
@@ -921,7 +921,7 @@ Pour les motos 125cc (categorie L5e) avec permis B + formation 7h :
 
 ## 8. Mentions Legales, CGU et Securite Juridique
 
-Le systeme integre des mentions legales a chaque niveau pour proteger AutoDoc Pro, le vendeur pro et le client.
+Le systeme integre des mentions legales a chaque niveau pour proteger Imatra, le vendeur pro et le client.
 
 ### 8.1 Mentions affichees au client (page upload)
 
@@ -929,8 +929,8 @@ Le systeme integre des mentions legales a chaque niveau pour proteger AutoDoc Pr
 |---|---|
 | **Authenticite** | "En deposant vos documents, vous certifiez qu'ils sont authentiques. La fourniture de faux documents est un delit (art. 441-1 Code penal)." |
 | **Exactitude** | "Vous certifiez que les informations sont exactes et a jour." |
-| **Role du service** | "AutoDoc Pro est un outil d'aide, pas un conseiller juridique ni un substitut de l'administration." |
-| **Responsabilite** | "La soumission est effectuee par [vendeur] sous sa responsabilite. AutoDoc Pro ne garantit pas l'acceptation par le SIV." |
+| **Role du service** | "Imatra est un outil d'aide, pas un conseiller juridique ni un substitut de l'administration." |
+| **Responsabilite** | "La soumission est effectuee par [vendeur] sous sa responsabilite. Imatra ne garantit pas l'acceptation par le SIV." |
 | **Conservation** | "Documents supprimes a la finalisation du dossier." |
 
 Ces mentions sont affichees sur la page d'upload **avant** le consentement RGPD.
@@ -943,14 +943,14 @@ Ces mentions sont affichees sur la page d'upload **avant** le consentement RGPD.
 | **Verification OCR** | "Les donnees extraites automatiquement peuvent contenir des erreurs. Verifiez avant soumission." |
 | **Estimation taxes** | "Montants indicatifs. Le montant definitif est determine par le SIV." |
 | **Conservation** | "Dossiers archives 5 ans conformement a la reglementation." |
-| **Limitation responsabilite** | "AutoDoc Pro ne garantit pas l'acceptation du dossier. Honoraires non remboursables si rejet du a des documents incorrects." |
+| **Limitation responsabilite** | "Imatra ne garantit pas l'acceptation du dossier. Honoraires non remboursables si rejet du a des documents incorrects." |
 
 Ces mentions sont affichees dans le **recapitulatif de validation** avant envoi du lien client.
 
 ### 8.3 CGU / CGV (accessibles via /api/mentions-legales)
 
 **Limitation de responsabilite :**
-- AutoDoc Pro = outil d'aide, pas mandataire, pas conseiller juridique
+- Imatra = outil d'aide, pas mandataire, pas conseiller juridique
 - Pas de garantie d'acceptation SIV
 - OCR approximatif — le pro doit verifier
 - Estimations taxes indicatives

@@ -1,8 +1,8 @@
-# Plan d'adaptation — AutoDoc Pro sur WordPress (Kadence)
+# Plan d'adaptation — Imatra sur WordPress (Kadence)
 
 ## Résumé
 
-Migrer le site commercial AutoDoc Pro (HTML statique) vers WordPress avec le thème Kadence et le starter template "SaaS & Digital Services". Le backend API et le frontend React restent hébergés séparément (Railway/Render).
+Migrer le site commercial Imatra (HTML statique) vers WordPress avec le thème Kadence et le starter template "SaaS & Digital Services". Le backend API et le frontend React restent hébergés séparément (Railway/Render).
 
 ---
 
@@ -123,7 +123,7 @@ Sous-titre : "Chaque document est lu, vérifié et croisé dès qu'il est dépos
 
 Bloc Kadence Table :
 
-| | À la main | Services existants | **AutoDoc Pro** |
+| | À la main | Services existants | **Imatra** |
 |---|---|---|---|
 | Vérification | Vous, à l'œil | Un humain, 12-24h | **Automatique, à la seconde** |
 | Erreur détectée | Au rejet SIV | Relance messagerie | **Au dépôt, immédiatement** |
@@ -132,7 +132,7 @@ Bloc Kadence Table :
 | Qui fixe le prix | Vous | Le service | **Vous** |
 | Coût | Votre temps | Commission | **12-14€ par dossier** |
 
-Colonne AutoDoc Pro : fond vert clair, texte gras.
+Colonne Imatra : fond vert clair, texte gras.
 
 ### 3.6 Mockup mobile client
 
@@ -141,7 +141,7 @@ Sous-titre : "Il reçoit un SMS, ouvre le lien, et dépose ses documents en 3 mi
 
 Bloc Custom HTML → coller le code du mockup iPhone (code dans site/index.html, lignes 247-278).
 
-Sous le mockup : "Le client ne voit jamais AutoDoc Pro — seulement le nom de votre commerce."
+Sous le mockup : "Le client ne voit jamais Imatra — seulement le nom de votre commerce."
 
 ### 3.7 Tarifs
 
@@ -171,10 +171,10 @@ Bloc Kadence Accordion (5 items) :
 1. **Je dois envoyer un lien au client ou je peux tout déposer moi-même ?**
    Les deux. Si vous avez tous les documents du client, déposez tout — le système vérifie immédiatement. S'il manque des pièces, envoyez un lien SMS au client : il dépose depuis son téléphone et vous êtes notifié quand c'est complet.
 
-2. **Le client voit-il AutoDoc Pro ?**
+2. **Le client voit-il Imatra ?**
    Non. Le client voit votre nom de commerce. Vous restez son unique interlocuteur.
 
-3. **Je ne suis pas habilité SIV — je peux utiliser AutoDoc Pro ?**
+3. **Je ne suis pas habilité SIV — je peux utiliser Imatra ?**
    Oui. Le système prépare votre dossier et vous le transmettez à votre agent habilité. [En savoir plus →](/vendeur)
 
 4. **Je suis agent habilité, pas vendeur — ça marche aussi ?**
@@ -225,7 +225,7 @@ Réassurance sous le bouton (3 textes en ligne) :
 |---|---|
 | Eyebrow | Pour les vendeurs auto et moto sans habilitation SIV |
 | H1 | Vous vendez, votre agent soumet. |
-| Paragraphe | Vous préparez le dossier avec AutoDoc Pro. Le système vérifie tout. Vous transmettez le dossier complet à votre agent habilité pour la soumission au SIV. Même qualité, pas d'habilitation nécessaire. |
+| Paragraphe | Vous préparez le dossier avec Imatra. Le système vérifie tout. Vous transmettez le dossier complet à votre agent habilité pour la soumission au SIV. Même qualité, pas d'habilitation nécessaire. |
 | Mockup hero | Mockup VN moto 125cc + formation 7h + double mandat (code dans site/index-old.html, lignes 296-331) |
 | Problème card 1 | **Vous n'êtes pas habilité SIV** — Vous ne pouvez pas soumettre au SIV vous-même |
 | Problème card 2 | **Votre agent fait le travail à l'aveugle** — Vous lui envoyez les docs par email, il revérifie tout |
@@ -234,7 +234,7 @@ Réassurance sous le bouton (3 textes en ligne) :
 | Solution card 2 | **Le client dépose par SMS** (icône smartphone) — puces : CNI recto+verso... / Permis... / Domicile... / Signature mandats... / Guidé étape par étape... |
 | Solution card 3 | **Le double mandat est géré** (icône file-signature) — puces : Mandat client→vendeur... / Mandat client→agent... / Pré-remplis... / Signés numériquement... / Rien à imprimer... |
 | Solution card 4 | **Vous transmettez le ZIP** (icône archive) — puces : Cerfa pré-rempli... / Mandats signés... / Documents vérifiés... / ZIP téléchargeable... / Agent n'a plus qu'à soumettre... |
-| Section ajoutée | **Le double mandat, simplifié** — La FAQ DSR prévoit qu'un vendeur non habilité mandaté par ses clients peut solliciter un professionnel habilité SIV. Deux mandats Cerfa 13757 : (1) client mandate le vendeur, (2) client mandate l'agent. AutoDoc Pro les génère et les fait signer. |
+| Section ajoutée | **Le double mandat, simplifié** — La FAQ DSR prévoit qu'un vendeur non habilité mandaté par ses clients peut solliciter un professionnel habilité SIV. Deux mandats Cerfa 13757 : (1) client mandate le vendeur, (2) client mandate l'agent. Imatra les génère et les fait signer. |
 | Comparatif | SUPPRIMER |
 | Mockup mobile | SUPPRIMER |
 | FAQ Q1 | **Comment mon agent reçoit le dossier ?** — ZIP téléchargeable (email, messagerie, clé USB) |
@@ -258,7 +258,7 @@ Réassurance sous le bouton (3 textes en ligne) :
 |---|---|
 | Eyebrow | Pour les agents habilités SIV |
 | H1 | Vos clients déposent, vous soumettez. |
-| Paragraphe | Vos clients viennent chez vous pour leur carte grise. Avec AutoDoc Pro, ils déposent leurs documents via votre URL permanente autodocpro.fr/votre-commerce. Le système vérifie tout. Vous téléchargez le Cerfa et soumettez au SIV. |
+| Paragraphe | Vos clients viennent chez vous pour leur carte grise. Avec Imatra, ils déposent leurs documents via votre URL permanente imatra.fr/votre-commerce. Le système vérifie tout. Vous téléchargez le Cerfa et soumettez au SIV. |
 | Mockup hero | Mockup VO entre particuliers via URL permanente (code dans site/index-old.html, lignes 334-395) — badge "Client public", tous docs "dép. client", hébergement détecté |
 | Problème card 1 | **Collecter par email, c'est lent** — le client envoie les docs un par un, mauvais format, allers-retours |
 | Problème card 2 | **Vérifier à l'œil, c'est risqué** — CNI expirée, nom divergent, vous le voyez après soumission |
@@ -267,13 +267,13 @@ Réassurance sous le bouton (3 textes en ligne) :
 | Solution card 2 | **Vérification automatique** (icône shield-check) — puces : CNI non expirée... / Nom cohérent... / Hébergement détecté... / Cession remplie... / Domicile < 6 mois... / Chaque problème expliqué... |
 | Solution card 3 | **Lien SMS pour les corrections** (icône smartphone) — puces : Envoyez lien en un clic... / Client corrige... / Re-vérifie auto... / Notifié quand corrigé... / Pas besoin de se déplacer... |
 | Solution card 4 | **Cerfa prêt** (icône file-check) — puces : Cerfa 13750 pré-rempli... / Cachet apposé... / Signature apposée... / PDF téléchargeable... / ZIP complet... |
-| Section ajoutée | **URL permanente — autodocpro.fr/votre-commerce** — Générée automatiquement à l'inscription. Mettez-la partout : site web, fiche Google, réseaux sociaux, vitrine QR code. Le client dépose ses docs + docs véhicule. SEO : chaque page pro indexable. |
+| Section ajoutée | **URL permanente — imatra.fr/votre-commerce** — Générée automatiquement à l'inscription. Mettez-la partout : site web, fiche Google, réseaux sociaux, vitrine QR code. Le client dépose ses docs + docs véhicule. SEO : chaque page pro indexable. |
 | Comparatif | SUPPRIMER |
 | Mockup mobile | SUPPRIMER |
 | FAQ Q1 | **Le client dépose aussi les docs véhicule ?** — Oui, pour un agent le client apporte tout (CG barrée, cession déjà signée) |
 | FAQ Q2 | **La cession est gérée par le système ?** — Non, le client arrive avec sa cession déjà signée. Le système la vérifie. |
 | FAQ Q3 | **L'URL permanente est gratuite ?** — Oui, incluse |
-| FAQ Q4 | **Mon client voit AutoDoc Pro ?** — Non, seulement votre nom de commerce |
+| FAQ Q4 | **Mon client voit Imatra ?** — Non, seulement votre nom de commerce |
 | FAQ Q5 | **Je suis engagé ?** — Non, 5 dossiers essai |
 | Formulaire profil | Pré-sélectionné "Agent habilité" |
 

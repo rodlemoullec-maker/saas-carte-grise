@@ -1,5 +1,5 @@
 """
-Système de règles paramétrables AutoDoc Pro local.
+Système de règles paramétrables Imatra local.
 
 Les règles V-XX et C-XX du diagnostic sont structurellement codées en Python
 dans engine/pipeline/realtime.py. Mais leurs **paramètres** (seuils, durées

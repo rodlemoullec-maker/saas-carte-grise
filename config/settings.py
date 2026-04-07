@@ -1,5 +1,5 @@
 """
-Configuration centralisée — version locale d'AutoDoc Pro.
+Configuration centralisée — version locale d'Imatra.
 
 Toutes les valeurs sont chargées depuis les variables d'environnement
 ou utilisent leurs valeurs par défaut adaptées à un déploiement local.
@@ -31,7 +31,7 @@ class Settings(BaseSettings):
     # ───────────────────────────────────────────────
     # Base de données — SQLite locale
     # ───────────────────────────────────────────────
-    database_url: str = "sqlite+aiosqlite:///./data/autodoc_pro.db"
+    database_url: str = "sqlite+aiosqlite:///./data/imatra.db"
     database_pool_size: int = 5  # Ignoré pour SQLite
 
     # ───────────────────────────────────────────────
@@ -50,14 +50,14 @@ class Settings(BaseSettings):
     # ───────────────────────────────────────────────
     # Système de licences (seul appel cloud autorisé)
     # ───────────────────────────────────────────────
-    license_server_url: str = "https://licenses.autodocpro.fr"
+    license_server_url: str = "https://licenses.imatra.fr"
     license_check_interval_hours: int = 24
     license_offline_grace_days: int = 30
 
     # ───────────────────────────────────────────────
     # Mises à jour des règles V-XX/C-XX
     # ───────────────────────────────────────────────
-    rules_update_url: str = "https://licenses.autodocpro.fr/rules/latest"
+    rules_update_url: str = "https://licenses.imatra.fr/rules/latest"
     rules_check_interval_hours: int = 24
 
     # ───────────────────────────────────────────────

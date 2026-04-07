@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Signe un bundle de règles AutoDoc Pro pour publication aux agents installés.
+Signe un bundle de règles Imatra pour publication aux agents installés.
 
 À LANCER PAR L'ÉDITEUR uniquement (nécessite la clé privée).
 
@@ -18,7 +18,7 @@ Le fichier d'entrée doit contenir uniquement le champ "bundle"
         "signature": "base64url..."
     }
 
-Cette structure est ensuite déposée sur https://licenses.autodocpro.fr/rules/latest
+Cette structure est ensuite déposée sur https://licenses.imatra.fr/rules/latest
 pour que tous les agents la téléchargent automatiquement.
 """
 from __future__ import annotations
@@ -36,7 +36,7 @@ from engine.license.signer import sign_payload
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Signe un bundle de règles AutoDoc Pro pour publication.",
+        description="Signe un bundle de règles Imatra pour publication.",
     )
     parser.add_argument("--input", required=True, help="Fichier JSON contenant le bundle (sans signature)")
     parser.add_argument("--output", required=True, help="Fichier JSON de sortie (bundle + signature)")
@@ -86,7 +86,7 @@ def main() -> None:
     print(f"Taille   : {output_path.stat().st_size} bytes")
     print()
     print("Étape suivante : déposez ce fichier sur")
-    print("    https://licenses.autodocpro.fr/rules/latest")
+    print("    https://licenses.imatra.fr/rules/latest")
     print()
     print("Tous les agents installés le récupéreront automatiquement à leur")
     print(f"prochaine vérification (par défaut, dans les 24 heures).")

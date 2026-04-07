@@ -2,7 +2,7 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
-// AutoDoc Pro — version locale
+// Imatra — version locale
 // Le frontend tourne sur 5173 et le backend FastAPI sur 8001 (localhost).
 // Le proxy /api permet d'éviter les problèmes CORS pendant le développement.
 export default defineConfig({
