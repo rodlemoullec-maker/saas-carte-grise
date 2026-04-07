@@ -318,59 +318,6 @@ async def generate_cerfa_endpoint(dossier_id: str, db: AsyncSession = Depends(ge
     }
 
 
-# ─── Cerfa cession 15776 (vente VO entre particuliers / pro) ────────────────
-
-
-@router.post("/{dossier_id}/cerfa-cession")
-async def generate_cerfa_cession(dossier_id: str, db: AsyncSession = Depends(get_db)):
-    """
-    Génère le Cerfa 15776 (certificat de cession) pour un dossier VO.
-
-    Contrairement au Cerfa 13750, le 15776 ne requiert pas le diagnostic
-    complet : c'est un document de transfert entre vendeur et acheteur que
-    l'agent peut générer dès qu'il a les identités des deux parties.
-    """
-    import asyncio
-    from fastapi.responses import Response
-    from storage.document_store import get_document_store
-    from api.routers.documents import _build_dossier_dict
-    from engine.cerfa_automation.cerfa_filler import CerfaFiller
-
-    dossier = await db.get(DossierDB, dossier_id)
-    if not dossier:
-        raise HTTPException(404, "Dossier non trouvé")
-
-    cerfa_path = f"{dossier_id}/cerfa/Cerfa_15776.pdf"
-    store = get_document_store()
-
-    dossier_dict = await _build_dossier_dict(db, dossier)
-    cerfa_data = CerfaFiller.build_data_from_dossier(dossier_dict)
-
-    try:
-        filler = CerfaFiller()
-        pdf_bytes = await asyncio.to_thread(
-            filler.fill_and_download, cerfa_data, None, "CESSION"
-        )
-    except FileNotFoundError as e:
-        raise HTTPException(422, detail={
-            "error": "cerfa_15776_blank_missing",
-            "message": str(e),
-        })
-    except Exception as e:
-        logger.error(f"Erreur génération Cerfa 15776 : {e}")
-        raise HTTPException(500, detail={
-            "error": "cerfa_cession_failed",
-            "message": str(e),
-        })
-
-    await store.save(pdf_bytes, cerfa_path, "application/pdf")
-    return Response(
-        content=pdf_bytes,
-        media_type="application/pdf",
-        headers={"Content-Disposition": 'inline; filename="Cerfa_15776.pdf"'},
-    )
-
-
 # ─── Vue admin ───────────────────────────────────────────────────────────────
 
 

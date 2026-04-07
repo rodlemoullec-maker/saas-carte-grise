@@ -23,8 +23,6 @@ class TestImportsBackend:
     def test_client_model(self) -> None:
         from api.models.client import ClientDB  # noqa: F401
 
-    def test_cerfa_15776_annotator(self) -> None:
-        from engine.cerfa.cerfa_15776_annotator import annotate_cerfa_15776  # noqa: F401
 
     def test_api_models(self) -> None:
         from api.models import base, dossier, document, professionnel, audit  # noqa: F401
@@ -133,7 +131,6 @@ class TestRoutesStructure:
             "/dossiers/{dossier_id}/relance-email",
             "/dossiers/{dossier_id}/admin",
             "/dossiers/{dossier_id}/download-zip",
-            "/dossiers/{dossier_id}/cerfa-cession",
             "/dossiers/siv-payload",
             "/clients",
             "/clients/{client_id}",

@@ -31,106 +31,14 @@ class CerfaFiller:
         Args:
             data: dict avec vehicule, titulaire, cotitulaire, metadata
             output_path: si fourni, sauve le PDF à ce chemin
-            dossier_type: "VN" / "VO" / "CESSION" (Cerfa 15776)
+            dossier_type: "VN" / "VO"
 
         Returns:
             bytes du PDF généré
         """
         if dossier_type == "VN":
             return self._generate_vn_pil(data, output_path)
-        if dossier_type == "CESSION":
-            return self._generate_cession_pil(data, output_path)
-
         return self._generate_vo_pil(data, output_path)
-
-    def _generate_cession_pil(self, data: dict, output_path: str | None = None) -> bytes:
-        """
-        Génère le Cerfa 15776 (certificat de cession d'un véhicule) via PIL.
-
-        Le dict d'entrée attend la structure :
-            {
-                "vehicule": { immatriculation, vin, marque, type_commercial,
-                              date_premiere_immat, genre },
-                "vendeur":  { nom, prenom, date_naissance, lieu_naissance,
-                              adresse, code_postal, ville },
-                "acheteur": { nom, prenom, date_naissance, lieu_naissance,
-                              adresse, code_postal, ville },
-                "cession":  { date, heure, lieu },
-                "agent":    { nom, adresse, siret, signature_path }  # cachet
-            }
-        """
-        import io
-        from engine.cerfa.cerfa_15776_annotator import annotate_cerfa_15776
-
-        v = data.get("vehicule", {})
-        vendeur = data.get("vendeur", {})
-        acheteur = data.get("acheteur", {})
-        cession = data.get("cession", {})
-        agent = data.get("agent", {})
-
-        # Image vierge — à fournir par l'éditeur dans site/assets/cerfa_15776_blank.png
-        blank_path = str(
-            Path(__file__).parent.parent.parent / "site" / "assets" / "cerfa_15776_blank.png"
-        )
-        if not Path(blank_path).exists():
-            # Fallback : on lève une erreur claire pour que l'éditeur sache
-            # qu'il faut télécharger l'image vierge officielle.
-            raise FileNotFoundError(
-                "Image vierge du Cerfa 15776 manquante. "
-                f"Téléchargez le PDF officiel depuis service-public.gouv.fr, "
-                f"convertissez-le en PNG 200 DPI, et placez-le dans : {blank_path}"
-            )
-
-        logger.info(f"[CerfaFiller CESSION] Génération PIL depuis {blank_path}")
-
-        out_path = output_path or str(
-            Path(__file__).parent / "cerfa_15776_generated.png"
-        )
-
-        annotate_cerfa_15776(
-            image_path=blank_path,
-            immatriculation=v.get("immatriculation", ""),
-            vin=v.get("numero_identification", "") or v.get("vin", ""),
-            marque=v.get("marque", ""),
-            type_commercial=v.get("denomination_commerciale", "") or v.get("type_commercial", ""),
-            date_premiere_immat=v.get("date_premiere_immatriculation", ""),
-            genre=v.get("genre_national", ""),
-            vendeur_nom=vendeur.get("nom", ""),
-            vendeur_prenom=vendeur.get("prenom", ""),
-            vendeur_date_naissance=vendeur.get("date_naissance", ""),
-            vendeur_lieu_naissance=vendeur.get("lieu_naissance", ""),
-            vendeur_adresse=vendeur.get("adresse", ""),
-            vendeur_cp_ville=f"{vendeur.get('code_postal', '')} {vendeur.get('ville', '')}".strip(),
-            acheteur_nom=acheteur.get("nom", ""),
-            acheteur_prenom=acheteur.get("prenom", ""),
-            acheteur_date_naissance=acheteur.get("date_naissance", ""),
-            acheteur_lieu_naissance=acheteur.get("lieu_naissance", ""),
-            acheteur_adresse=acheteur.get("adresse", ""),
-            acheteur_cp_ville=f"{acheteur.get('code_postal', '')} {acheteur.get('ville', '')}".strip(),
-            date_cession=cession.get("date", ""),
-            heure_cession=cession.get("heure", ""),
-            lieu_cession=cession.get("lieu", ""),
-            cachet_nom=agent.get("nom", ""),
-            cachet_adresse=agent.get("adresse", ""),
-            cachet_siret=agent.get("siret", ""),
-            signature_path=agent.get("signature_path"),
-            output_path=out_path,
-        )
-
-        # Convertir PNG en PDF
-        from PIL import Image
-        img = Image.open(out_path)
-        pdf_bytes_io = io.BytesIO()
-        img.save(pdf_bytes_io, "PDF", resolution=200)
-        pdf_bytes = pdf_bytes_io.getvalue()
-
-        if output_path:
-            pdf_path = output_path.replace(".png", ".pdf") if output_path.endswith(".png") else output_path
-            Path(pdf_path).write_bytes(pdf_bytes)
-            logger.info(f"[CerfaFiller CESSION] PDF sauvé : {pdf_path}")
-
-        logger.info(f"[CerfaFiller CESSION] Cerfa 15776 généré : {len(pdf_bytes)} bytes")
-        return pdf_bytes
 
     def _generate_vn_pil(self, data: dict, output_path: str | None = None) -> bytes:
         """Génère le Cerfa 13749 VN entièrement via PIL (zéro Playwright)."""
