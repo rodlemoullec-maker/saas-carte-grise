@@ -13,7 +13,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from api.routers import decisions, documents, dossiers, professionnel
+from api.routers import decisions, documents, dossiers, emails, professionnel
 from config.settings import get_settings
 
 logger = logging.getLogger(__name__)
@@ -65,6 +65,7 @@ app.include_router(dossiers.router, prefix="/dossiers", tags=["dossiers"])
 app.include_router(documents.router, prefix="/documents", tags=["documents"])
 app.include_router(decisions.router, prefix="/decisions", tags=["decisions"])
 app.include_router(professionnel.router)  # prefix="/agent" déjà défini dans le router
+app.include_router(emails.router)         # prefix="/emails" déjà défini dans le router
 
 
 @app.get("/health")
