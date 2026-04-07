@@ -7,13 +7,33 @@ et téléchargement des règles V-XX/C-XX à jour).
 """
 from __future__ import annotations
 
+import logging
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from api.routers import batch, decisions, documents, dossiers, professionnel
+from api.routers import decisions, documents, dossiers, professionnel
 from config.settings import get_settings
 
+logger = logging.getLogger(__name__)
 _settings = get_settings()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Lifecycle de l'application locale.
+
+    Au démarrage : crée les tables SQLite si elles n'existent pas.
+    À l'arrêt : rien (SQLite gère tout localement).
+    """
+    from api.models.base import init_db
+    logger.info("[Startup] Initialisation de la base SQLite locale")
+    await init_db()
+    logger.info("[Startup] AutoDoc Pro local prêt sur http://%s:%s", _settings.app_host, _settings.app_port)
+    yield
+
 
 app = FastAPI(
     title="AutoDoc Pro — Local",
@@ -21,6 +41,7 @@ app = FastAPI(
     version="2.0.0-local",
     docs_url="/docs",
     redoc_url="/redoc",
+    lifespan=lifespan,
 )
 
 # CORS — uniquement localhost en local
@@ -43,8 +64,7 @@ app.add_middleware(
 app.include_router(dossiers.router, prefix="/dossiers", tags=["dossiers"])
 app.include_router(documents.router, prefix="/documents", tags=["documents"])
 app.include_router(decisions.router, prefix="/decisions", tags=["decisions"])
-app.include_router(batch.router, prefix="/dossiers", tags=["batch"])
-app.include_router(professionnel.router, tags=["professionnel"])
+app.include_router(professionnel.router)  # prefix="/agent" déjà défini dans le router
 
 
 @app.get("/health")

@@ -172,23 +172,46 @@ def _ocr_tesseract(file_bytes: bytes, mime_type: str) -> dict:
 
 def _ocr_google_docai(file_bytes: bytes, mime_type: str) -> dict:
     """
-    Fallback OCR via Google Document AI (payant, pour docs que Tesseract ne gere pas).
+    DEPRECATED — conservé pour compatibilité avec les anciens appels du pipeline.
+
+    Dans la version locale d'AutoDoc Pro, l'OCR passe par PaddleOCR (ou
+    Tesseract en fallback) via la factory `get_ocr_provider()`. Cette
+    fonction reste un proxy synchrone pour les anciens appels du moteur.
 
     Retourne {"text": str, "confidence": float}.
     """
-    from integrations.ocr_providers.google_docai import GoogleDocAIProvider
+    import asyncio
+    import concurrent.futures
 
-    creds = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS", "")
-    if not creds:
-        for f_cred in Path(".").glob("**/gen-lang-client*.json"):
-            creds = str(f_cred)
-            break
-    if not creds:
+    try:
+        from integrations.ocr_providers import get_ocr_provider
+        from config.settings import get_settings
+
+        provider = get_ocr_provider(get_settings().ocr_provider)
+
+        # Le pipeline appelle cette fonction en synchrone — on emballe l'async.
+        try:
+            running_loop = asyncio.get_running_loop()
+        except RuntimeError:
+            running_loop = None
+
+        if running_loop is not None:
+            # On est dans un event loop — exécuter dans un thread séparé
+            with concurrent.futures.ThreadPoolExecutor() as ex:
+                fut = ex.submit(
+                    asyncio.run, provider.process_document(file_bytes, mime_type)
+                )
+                result = fut.result()
+        else:
+            result = asyncio.run(provider.process_document(file_bytes, mime_type))
+
+        return {
+            "text": result.full_text,
+            "confidence": result.average_confidence,
+        }
+    except Exception as e:
+        logger.warning(f"[OCR local proxy] échec : {e}")
         return {"text": "", "confidence": 0.0}
-
-    ocr = GoogleDocAIProvider(credentials_path=creds)
-    result = ocr.process_sync(file_bytes, mime_type)
-    return {"text": result.full_text, "confidence": result.average_confidence}
 
 
 

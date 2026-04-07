@@ -1,11 +1,9 @@
 """
-Annotateur d'images Cerfa — ajoute les champs manquants sur le PDF généré par Playwright.
+Annotateur d'images Cerfa — génération 100% PIL en local.
 
-Playwright remplit la majorité des champs via le formulaire service-public.gouv.fr,
-mais certains champs (certificat de vente, cachet, signature) ne sont pas remplis
-car le formulaire web a des bugs sur ces sections.
-
-Ce script ajoute les données manquantes directement sur l'image PNG du Cerfa.
+Annote les images vierges des Cerfa 13749 (VN) et 13750 (VO) avec les
+données extraites du dossier. Aucune dépendance externe (ni Playwright,
+ni service-public.gouv.fr, ni connexion internet).
 
 Usage :
     from engine.cerfa.cerfa_image_annotator import annotate_cerfa_vn, annotate_cerfa_vo

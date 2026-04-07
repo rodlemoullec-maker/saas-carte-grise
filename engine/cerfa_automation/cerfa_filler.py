@@ -1,49 +1,40 @@
 """
-CerfaFiller - Remplissage automatique du Cerfa 13750*07 via Playwright.
+CerfaFiller — Génération locale 100% PIL des Cerfa 13749 (VN) et 13750 (VO).
 
-Utilise le formulaire officiel sur service-public.gouv.fr pour generer
-un PDF parfaitement rempli par le site lui-meme.
-
-URL : https://www.service-public.gouv.fr/simulateur/calcul/13750
+Aucune dépendance externe : ni Playwright, ni service-public.gouv.fr,
+ni connexion internet. Tout est généré sur la machine de l'agent à partir
+des images vierges des Cerfa et des positions pixel des champs.
 
 Usage :
     from engine.cerfa_automation.cerfa_filler import CerfaFiller
-    pdf_bytes = CerfaFiller().fill_and_download(data)
+    pdf_bytes = CerfaFiller().fill_and_download(data, dossier_type="VN")
 """
 from __future__ import annotations
 
 import logging
-import time
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-CERFA_URLS = {
-    "VN": "https://www.service-public.gouv.fr/simulateur/calcul/13749",
-    "VO": "https://www.service-public.gouv.fr/simulateur/calcul/13750",
-}
-USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-
 
 class CerfaFiller:
-    """Remplit le Cerfa 13750*07 sur service-public.fr et telecharge le PDF."""
+    """Génère les Cerfa 13749 (VN) et 13750 (VO) en local via PIL."""
 
     def __init__(self, headless: bool = True):
+        # `headless` conservé pour compat — n'a aucun effet, tout est local
         self.headless = headless
 
     def fill_and_download(self, data: dict, output_path: str | None = None, dossier_type: str = "VO") -> bytes:
         """
-        Génère le Cerfa PDF rempli.
-
-        - VN (13749) : 100% PIL, zéro Playwright
-        - VO (13750) : Playwright via service-public.gouv.fr
+        Génère le Cerfa PDF rempli, 100% en local via PIL.
 
         Args:
-            data: dict avec vehicule, titulaire, cotitulaire
-            output_path: si fourni, sauve le PDF a ce chemin
+            data: dict avec vehicule, titulaire, cotitulaire, metadata
+            output_path: si fourni, sauve le PDF à ce chemin
+            dossier_type: "VN" ou "VO"
 
         Returns:
-            bytes du PDF genere
+            bytes du PDF généré
         """
         if dossier_type == "VN":
             return self._generate_vn_pil(data, output_path)
