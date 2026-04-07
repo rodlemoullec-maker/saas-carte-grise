@@ -309,3 +309,5 @@ class ExtractedHistoVec(BaseModel):
     vec: bool = False
     vei: bool = False
     date_consultation: date | None = None
+    # Kilométrage relevé au dernier CT (optionnel)
+    km_dernier_ct: int | None = None

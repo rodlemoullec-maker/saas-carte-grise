@@ -11,22 +11,27 @@ from pydantic import BaseModel
 
 class Diagnostic(str, Enum):
     """
-    Diagnostic binaire — pas d'etat intermediaire.
+    Diagnostic tri-couleur du dossier.
 
-    VERT  = tout est conforme, Cerfa generable
-    ROUGE = au moins 1 blocage (document manquant, illisible, incoherence, reglementaire)
+    VERT   = tout est conforme, Cerfa generable
+    ORANGE = avertissements non bloquants (l'agent peut continuer apres verification)
+    ROUGE  = au moins 1 blocage (document manquant, illisible, incoherence, reglementaire)
 
     Les verifications sont faites en temps reel dans la checklist.
-    Quand la checklist est 100% verte, le diagnostic est VERT.
+    Quand la checklist est 100% verte sans warning, le diagnostic est VERT.
+    Avec warnings non bloquants, c'est ORANGE.
+    Avec au moins un blocage, c'est ROUGE.
     """
     VERT = "VERT"
+    ORANGE = "ORANGE"
     ROUGE = "ROUGE"
 
 
 class DecisionStatus(str, Enum):
-    ACCEPTE = "ACCEPTE"         # VERT → Cerfa generable
-    CORRECTION = "CORRECTION"   # ROUGE → corrections requises
-    FRAUDE = "FRAUDE"           # Fraude detectee → blocage + alerte
+    ACCEPTE = "ACCEPTE"           # VERT → Cerfa generable
+    REVUE_AGENT = "REVUE_AGENT"   # ORANGE → l'agent verifie les avertissements
+    CORRECTION = "CORRECTION"     # ROUGE → corrections requises
+    FRAUDE = "FRAUDE"             # Fraude detectee → blocage + alerte
 
 
 class IssueSeverity(str, Enum):

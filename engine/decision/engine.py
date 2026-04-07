@@ -79,8 +79,19 @@ class DecisionEngine:
                 cross_check_results=cross_check_results,
             )
 
-        # Pas d'etat intermediaire — VERT ou ROUGE uniquement
-        # Les warnings sont informatifs mais ne bloquent pas
+        # Diagnostic tri-couleur :
+        # - VERT  : aucun blocage, aucun warning
+        # - ORANGE : aucun blocage mais au moins un warning
+        # - ROUGE : géré plus haut
+        if warnings:
+            return Decision(
+                diagnostic=Diagnostic.ORANGE,
+                status=DecisionStatus.REVUE_AGENT,
+                blocages=[],
+                warnings=warnings,
+                cross_check_results=cross_check_results,
+            )
+
         return Decision(
             diagnostic=Diagnostic.VERT,
             status=DecisionStatus.ACCEPTE,
