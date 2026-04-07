@@ -318,6 +318,59 @@ async def generate_cerfa_endpoint(dossier_id: str, db: AsyncSession = Depends(ge
     }
 
 
+# ─── Cerfa cession 15776 (vente VO entre particuliers / pro) ────────────────
+
+
+@router.post("/{dossier_id}/cerfa-cession")
+async def generate_cerfa_cession(dossier_id: str, db: AsyncSession = Depends(get_db)):
+    """
+    Génère le Cerfa 15776 (certificat de cession) pour un dossier VO.
+
+    Contrairement au Cerfa 13750, le 15776 ne requiert pas le diagnostic
+    complet : c'est un document de transfert entre vendeur et acheteur que
+    l'agent peut générer dès qu'il a les identités des deux parties.
+    """
+    import asyncio
+    from fastapi.responses import Response
+    from storage.document_store import get_document_store
+    from api.routers.documents import _build_dossier_dict
+    from engine.cerfa_automation.cerfa_filler import CerfaFiller
+
+    dossier = await db.get(DossierDB, dossier_id)
+    if not dossier:
+        raise HTTPException(404, "Dossier non trouvé")
+
+    cerfa_path = f"{dossier_id}/cerfa/Cerfa_15776.pdf"
+    store = get_document_store()
+
+    dossier_dict = await _build_dossier_dict(db, dossier)
+    cerfa_data = CerfaFiller.build_data_from_dossier(dossier_dict)
+
+    try:
+        filler = CerfaFiller()
+        pdf_bytes = await asyncio.to_thread(
+            filler.fill_and_download, cerfa_data, None, "CESSION"
+        )
+    except FileNotFoundError as e:
+        raise HTTPException(422, detail={
+            "error": "cerfa_15776_blank_missing",
+            "message": str(e),
+        })
+    except Exception as e:
+        logger.error(f"Erreur génération Cerfa 15776 : {e}")
+        raise HTTPException(500, detail={
+            "error": "cerfa_cession_failed",
+            "message": str(e),
+        })
+
+    await store.save(pdf_bytes, cerfa_path, "application/pdf")
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": 'inline; filename="Cerfa_15776.pdf"'},
+    )
+
+
 # ─── Vue admin ───────────────────────────────────────────────────────────────
 
 
@@ -357,6 +410,45 @@ async def admin_view(dossier_id: str, db: AsyncSession = Depends(get_db)):
     }
 
 
+# ─── Payload SIV pour extension navigateur ──────────────────────────────────
+
+
+@router.get("/siv-payload", tags=["siv"], include_in_schema=True)
+async def siv_payload(ref: str = Query(...), db: AsyncSession = Depends(get_db)):
+    """
+    Retourne un payload structuré pour l'extension navigateur Imatra.
+
+    L'extension consomme ce JSON pour pré-remplir les champs du portail SIV
+    via un content script. Aucune donnée ne quitte la machine de l'agent :
+    Imatra → extension → onglet SIV ouvert.
+    """
+    stmt = select(DossierDB).where(DossierDB.reference == ref)
+    result = await db.execute(stmt)
+    dossier = result.scalar_one_or_none()
+    if not dossier:
+        raise HTTPException(404, f"Dossier {ref} introuvable")
+
+    return {
+        "reference": dossier.reference,
+        "type": (dossier.type or "").upper(),
+        # Véhicule
+        "immatriculation": dossier.immatriculation,
+        "vin": dossier.vin,
+        "marque": (dossier.siv_payload or {}).get("marque"),
+        "modele": (dossier.siv_payload or {}).get("modele"),
+        "date_premiere_immat": (dossier.siv_payload or {}).get("date_premiere_immat"),
+        # Titulaire (acheteur / nouveau propriétaire)
+        "titulaire_nom": dossier.client_nom,
+        "titulaire_prenom": dossier.client_prenom,
+        "titulaire_email": dossier.client_email,
+        "titulaire_telephone": dossier.client_telephone,
+        "titulaire_date_naissance": (dossier.siv_payload or {}).get("titulaire_date_naissance"),
+        "titulaire_adresse": (dossier.siv_payload or {}).get("titulaire_adresse"),
+        "titulaire_code_postal": (dossier.siv_payload or {}).get("titulaire_code_postal"),
+        "titulaire_ville": (dossier.siv_payload or {}).get("titulaire_ville"),
+    }
+
+
 # ─── Téléchargement ZIP ──────────────────────────────────────────────────────
 
 
@@ -372,15 +464,34 @@ async def download_dossier_zip(dossier_id: str, db: AsyncSession = Depends(get_d
     if not dossier:
         raise HTTPException(404, "Dossier non trouvé")
 
+    import hashlib
+    from datetime import datetime
+    from xml.sax.saxutils import escape as xml_escape
+
     store = get_document_store()
     buf = io.BytesIO()
+    manifest_entries: list[dict] = []
+
+    def _add(zf: zipfile.ZipFile, arcname: str, data: bytes, kind: str, meta: dict | None = None):
+        zf.writestr(arcname, data)
+        manifest_entries.append({
+            "arcname": arcname,
+            "kind": kind,
+            "size": len(data),
+            "sha256": hashlib.sha256(data).hexdigest(),
+            "meta": meta or {},
+        })
+
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
         # Documents
         for doc in dossier.documents:
             try:
                 file_bytes = await store.get(doc.storage_path)
                 arcname = f"documents/{doc.type}/{doc.original_filename}"
-                zf.writestr(arcname, file_bytes)
+                _add(zf, arcname, file_bytes, "document", {
+                    "type": doc.type,
+                    "original_filename": doc.original_filename,
+                })
             except FileNotFoundError:
                 logger.warning(f"Document introuvable : {doc.storage_path}")
 
@@ -391,9 +502,37 @@ async def download_dossier_zip(dossier_id: str, db: AsyncSession = Depends(get_d
             cerfa_path = f"{dossier_id}/cerfa/Cerfa_{cerfa_num}.pdf"
             try:
                 pdf_bytes = await store.get(cerfa_path)
-                zf.writestr(f"cerfa/Cerfa_{cerfa_num}.pdf", pdf_bytes)
+                _add(zf, f"cerfa/Cerfa_{cerfa_num}.pdf", pdf_bytes, "cerfa", {
+                    "numero": cerfa_num,
+                    "type_dossier": dossier_type,
+                })
             except FileNotFoundError:
                 pass
+
+        # Manifeste XML — généré en dernier pour inclure tous les fichiers
+        xml_lines = ['<?xml version="1.0" encoding="UTF-8"?>', '<manifest>']
+        xml_lines.append(f'  <reference>{xml_escape(dossier.reference or "")}</reference>')
+        xml_lines.append(f'  <dossier_id>{xml_escape(dossier_id)}</dossier_id>')
+        xml_lines.append(f'  <generated_at>{datetime.utcnow().isoformat()}Z</generated_at>')
+        xml_lines.append(f'  <type>{xml_escape((dossier.type or "").upper())}</type>')
+        xml_lines.append(f'  <client_nom>{xml_escape(dossier.client_nom or "")}</client_nom>')
+        xml_lines.append('  <files>')
+        for entry in manifest_entries:
+            xml_lines.append('    <file>')
+            xml_lines.append(f'      <arcname>{xml_escape(entry["arcname"])}</arcname>')
+            xml_lines.append(f'      <kind>{entry["kind"]}</kind>')
+            xml_lines.append(f'      <size>{entry["size"]}</size>')
+            xml_lines.append(f'      <sha256>{entry["sha256"]}</sha256>')
+            for k, v in entry["meta"].items():
+                xml_lines.append(f'      <{k}>{xml_escape(str(v))}</{k}>')
+            xml_lines.append('    </file>')
+        xml_lines.append('  </files>')
+        xml_lines.append('</manifest>')
+        zf.writestr("manifest.xml", "\n".join(xml_lines))
+
+        # SHA256SUMS — format compatible `sha256sum -c`
+        sums = "\n".join(f'{e["sha256"]}  {e["arcname"]}' for e in manifest_entries) + "\n"
+        zf.writestr("SHA256SUMS", sums)
 
     buf.seek(0)
     return StreamingResponse(

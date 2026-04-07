@@ -9,7 +9,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import {
   AlertCircle, AlertTriangle, ArrowLeft, Check, CheckCircle2,
   Download, FileText, Inbox, Info, Key, Layers, Loader2, Mail,
-  MailOpen, Package, RefreshCw, Settings, Shield, Trash2,
+  MailOpen, Package, Plus, RefreshCw, Search, Settings, Shield, Trash2, Users,
   Zap,
 } from 'lucide-react'
 
@@ -66,7 +66,7 @@ interface RulesStatus {
   last_check: string | null
 }
 
-type Page = 'dashboard' | 'dossiers' | 'dossier-detail' | 'parametres'
+type Page = 'dashboard' | 'dossiers' | 'dossier-detail' | 'clients' | 'parametres'
 
 // ─── API helpers ───────────────────────────────────────────────────────────
 
@@ -83,6 +83,16 @@ async function apiPost<T>(path: string, body?: any): Promise<T> {
     body: body ? JSON.stringify(body) : undefined,
   })
   if (!r.ok) throw new Error(`POST ${path} → ${r.status}`)
+  return r.json()
+}
+
+async function apiPut<T>(path: string, body?: any): Promise<T> {
+  const r = await fetch(`${API}${path}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: body ? JSON.stringify(body) : undefined,
+  })
+  if (!r.ok) throw new Error(`PUT ${path} → ${r.status}`)
   return r.json()
 }
 
@@ -146,6 +156,7 @@ function Sidebar({ current, onNav }: { current: Page; onNav: (p: Page) => void }
   const items: { id: Page; label: string; icon: React.ReactNode }[] = [
     { id: 'dashboard',  label: 'Tableau de bord', icon: <Inbox className="w-4 h-4" /> },
     { id: 'dossiers',   label: 'Dossiers',         icon: <Layers className="w-4 h-4" /> },
+    { id: 'clients',    label: 'Clients',          icon: <Users className="w-4 h-4" /> },
     { id: 'parametres', label: 'Paramètres',       icon: <Settings className="w-4 h-4" /> },
   ]
   return (
@@ -559,6 +570,7 @@ function DossierDetailPage({ dossierId, onBack }: { dossierId: string; onBack: (
   const [loading, setLoading] = useState(true)
   const [running, setRunning] = useState(false)
   const [relanceText, setRelanceText] = useState<any | null>(null)
+  const [archiveReminder, setArchiveReminder] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -591,6 +603,7 @@ function DossierDetailPage({ dossierId, onBack }: { dossierId: string; onBack: (
     try {
       await apiGet(`/dossiers/${dossierId}/cerfa`)
       await load()
+      setArchiveReminder(true)
     } catch (e: any) {
       alert(`Cerfa impossible : ${e?.message}`)
     } finally {
@@ -753,6 +766,38 @@ function DossierDetailPage({ dossierId, onBack }: { dossierId: string; onBack: (
         </div>
       )}
 
+      {archiveReminder && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+            <div className="flex items-start gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+                <AlertTriangle className="w-5 h-5 text-amber-600" />
+              </div>
+              <div>
+                <h3 className="text-base font-semibold text-slate-900">Cerfa généré — pensez à archiver</h3>
+                <p className="text-sm text-slate-600 mt-1">
+                  Conservez le dossier <strong>5 ans</strong> sur un support sécurisé conformément à
+                  l'article R322-9 du Code de la route. Téléchargez le ZIP enrichi
+                  (manifeste + SHA256) et stockez-le dans votre archive.
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => { setArchiveReminder(false); downloadZip() }}
+                className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg inline-flex items-center justify-center gap-2"
+              >
+                <Download className="w-4 h-4" /> Télécharger ZIP
+              </button>
+              <button
+                onClick={() => setArchiveReminder(false)}
+                className="px-4 py-2 text-slate-600 hover:text-slate-900 text-sm"
+              >Plus tard</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {relanceText && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-6 max-h-[80vh] overflow-auto">
@@ -776,6 +821,260 @@ function DossierDetailPage({ dossierId, onBack }: { dossierId: string; onBack: (
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+// ─── Page Clients ──────────────────────────────────────────────────────────
+
+type Client = {
+  id: string
+  type: string
+  display_name: string
+  nom: string | null
+  prenom: string | null
+  date_naissance: string | null
+  lieu_naissance: string | null
+  raison_sociale: string | null
+  siret: string | null
+  representant_legal: string | null
+  email: string | null
+  telephone: string | null
+  adresse: string | null
+  code_postal: string | null
+  ville: string | null
+  pays: string | null
+  notes: string | null
+  nb_dossiers: number
+  dernier_dossier_at: string | null
+}
+
+const EMPTY_CLIENT: Partial<Client> = {
+  type: 'PHYSIQUE',
+  nom: '', prenom: '', date_naissance: '', lieu_naissance: '',
+  raison_sociale: '', siret: '', representant_legal: '',
+  email: '', telephone: '',
+  adresse: '', code_postal: '', ville: '', pays: 'France',
+  notes: '',
+}
+
+function ClientsPage() {
+  const [clients, setClients] = useState<Client[]>([])
+  const [q, setQ] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [editing, setEditing] = useState<Partial<Client> | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    try {
+      const data = await apiGet<{ clients: Client[] }>(`/clients${q ? `?q=${encodeURIComponent(q)}` : ''}`)
+      setClients(data.clients)
+    } catch (e: any) {
+      setError(e.message)
+    } finally {
+      setLoading(false)
+    }
+  }, [q])
+
+  useEffect(() => { void load() }, [load])
+
+  const save = async () => {
+    if (!editing) return
+    setSaving(true)
+    setError(null)
+    try {
+      const payload: any = { ...editing }
+      delete payload.id; delete payload.display_name
+      delete payload.nb_dossiers; delete payload.dernier_dossier_at
+      if (editing.id) {
+        await apiPut(`/clients/${editing.id}`, payload)
+      } else {
+        await apiPost('/clients', payload)
+      }
+      setEditing(null)
+      await load()
+    } catch (e: any) {
+      setError(e.message)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const remove = async (id: string) => {
+    if (!confirm('Supprimer ce client ?')) return
+    try {
+      await apiDelete(`/clients/${id}`)
+      await load()
+    } catch (e: any) {
+      setError(e.message)
+    }
+  }
+
+  return (
+    <div className="p-8 max-w-6xl mx-auto">
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold text-slate-900">Clients</h1>
+        <button
+          onClick={() => setEditing({ ...EMPTY_CLIENT })}
+          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg"
+        >
+          <Plus className="w-4 h-4" /> Nouveau client
+        </button>
+      </div>
+
+      <div className="mb-4 relative">
+        <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+        <input
+          value={q}
+          onChange={e => setQ(e.target.value)}
+          placeholder="Rechercher par nom, raison sociale, SIRET, email, téléphone…"
+          className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+
+      {error && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">{error}</div>
+      )}
+
+      <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
+        {loading ? (
+          <div className="p-8 text-center text-slate-400">
+            <Loader2 className="w-5 h-5 animate-spin mx-auto" />
+          </div>
+        ) : clients.length === 0 ? (
+          <div className="p-8 text-center text-slate-400 text-sm">Aucun client enregistré.</div>
+        ) : (
+          <table className="w-full text-sm">
+            <thead className="bg-slate-50 text-slate-600 text-xs uppercase">
+              <tr>
+                <th className="text-left px-4 py-2">Nom / Raison sociale</th>
+                <th className="text-left px-4 py-2">Type</th>
+                <th className="text-left px-4 py-2">Contact</th>
+                <th className="text-left px-4 py-2">Dossiers</th>
+                <th className="px-4 py-2"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {clients.map(c => (
+                <tr key={c.id} className="border-t border-slate-100 hover:bg-slate-50">
+                  <td className="px-4 py-2 font-medium text-slate-900">{c.display_name}</td>
+                  <td className="px-4 py-2 text-slate-500">{c.type === 'MORALE' ? 'Personne morale' : 'Particulier'}</td>
+                  <td className="px-4 py-2 text-slate-500">
+                    {c.email && <div>{c.email}</div>}
+                    {c.telephone && <div>{c.telephone}</div>}
+                  </td>
+                  <td className="px-4 py-2 text-slate-500">{c.nb_dossiers}</td>
+                  <td className="px-4 py-2 text-right">
+                    <button
+                      onClick={() => setEditing(c)}
+                      className="text-blue-600 hover:text-blue-800 text-xs font-medium mr-3"
+                    >Éditer</button>
+                    <button
+                      onClick={() => remove(c.id)}
+                      className="text-red-600 hover:text-red-800 text-xs font-medium"
+                    >Supprimer</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      {editing && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-auto">
+            <div className="p-6 border-b border-slate-200 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-slate-900">
+                {editing.id ? 'Modifier le client' : 'Nouveau client'}
+              </h2>
+              <button onClick={() => setEditing(null)} className="text-slate-400 hover:text-slate-600">✕</button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="text-xs font-medium text-slate-600">Type</label>
+                <select
+                  value={editing.type}
+                  onChange={e => setEditing({ ...editing, type: e.target.value })}
+                  className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm"
+                >
+                  <option value="PHYSIQUE">Particulier</option>
+                  <option value="MORALE">Personne morale</option>
+                </select>
+              </div>
+
+              {editing.type === 'MORALE' ? (
+                <div className="grid grid-cols-2 gap-3">
+                  <ClientField label="Raison sociale" value={editing.raison_sociale} onChange={v => setEditing({ ...editing, raison_sociale: v })} />
+                  <ClientField label="SIRET" value={editing.siret} onChange={v => setEditing({ ...editing, siret: v })} />
+                  <ClientField label="Représentant légal" value={editing.representant_legal} onChange={v => setEditing({ ...editing, representant_legal: v })} className="col-span-2" />
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-3">
+                  <ClientField label="Nom" value={editing.nom} onChange={v => setEditing({ ...editing, nom: v })} />
+                  <ClientField label="Prénom" value={editing.prenom} onChange={v => setEditing({ ...editing, prenom: v })} />
+                  <ClientField label="Date de naissance" value={editing.date_naissance} onChange={v => setEditing({ ...editing, date_naissance: v })} placeholder="JJ/MM/AAAA" />
+                  <ClientField label="Lieu de naissance" value={editing.lieu_naissance} onChange={v => setEditing({ ...editing, lieu_naissance: v })} />
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-3">
+                <ClientField label="Email" value={editing.email} onChange={v => setEditing({ ...editing, email: v })} />
+                <ClientField label="Téléphone" value={editing.telephone} onChange={v => setEditing({ ...editing, telephone: v })} />
+              </div>
+
+              <ClientField label="Adresse" value={editing.adresse} onChange={v => setEditing({ ...editing, adresse: v })} />
+              <div className="grid grid-cols-3 gap-3">
+                <ClientField label="Code postal" value={editing.code_postal} onChange={v => setEditing({ ...editing, code_postal: v })} />
+                <ClientField label="Ville" value={editing.ville} onChange={v => setEditing({ ...editing, ville: v })} className="col-span-2" />
+              </div>
+
+              <div>
+                <label className="text-xs font-medium text-slate-600">Notes</label>
+                <textarea
+                  value={editing.notes || ''}
+                  onChange={e => setEditing({ ...editing, notes: e.target.value })}
+                  rows={3}
+                  className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm"
+                />
+              </div>
+            </div>
+            <div className="p-6 border-t border-slate-200 flex justify-end gap-2">
+              <button
+                onClick={() => setEditing(null)}
+                className="px-4 py-2 text-sm text-slate-600 hover:text-slate-900"
+              >Annuler</button>
+              <button
+                onClick={save}
+                disabled={saving}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white text-sm font-medium rounded-lg"
+              >
+                {saving && <Loader2 className="w-4 h-4 animate-spin" />}
+                Enregistrer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function ClientField({ label, value, onChange, placeholder, className }: {
+  label: string; value: string | null | undefined; onChange: (v: string) => void;
+  placeholder?: string; className?: string;
+}) {
+  return (
+    <div className={className}>
+      <label className="text-xs font-medium text-slate-600">{label}</label>
+      <input
+        value={value || ''}
+        onChange={e => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm"
+      />
     </div>
   )
 }
@@ -1020,6 +1319,7 @@ export default function App() {
           {page === 'dossier-detail' && currentDossierId && (
             <DossierDetailPage dossierId={currentDossierId} onBack={goBack} />
           )}
+          {page === 'clients' && <ClientsPage />}
           {page === 'parametres' && <ParametresPage />}
         </main>
       </div>

@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "Imatra — Auto-saisie SIV",
+  "version": "1.0.0",
+  "description": "Pré-remplit le portail SIV à partir d'un dossier préparé dans Imatra (logiciel local).",
+  "permissions": ["activeTab", "storage", "scripting"],
+  "host_permissions": [
+    "http://localhost:8001/*",
+    "http://127.0.0.1:8001/*",
+    "https://siv.interieur.gouv.fr/*",
+    "https://immatriculation.ants.gouv.fr/*"
+  ],
+  "action": {
+    "default_title": "Imatra — Auto-saisie SIV",
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://siv.interieur.gouv.fr/*",
+        "https://immatriculation.ants.gouv.fr/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  }
+}
