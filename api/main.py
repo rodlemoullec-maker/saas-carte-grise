@@ -8,7 +8,20 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from api.routers import batch, client, decisions, documents, dossiers, professionnel, scan, webhooks
+from api.routers import batch, client, decisions, documents, dossiers, professionnel, public, scan, webhooks
+from api.auth import router as auth_router
+
+# ─── Sentry (monitoring erreurs) ────────────────────────────────────────────
+from config.settings import get_settings
+
+_settings = get_settings()
+if _settings.sentry_dsn:
+    import sentry_sdk
+    sentry_sdk.init(
+        dsn=_settings.sentry_dsn,
+        traces_sample_rate=0.2,
+        environment=_settings.app_env.value,
+    )
 
 app = FastAPI(
     title="SaaS Carte Grise — API",
@@ -21,15 +34,24 @@ app = FastAPI(
 # CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # TODO: restreindre en production
+    allow_origins=[
+        "http://localhost:5173",       # dev Vite
+        "http://localhost:5174",       # dev Vite alt port
+        "http://localhost:3000",       # dev alt
+        "https://autodocpro.fr",       # prod site
+        "https://www.autodocpro.fr",   # prod www
+        "https://app.autodocpro.fr",   # prod frontend
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# TODO: ajouter middleware auth JWT
-# TODO: ajouter middleware rate limiting
-# TODO: ajouter middleware audit log
+# Auth JWT : via Depends(get_current_pro) dans chaque router — voir api/auth.py
+
+# Rate limiting
+from api.middleware.rate_limit import RateLimitMiddleware
+app.add_middleware(RateLimitMiddleware)
 
 # Routers
 app.include_router(dossiers.router, prefix="/dossiers", tags=["dossiers"])
@@ -39,7 +61,9 @@ app.include_router(webhooks.router, prefix="/webhooks", tags=["webhooks"])
 app.include_router(batch.router, prefix="/dossiers", tags=["batch"])
 app.include_router(professionnel.router, tags=["professionnel"])
 app.include_router(client.router, tags=["client"])
+app.include_router(public.router, tags=["public"])
 app.include_router(scan.router, prefix="/scan", tags=["scan"])
+app.include_router(auth_router)
 
 
 @app.get("/health")
@@ -115,5 +139,20 @@ async def mentions_legales():
         "cgv": {
             "tarification": "12 EUR par dossier moto, 14 EUR par dossier voiture — tarif fixe par dossier traite",
             "paiement": "Par batch de 5 dossiers maximum — paiement requis avant de continuer",
+            "usage_autorise": (
+                "AutoDoc Pro est reserve aux professionnels de l'automobile disposant de leur propre habilitation SIV "
+                "ou travaillant avec un agent habilite identifie. L'utilisation par une plateforme d'immatriculation en ligne, "
+                "un reseau de franchises operant sous l'habilitation d'un tiers, "
+                "ou un editeur de logiciel concurrent est strictement interdite."
+            ),
+            "resiliation": (
+                "En cas de violation des conditions d'usage, notamment l'utilisation par une plateforme en ligne, "
+                "un reseau de franchises, ou un volume de dossiers manifestement incompatible avec l'activite declaree, "
+                "AutoDoc Pro se reserve le droit de suspendre ou resilier le compte sans preavis."
+            ),
+            "volume_limite": (
+                "Le nombre de dossiers mensuels est plafonne. Au-dela du seuil autorise, "
+                "le compte est automatiquement suspendu. Contactez-nous pour une offre adaptee."
+            ),
         },
     }

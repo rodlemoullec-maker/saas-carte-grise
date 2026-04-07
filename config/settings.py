@@ -17,7 +17,7 @@ class AppEnv(str, Enum):
 class Settings(BaseSettings):
     # App
     app_env: AppEnv = AppEnv.DEVELOPMENT
-    app_secret_key: str = "changeme"
+    app_secret_key: str = ""  # OBLIGATOIRE — définir dans .env (APP_SECRET_KEY)
     app_debug: bool = True
     app_host: str = "0.0.0.0"
     app_port: int = 8000
@@ -55,6 +55,22 @@ class Settings(BaseSettings):
     siv_api_key: str = ""
     siv_habilitation_id: str = ""
     siv_environment: str = "sandbox"
+
+    # Stripe
+    stripe_secret_key: str = ""
+    stripe_webhook_secret: str = ""
+
+    # Twilio SMS
+    twilio_account_sid: str = ""
+    twilio_auth_token: str = ""
+    twilio_phone_number: str = ""
+
+    # Email SMTP
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_password: str = ""
+    smtp_from_email: str = "noreply@autodocpro.fr"
 
     # JWT
     jwt_algorithm: str = "HS256"

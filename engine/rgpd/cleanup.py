@@ -18,7 +18,8 @@ Ce qui est SUPPRIME :
 - Fichiers documents client (CNI, permis, domicile) du stockage
 - Texte OCR brut des documents client
 - Donnees extraites detaillees (date naissance, lieu naissance, MRZ, etc.)
-- Metadata client (consentement, choix CPI)
+- Metadata client (consentement, choix CPI, email CPI)
+- Prenom, telephone et email du client (non necessaires a l'archivage)
 """
 from __future__ import annotations
 
@@ -73,8 +74,16 @@ async def cleanup_client_data_after_cerfa(
         doc.sha256 = "supprime_rgpd"
         supprime["documents_db"] += 1
 
-    # 2. Nettoyer les metadata client du dossier
+    # 2. Anonymiser les données personnelles du client sur le dossier
+    # On conserve client_nom (nécessaire pour l'archivage pro 5 ans)
+    # On supprime téléphone, email, prénom (non nécessaires à l'archivage)
     dossier = await db.get(DossierDB, dossier_id)
+    if dossier:
+        dossier.client_telephone = None
+        dossier.client_email = None
+        dossier.client_prenom = None
+
+    # 3. Nettoyer les metadata client du dossier
     if dossier and dossier.metadata_:
         metadata = dict(dossier.metadata_)
         # Garder uniquement les infos non sensibles

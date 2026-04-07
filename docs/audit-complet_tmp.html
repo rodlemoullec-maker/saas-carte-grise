@@ -1,0 +1,1399 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>audit-complet.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<h1 id="audit-complet--autodoc-pro--4-avril-2026">Audit complet — AutoDoc Pro — 4 avril 2026</h1>
+<h2 id="1-services-externes--%C3%A9tat-co%C3%BBts-limites">1. SERVICES EXTERNES — État, coûts, limites</h2>
+<h3 id="11-anthropic-claude-opus-4">1.1 Anthropic (Claude Opus 4)</h3>
+<table>
+<thead>
+<tr>
+<th>Élément</th>
+<th>État</th>
+<th>Détail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Clé API</td>
+<td>✅ Configurée</td>
+<td>Dans <code>.env</code> (<code>ANTHROPIC_API_KEY</code>)</td>
+</tr>
+<tr>
+<td>Modèle utilisé</td>
+<td><code>claude-opus-4-20250514</code></td>
+<td>Le plus puissant — extraction + classification + vérification</td>
+</tr>
+<tr>
+<td>Fonctions</td>
+<td><code>claude_classify()</code>, <code>claude_extract()</code>, <code>claude_verify()</code></td>
+<td>3 appels par document uploadé</td>
+</tr>
+<tr>
+<td>RGPD</td>
+<td>✅ Conforme</td>
+<td>Données non conservées par Anthropic (API, pas d'entraînement)</td>
+</tr>
+<tr>
+<td>Coût estimé</td>
+<td>~0.15-0.50€ par document</td>
+<td>Prompt ~2K tokens input + ~500 tokens output × 3 appels</td>
+</tr>
+<tr>
+<td>Coût par dossier</td>
+<td>~1-3€ (5-6 documents par dossier)</td>
+<td>Sur un pricing de 12-14€ → marge OK</td>
+</tr>
+<tr>
+<td>Limite API</td>
+<td>4000 req/min (tier payant)</td>
+<td>Pas un problème au lancement</td>
+</tr>
+<tr>
+<td>Risque</td>
+<td>Coût variable selon la longueur OCR</td>
+<td>Les COC européens longs coûtent plus cher</td>
+</tr>
+<tr>
+<td>TODO</td>
+<td>Rien — fonctionnel</td>
+<td>Peut-être passer à Sonnet pour réduire les coûts (moins cher, suffisant pour l'extraction)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="12-google-document-ai-ocr">1.2 Google Document AI (OCR)</h3>
+<table>
+<thead>
+<tr>
+<th>Élément</th>
+<th>État</th>
+<th>Détail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Credentials</td>
+<td>✅ Fichier JSON présent</td>
+<td><code>gen-lang-client-0123501972-a55d0eeea7d2.json</code></td>
+</tr>
+<tr>
+<td>Project</td>
+<td><code>275852582765</code></td>
+<td>Configuré dans <code>.env</code></td>
+</tr>
+<tr>
+<td>Processor</td>
+<td><code>6a6fede4a9a9caf1</code></td>
+<td>Région EU</td>
+</tr>
+<tr>
+<td>Coût</td>
+<td>~0.01-0.05€ par page</td>
+<td>1000 pages/mois gratuites, puis $1.50/1000 pages</td>
+</tr>
+<tr>
+<td>Coût par dossier</td>
+<td>~0.05-0.30€ (5-6 documents)</td>
+<td>Négligeable</td>
+</tr>
+<tr>
+<td>Limite gratuite</td>
+<td>1000 pages/mois</td>
+<td>Suffisant pour ~150-200 dossiers/mois</td>
+</tr>
+<tr>
+<td>Risque</td>
+<td>Quota dépassé → erreur 429</td>
+<td>Prévoir fallback ou alerte</td>
+</tr>
+<tr>
+<td>TODO</td>
+<td>Rien — fonctionnel</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="13-neon-postgresql">1.3 Neon (PostgreSQL)</h3>
+<table>
+<thead>
+<tr>
+<th>Élément</th>
+<th>État</th>
+<th>Détail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>URL</td>
+<td>✅ Configurée</td>
+<td><code>ep-weathered-base-al4nwrz1-pooler.c-3.eu-central-1.aws.neon.tech/neondb</code></td>
+</tr>
+<tr>
+<td>Région</td>
+<td>Francfort (UE)</td>
+<td>Conforme RGPD</td>
+</tr>
+<tr>
+<td>Plan</td>
+<td>Free tier</td>
+<td>512 MB storage, 0.25 compute units</td>
+</tr>
+<tr>
+<td>Limite</td>
+<td>3 GB de données transférées/mois</td>
+<td>Suffisant au lancement</td>
+</tr>
+<tr>
+<td>Risque</td>
+<td>Le free tier se met en veille après 5 min d'inactivité</td>
+<td>Premier appel lent (~2-3 sec cold start)</td>
+</tr>
+<tr>
+<td>TODO</td>
+<td>Migrer vers plan payant ($19/mois) quand le volume augmente</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="14-aws-s3-stockage-documents">1.4 AWS S3 (Stockage documents)</h3>
+<table>
+<thead>
+<tr>
+<th>Élément</th>
+<th>État</th>
+<th>Détail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Bucket</td>
+<td><code>carte-grise-documents-saas</code></td>
+<td>Région eu-west-3 (Paris)</td>
+</tr>
+<tr>
+<td>Configuré</td>
+<td>⚠️ Partiellement</td>
+<td><code>STORAGE_BACKEND=local</code> dans <code>.env</code> — S3 pas activé</td>
+</tr>
+<tr>
+<td>Coût</td>
+<td>~$0.023/GB/mois</td>
+<td>Négligeable pour des documents</td>
+</tr>
+<tr>
+<td>TODO</td>
+<td>Passer <code>STORAGE_BACKEND=s3</code> en production</td>
+<td>Les documents sont stockés en local pour le dev</td>
+</tr>
+</tbody>
+</table>
+<h3 id="15-twilio--ovh-sms--non-configur%C3%A9">1.5 Twilio / OVH SMS — NON CONFIGURÉ</h3>
+<table>
+<thead>
+<tr>
+<th>Élément</th>
+<th>État</th>
+<th>Détail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Intégration</td>
+<td>❌ Stub</td>
+<td><code>send_sms()</code> log uniquement</td>
+</tr>
+<tr>
+<td>Clé API</td>
+<td>❌ Manquante</td>
+<td>Pas dans <code>.env</code> ni dans <code>settings.py</code></td>
+</tr>
+<tr>
+<td>Coût Twilio</td>
+<td>~0.07€/SMS (France)</td>
+<td>~0.35€ par dossier (5 SMS : lien + rappels)</td>
+</tr>
+<tr>
+<td>Coût OVH SMS</td>
+<td>~0.05€/SMS</td>
+<td>Moins cher, API plus simple</td>
+</tr>
+<tr>
+<td>TODO</td>
+<td>Créer un compte Twilio/OVH, obtenir clés, implémenter <code>send_sms()</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="16-stripe--non-configur%C3%A9">1.6 Stripe — NON CONFIGURÉ</h3>
+<table>
+<thead>
+<tr>
+<th>Élément</th>
+<th>État</th>
+<th>Détail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Intégration</td>
+<td>❌ Non implémentée</td>
+<td><code>engine/payment/honoraires.py</code> = docstring seulement</td>
+</tr>
+<tr>
+<td>Clé API</td>
+<td>❌ Manquante</td>
+<td>Pas dans <code>.env</code></td>
+</tr>
+<tr>
+<td>Champs BDD</td>
+<td>✅ Présents</td>
+<td><code>stripe_customer_id</code>, <code>payment_preauth_id</code>, <code>payment_captured</code>, <code>montant_honoraires</code></td>
+</tr>
+<tr>
+<td>Commission Stripe</td>
+<td>1.4% + 0.25€ par transaction</td>
+<td>Sur 14€ → 0.45€ de commission → marge OK</td>
+</tr>
+<tr>
+<td>TODO</td>
+<td>Créer compte Stripe, implémenter checkout/pré-auth, webhooks paiement</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="17-redis-celery--non-configur%C3%A9-en-production">1.7 Redis (Celery) — NON CONFIGURÉ EN PRODUCTION</h3>
+<table>
+<thead>
+<tr>
+<th>Élément</th>
+<th>État</th>
+<th>Détail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Config</td>
+<td>✅ Dans settings.py</td>
+<td><code>redis://localhost:6379/0</code></td>
+</tr>
+<tr>
+<td>Installé localement</td>
+<td>❌ Pas vérifié</td>
+<td>Celery ne tourne pas</td>
+</tr>
+<tr>
+<td>Nécessaire pour</td>
+<td>Workers asynchrones, rate limiting, cache</td>
+<td></td>
+</tr>
+<tr>
+<td>TODO</td>
+<td>Installer Redis en production (Railway addon ou Upstash gratuit)</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="18-formspree--non-configur%C3%A9">1.8 Formspree — NON CONFIGURÉ</h3>
+<table>
+<thead>
+<tr>
+<th>Élément</th>
+<th>État</th>
+<th>Détail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ID</td>
+<td>❌ Placeholder</td>
+<td><code>VOTRE_ID</code> dans les formulaires du site</td>
+</tr>
+<tr>
+<td>Coût</td>
+<td>Gratuit (50 soumissions/mois)</td>
+<td>Suffisant au lancement</td>
+</tr>
+<tr>
+<td>TODO</td>
+<td>Créer compte Formspree, remplacer <code>VOTRE_ID</code> dans index.html, vendeur.html, agent.html</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="19-sentry-monitoring--non-configur%C3%A9">1.9 Sentry (Monitoring) — NON CONFIGURÉ</h3>
+<table>
+<thead>
+<tr>
+<th>Élément</th>
+<th>État</th>
+<th>Détail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DSN</td>
+<td>❌ Vide</td>
+<td><code>sentry_dsn: str = &quot;&quot;</code> dans settings.py</td>
+</tr>
+<tr>
+<td>Coût</td>
+<td>Gratuit (5K events/mois)</td>
+<td>Suffisant</td>
+</tr>
+<tr>
+<td>TODO</td>
+<td>Créer compte Sentry, ajouter DSN dans <code>.env</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="2-fichiers-et-donn%C3%A9es-pr%C3%A9sents">2. FICHIERS ET DONNÉES PRÉSENTS</h2>
+<h3 id="21-templates-cerfa-pdf">2.1 Templates Cerfa PDF</h3>
+<table>
+<thead>
+<tr>
+<th>Fichier</th>
+<th>Présent</th>
+<th>Taille</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>data/cerfa_templates/cerfa_13749.pdf</code> (VN)</td>
+<td>✅ Oui</td>
+<td>565 Ko</td>
+</tr>
+<tr>
+<td><code>data/cerfa_templates/cerfa_13750.pdf</code> (VO)</td>
+<td>✅ Oui</td>
+<td>539 Ko</td>
+</tr>
+<tr>
+<td><code>data/cerfa_templates/cerfa_15776.pdf</code> (Cession)</td>
+<td>❌ Manquant</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>data/cerfa_templates/cerfa_13757.pdf</code> (Mandat)</td>
+<td>❌ Manquant</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h3 id="22-credentials-fichiers">2.2 Credentials fichiers</h3>
+<table>
+<thead>
+<tr>
+<th>Fichier</th>
+<th>Présent</th>
+<th>Sécurité</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>.env</code></td>
+<td>✅ 19 variables</td>
+<td>⚠️ Vérifier qu'il est dans <code>.gitignore</code></td>
+</tr>
+<tr>
+<td><code>gen-lang-client-*.json</code> (GCP)</td>
+<td>✅ Présent</td>
+<td>⚠️ Ne doit PAS être committé</td>
+</tr>
+</tbody>
+</table>
+<h3 id="23-documents-de-test">2.3 Documents de test</h3>
+<table>
+<thead>
+<tr>
+<th>Dossier</th>
+<th>Contenu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>data/documents/11111111-.../</code></td>
+<td>Documents du dossier de test</td>
+</tr>
+<tr>
+<td><code>data/documents/006174ad-.../</code></td>
+<td>Documents d'un autre dossier</td>
+</tr>
+</tbody>
+</table>
+<h3 id="24-docker">2.4 Docker</h3>
+<table>
+<thead>
+<tr>
+<th>Fichier</th>
+<th>Présent</th>
+<th>État</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Dockerfile</code></td>
+<td>❌ Non trouvé</td>
+<td>Référencé dans docker-compose mais absent</td>
+</tr>
+<tr>
+<td><code>docker-compose.yml</code></td>
+<td>✅ Présent</td>
+<td>Configure API + DB + Redis</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="3-configuration-production-manquante">3. CONFIGURATION PRODUCTION MANQUANTE</h2>
+<h3 id="31-variables-env-%C3%A0-ajouter-pour-la-production">3.1 Variables <code>.env</code> à ajouter pour la production</h3>
+<pre class="hljs"><code><div># Actuellement manquantes
+TWILIO_ACCOUNT_SID=
+TWILIO_AUTH_TOKEN=
+TWILIO_PHONE_NUMBER=
+STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
+SENTRY_DSN=
+JWT_SECRET_KEY=           # Actuellement &quot;changeme&quot;
+APP_SECRET_KEY=           # Actuellement &quot;changeme&quot;
+REDIS_URL=                # Pour production (Upstash/Railway)
+STORAGE_BACKEND=s3        # Actuellement &quot;local&quot;
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+AWS_S3_BUCKET=
+</div></code></pre>
+<h3 id="32-s%C3%A9curit%C3%A9-%C3%A0-corriger">3.2 Sécurité à corriger</h3>
+<table>
+<thead>
+<tr>
+<th>Problème</th>
+<th>Fichier</th>
+<th>Ligne</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>app_secret_key = &quot;changeme&quot;</code></td>
+<td>config/settings.py</td>
+<td>21</td>
+</tr>
+<tr>
+<td><code>allow_origins=[&quot;*&quot;]</code></td>
+<td>api/main.py</td>
+<td>24</td>
+</tr>
+<tr>
+<td><code>PRO_ID</code> hardcodé</td>
+<td>frontend/src/App.tsx</td>
+<td>17</td>
+</tr>
+<tr>
+<td><code>API = 'http://localhost:8001'</code></td>
+<td>frontend/src/App.tsx</td>
+<td>16</td>
+</tr>
+<tr>
+<td>Pas de HTTPS forcé</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Pas de CSP headers</td>
+<td>—</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="4-co%C3%BBt-total-estim%C3%A9-par-dossier-production">4. COÛT TOTAL ESTIMÉ PAR DOSSIER (PRODUCTION)</h2>
+<table>
+<thead>
+<tr>
+<th>Poste</th>
+<th>Coût unitaire</th>
+<th>Par dossier (~6 docs)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Google Document AI (OCR)</td>
+<td>0.01-0.05€/page</td>
+<td>~0.15€</td>
+</tr>
+<tr>
+<td>Anthropic Claude (extraction)</td>
+<td>0.15-0.50€/doc</td>
+<td>~2.00€</td>
+</tr>
+<tr>
+<td>Twilio SMS (5 SMS)</td>
+<td>0.07€/SMS</td>
+<td>~0.35€</td>
+</tr>
+<tr>
+<td>Neon PostgreSQL</td>
+<td>~0€ (free tier)</td>
+<td>~0€</td>
+</tr>
+<tr>
+<td>S3 stockage</td>
+<td>~0€</td>
+<td>~0€</td>
+</tr>
+<tr>
+<td>Stripe commission</td>
+<td>1.4% + 0.25€</td>
+<td>~0.45€</td>
+</tr>
+<tr>
+<td><strong>Total coût par dossier</strong></td>
+<td></td>
+<td><strong>~3.00€</strong></td>
+</tr>
+<tr>
+<td><strong>Prix facturé</strong></td>
+<td></td>
+<td><strong>12-14€</strong></td>
+</tr>
+<tr>
+<td><strong>Marge par dossier</strong></td>
+<td></td>
+<td><strong>~9-11€ (~70%)</strong></td>
+</tr>
+</tbody>
+</table>
+<h3 id="41-co%C3%BBts-fixes-mensuels">4.1 Coûts fixes mensuels</h3>
+<table>
+<thead>
+<tr>
+<th>Poste</th>
+<th>Coût</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Hostinger Premium (site)</td>
+<td>2.99€</td>
+</tr>
+<tr>
+<td>Neon PostgreSQL (free → $19 si volume)</td>
+<td>0-19€</td>
+</tr>
+<tr>
+<td>Railway/Render (backend)</td>
+<td>0-5€</td>
+</tr>
+<tr>
+<td>Anthropic API (minimum)</td>
+<td>~20€</td>
+</tr>
+<tr>
+<td>Twilio (minimum)</td>
+<td>~5€</td>
+</tr>
+<tr>
+<td>Domaine (.fr)</td>
+<td>~1€/mois (~12€/an)</td>
+</tr>
+<tr>
+<td><strong>Total fixe mensuel</strong></td>
+<td><strong>~30-50€</strong></td>
+</tr>
+<tr>
+<td><strong>Breakeven</strong></td>
+<td><strong>~4-5 dossiers/mois</strong></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="5-d%C3%A9pendances-python--%C3%A9tat">5. DÉPENDANCES PYTHON — État</h2>
+<table>
+<thead>
+<tr>
+<th>Package</th>
+<th>Requis</th>
+<th>Installé</th>
+<th>État</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>anthropic&gt;=0.28.0</code></td>
+<td>Oui</td>
+<td>✅</td>
+<td>Fonctionnel</td>
+</tr>
+<tr>
+<td><code>httpx&gt;=0.27.0</code></td>
+<td>Oui</td>
+<td>✅</td>
+<td>Pour API SIRENE</td>
+</tr>
+<tr>
+<td><code>fastapi&gt;=0.111.0</code></td>
+<td>Oui</td>
+<td>✅</td>
+<td>Framework API</td>
+</tr>
+<tr>
+<td><code>sqlalchemy&gt;=2.0.0</code></td>
+<td>Oui</td>
+<td>✅</td>
+<td>ORM async</td>
+</tr>
+<tr>
+<td><code>asyncpg&gt;=0.29.0</code></td>
+<td>Oui</td>
+<td>✅</td>
+<td>Driver PostgreSQL</td>
+</tr>
+<tr>
+<td><code>pydantic&gt;=2.7.0</code></td>
+<td>Oui</td>
+<td>✅</td>
+<td>Validation</td>
+</tr>
+<tr>
+<td><code>pillow&gt;=10.3.0</code></td>
+<td>Oui</td>
+<td>✅</td>
+<td>Traitement images</td>
+</tr>
+<tr>
+<td><code>pdf2image&gt;=1.17.0</code></td>
+<td>Oui</td>
+<td>✅</td>
+<td>PDF → images pour OCR</td>
+</tr>
+<tr>
+<td><code>pytesseract&gt;=0.3.10</code></td>
+<td>Non</td>
+<td>✅ (installé mais plus utilisé)</td>
+<td>Retiré du pipeline</td>
+</tr>
+<tr>
+<td><code>celery[redis]&gt;=5.4.0</code></td>
+<td>Oui</td>
+<td>✅</td>
+<td>Workers (non fonctionnel)</td>
+</tr>
+<tr>
+<td><code>redis&gt;=5.0.0</code></td>
+<td>Oui</td>
+<td>✅</td>
+<td>Broker Celery</td>
+</tr>
+<tr>
+<td><code>python-jose&gt;=3.3.0</code></td>
+<td>Oui</td>
+<td>✅</td>
+<td>JWT (non implémenté)</td>
+</tr>
+<tr>
+<td><code>stripe</code></td>
+<td>❌ Manquant</td>
+<td>❌</td>
+<td>À installer</td>
+</tr>
+<tr>
+<td><code>twilio</code></td>
+<td>❌ Manquant</td>
+<td>❌</td>
+<td>À installer</td>
+</tr>
+<tr>
+<td><code>sentry-sdk</code></td>
+<td>❌ Manquant</td>
+<td>❌</td>
+<td>À installer</td>
+</tr>
+<tr>
+<td><code>pdfrw</code> ou <code>PyPDF2</code></td>
+<td>❌ Manquant</td>
+<td>❌</td>
+<td>Pour remplir les Cerfa PDF</td>
+</tr>
+<tr>
+<td><code>qrcode</code></td>
+<td>❌ Manquant (backend)</td>
+<td>❌</td>
+<td>Pour QR codes URL permanente</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="6-d%C3%A9ploiement--ce-qui-manque">6. DÉPLOIEMENT — Ce qui manque</h2>
+<h3 id="61-backend-railwayrender">6.1 Backend (Railway/Render)</h3>
+<table>
+<thead>
+<tr>
+<th>Élément</th>
+<th>État</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Dockerfile</td>
+<td>❌ Manquant (référencé dans docker-compose mais absent)</td>
+</tr>
+<tr>
+<td>requirements.txt</td>
+<td>✅ Présent</td>
+</tr>
+<tr>
+<td>Procfile</td>
+<td>❌ Manquant (nécessaire pour Railway/Render)</td>
+</tr>
+<tr>
+<td>Variable <code>PORT</code></td>
+<td>❌ Non géré (hardcodé 8001)</td>
+</tr>
+<tr>
+<td>Health check</td>
+<td>✅ <code>/health</code> endpoint existe</td>
+</tr>
+</tbody>
+</table>
+<h3 id="62-frontend-react-railwayrender">6.2 Frontend React (Railway/Render)</h3>
+<table>
+<thead>
+<tr>
+<th>Élément</th>
+<th>État</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Build</td>
+<td>✅ <code>npx vite build</code> fonctionne</td>
+</tr>
+<tr>
+<td>URL API</td>
+<td>❌ Hardcodé <code>localhost:8001</code> — doit être une variable d'env</td>
+</tr>
+<tr>
+<td>Déploiement statique</td>
+<td>✅ <code>dist/</code> peut être servi par n'importe quel serveur statique</td>
+</tr>
+</tbody>
+</table>
+<h3 id="63-site-commercial-hostinger">6.3 Site commercial (Hostinger)</h3>
+<table>
+<thead>
+<tr>
+<th>Élément</th>
+<th>État</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Fichiers uploadés</td>
+<td>✅ En ligne</td>
+</tr>
+<tr>
+<td>SSL</td>
+<td>⚠️ À vérifier</td>
+</tr>
+<tr>
+<td>Domaine</td>
+<td>❌ Sous-domaine temporaire</td>
+</tr>
+<tr>
+<td>Formspree</td>
+<td>❌ ID placeholder</td>
+</tr>
+<tr>
+<td>Nettoyage fichiers</td>
+<td>❌ Doublons à supprimer</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="7-tests--%C3%A9tat">7. TESTS — État</h2>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>État</th>
+<th>Détail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Tests unitaires</td>
+<td>⚠️ Partiels</td>
+<td><code>tests/unit/test_pipeline.py</code> existe</td>
+</tr>
+<tr>
+<td>Tests d'intégration</td>
+<td>❌ Aucun</td>
+<td>Pas de test du flux complet</td>
+</tr>
+<tr>
+<td>Tests E2E</td>
+<td>❌ Aucun</td>
+<td>Pas de Cypress/Playwright</td>
+</tr>
+<tr>
+<td>Tests de charge</td>
+<td>❌ Aucun</td>
+<td>Pas de benchmark</td>
+</tr>
+<tr>
+<td>CI/CD</td>
+<td>❌ Aucun</td>
+<td>Pas de GitHub Actions</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="8-ordre-de-priorit%C3%A9-pour-le-lancement">8. ORDRE DE PRIORITÉ POUR LE LANCEMENT</h2>
+<h3 id="phase-1--mvp-testable-1-semaine">Phase 1 — MVP testable (1 semaine)</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Tâche</th>
+<th>Effort</th>
+<th>Bloquant</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Formspree — remplacer VOTRE_ID</td>
+<td>5 min</td>
+<td>Formulaire ne marche pas</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Domaine — connecter autodocpro.fr sur Hostinger</td>
+<td>30 min</td>
+<td>URL pas pro</td>
+</tr>
+<tr>
+<td>3</td>
+<td>SSL — activer HTTPS</td>
+<td>5 min</td>
+<td>Sécurité navigateur</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Twilio — intégrer envoi SMS réel</td>
+<td>2h</td>
+<td>Client ne reçoit pas le lien</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Cerfa PDF — générer vrai PDF avec pdfrw</td>
+<td>1-2 jours</td>
+<td>Pro ne peut pas télécharger le Cerfa</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Cerfa templates — ajouter 15776 (cession) + 13757 (mandat)</td>
+<td>1h</td>
+<td>Télécharger depuis service-public.gouv.fr</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Cachet + signature sur PDF</td>
+<td>4h</td>
+<td>Cerfa sort sans cachet</td>
+</tr>
+</tbody>
+</table>
+<h3 id="phase-2--s%C3%A9curit%C3%A9--paiement-1-semaine">Phase 2 — Sécurité + paiement (1 semaine)</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Tâche</th>
+<th>Effort</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>8</td>
+<td>JWT — implémenter auth</td>
+<td>4h</td>
+</tr>
+<tr>
+<td>9</td>
+<td>CORS — restreindre aux domaines autorisés</td>
+<td>30 min</td>
+</tr>
+<tr>
+<td>10</td>
+<td>URL API — variable d'env dans le frontend</td>
+<td>30 min</td>
+</tr>
+<tr>
+<td>11</td>
+<td>Stripe — intégrer paiement</td>
+<td>1 jour</td>
+</tr>
+<tr>
+<td>12</td>
+<td>Déployer backend sur Railway</td>
+<td>2h</td>
+</tr>
+<tr>
+<td>13</td>
+<td>Déployer frontend sur Railway/Vercel</td>
+<td>1h</td>
+</tr>
+</tbody>
+</table>
+<h3 id="phase-3--production-1-semaine">Phase 3 — Production (1 semaine)</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Tâche</th>
+<th>Effort</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>14</td>
+<td>Dockerfile</td>
+<td>1h</td>
+</tr>
+<tr>
+<td>15</td>
+<td>Sentry monitoring</td>
+<td>30 min</td>
+</tr>
+<tr>
+<td>16</td>
+<td>Rate limiting Redis</td>
+<td>2h</td>
+</tr>
+<tr>
+<td>17</td>
+<td>S3 stockage production</td>
+<td>1h</td>
+</tr>
+<tr>
+<td>18</td>
+<td>Email notifications pro</td>
+<td>4h</td>
+</tr>
+<tr>
+<td>19</td>
+<td>Tests E2E</td>
+<td>1-2 jours</td>
+</tr>
+<tr>
+<td>20</td>
+<td>CI/CD GitHub Actions</td>
+<td>2h</td>
+</tr>
+</tbody>
+</table>
+<h3 id="phase-4--plus-tard">Phase 4 — Plus tard</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Tâche</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>21</td>
+<td>Signature numérique cession (OTP réel)</td>
+</tr>
+<tr>
+<td>22</td>
+<td>Génération mandats 13757</td>
+</tr>
+<tr>
+<td>23</td>
+<td>Partage dossier vendeur → agent</td>
+</tr>
+<tr>
+<td>24</td>
+<td>Workers Celery asynchrones</td>
+</tr>
+<tr>
+<td>25</td>
+<td>SIV ANTS (quand habilitation obtenue)</td>
+</tr>
+<tr>
+<td>26</td>
+<td>Vidéos de démo</td>
+</tr>
+<tr>
+<td>27</td>
+<td>Preuve sociale (témoignages)</td>
+</tr>
+</tbody>
+</table>
+
+</body>
+</html>

@@ -7,6 +7,7 @@ POST   /decisions/{dossier_id}/retry     Relancer le pipeline Phase 1
 """
 from __future__ import annotations
 
+import logging
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -15,6 +16,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.models.base import get_db
 from api.models.dossier import DossierDB
+from api.models.professionnel import Professionnel
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -76,16 +80,32 @@ async def agent_override(
     dossier.agent_id = request.agent_id
     dossier.agent_decision = request.decision
     dossier.agent_notes = request.notes
+
+    # Si accepté → diagnostic VERT
+    if request.decision == "ACCEPTE":
+        dossier.diagnostic = "VERT"
+
     await db.flush()
 
-    # TODO: créer AuditLog entry
-    # TODO: si ACCEPTE → mettre à jour diagnostic VERT
-    # TODO: notifier le pro
+    # Notifier le pro
+    pro = await db.get(Professionnel, dossier.professionnel_id)
+    if pro and pro.email_commerce:
+        from notifications.email import send_email
+        template = "dossier_accepte" if request.decision == "ACCEPTE" else "dossier_rejete"
+        await send_email(pro.email_commerce, template, {
+            "reference": dossier.reference or "",
+            "diagnostic": dossier.diagnostic or "",
+            "tax_total": str(dossier.tax_estimate.get("total", "—")) if dossier.tax_estimate else "—",
+            "motifs": request.notes or "Aucun motif précisé.",
+        })
+
+    logger.info(f"[Decision] Override dossier={dossier_id} → {request.decision} par agent={request.agent_id}")
 
     return {
         "status": "ok",
         "dossier_id": str(dossier_id),
         "new_status": request.decision,
+        "diagnostic": dossier.diagnostic,
         "agent_id": str(request.agent_id),
     }
 
@@ -96,8 +116,7 @@ async def retry_pipeline(
     db: AsyncSession = Depends(get_db),
 ):
     """
-    Relance le pipeline Phase 1 après correction.
-
+    Relance le diagnostic après correction.
     Le dossier doit être en CORRECTION ou PENDING.
     """
     dossier = await db.get(DossierDB, dossier_id)
@@ -110,15 +129,24 @@ async def retry_pipeline(
             detail=f"Retry impossible — le dossier est en statut {dossier.status}",
         )
 
-    dossier.status = "PROCESSING"
-    dossier.diagnostic = None
-    dossier.blocages = None
-    dossier.validation_warnings = None
-    dossier.cross_check_results = None
+    # Relancer le diagnostic en synchrone (comme l'endpoint run-diagnostic)
+    from api.routers.documents import _build_dossier_dict
+    from engine.pipeline.realtime import run_diagnostic
+
+    dossier_dict = await _build_dossier_dict(db, dossier)
+    result = run_diagnostic(dossier_dict)
+
+    dossier.diagnostic = result["diagnostic"]
+    dossier.blocages = result.get("blocages")
+    dossier.tax_estimate = result.get("tax_estimate")
+    dossier.status = "DIAGNOSTIC"
     await db.flush()
 
-    # TODO: lancer task Celery pipeline Phase 1
-    # from workers.pipeline import process_dossier
-    # process_dossier.delay(str(dossier_id))
+    logger.info(f"[Decision] Retry dossier={dossier_id} → diagnostic={result['diagnostic']}")
 
-    return {"status": "ok", "message": "Pipeline Phase 1 relancé", "dossier_id": str(dossier_id)}
+    return {
+        "status": "ok",
+        "message": "Diagnostic relancé",
+        "dossier_id": str(dossier_id),
+        "diagnostic": result["diagnostic"],
+    }

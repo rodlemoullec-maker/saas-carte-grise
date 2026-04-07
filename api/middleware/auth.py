@@ -1,10 +1,7 @@
 """
 Middleware d'authentification JWT.
 
-TODO: implémenter la validation du Bearer token.
-TODO: implémenter le RBAC (admin, agent_habilite, commercial).
-TODO: implémenter le refresh token.
+L'auth est implémentée via les dépendances FastAPI dans api/auth.py.
+Ce module est conservé pour un futur middleware global si nécessaire.
 """
 from __future__ import annotations
-# TODO: from fastapi import Request, HTTPException
-# TODO: from jose import JWTError, jwt

@@ -18,9 +18,10 @@ class Professionnel(Base, TimestampMixin):
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     raison_sociale: Mapped[str] = mapped_column(String(255))
-    siret: Mapped[str] = mapped_column(String(14), unique=True, index=True)
-    siren: Mapped[str] = mapped_column(String(9), index=True)
+    siret: Mapped[str | None] = mapped_column(String(14), nullable=True, index=True)
+    siren: Mapped[str | None] = mapped_column(String(9), nullable=True, index=True)
     email: Mapped[str] = mapped_column(String(255), unique=True)
+    password_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
     telephone: Mapped[str | None] = mapped_column(String(20), nullable=True)
 
     # Adresse
@@ -70,6 +71,26 @@ class Professionnel(Base, TimestampMixin):
 
     # Setup complet ?
     setup_complete: Mapped[bool] = mapped_column(Boolean, default=False)
+
+    # Type de compte : détermine le flux du système
+    # VENDEUR_HABILITE = vend un véhicule, soumet lui-même au SIV (défaut)
+    # VENDEUR_NON_HABILITE = vend un véhicule, son agent habilité soumet au SIV
+    # AGENT_HABILITE = ne vend pas, fait la CG pour le compte du client
+    type_compte: Mapped[str] = mapped_column(String(30), default="VENDEUR_HABILITE")
+
+    # Infos agent habilité (pour VENDEUR_NON_HABILITE uniquement)
+    agent_nom: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    agent_siret: Mapped[str | None] = mapped_column(String(14), nullable=True)
+    agent_numero_habilitation: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    agent_telephone: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    agent_email: Mapped[str | None] = mapped_column(String(255), nullable=True)
+
+    # Page publique (URL permanente)
+    slug: Mapped[str | None] = mapped_column(String(100), nullable=True, unique=True, index=True)
+    page_publique_active: Mapped[bool] = mapped_column(Boolean, default=False)
+
+    # CGV acceptées
+    cgv_acceptees: Mapped[bool] = mapped_column(Boolean, default=False)
 
     # Actif
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)

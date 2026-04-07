@@ -23,6 +23,9 @@ class DossierDB(Base, TimestampMixin):
     type: Mapped[str | None] = mapped_column(String(40), nullable=True)  # Déduit auto (VN/VO) après upload docs
     status: Mapped[str] = mapped_column(String(20), default="PENDING", index=True)
 
+    # Source de création : "PRO" (flux classique) ou "CLIENT" (URL permanente)
+    created_by_source: Mapped[str] = mapped_column(String(10), default="PRO")
+
     # Véhicule
     vin: Mapped[str | None] = mapped_column(String(17), nullable=True, index=True)
     immatriculation: Mapped[str | None] = mapped_column(String(10), nullable=True, index=True)

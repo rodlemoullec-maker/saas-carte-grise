@@ -31,7 +31,7 @@ from engine.pipeline.realtime import (
     _build_recap_validation,
     set_profil_pro,
 )
-from integrations.llm.claude_extractor import claude_classify, claude_extract
+from integrations.llm.claude_extractor import claude_classify, claude_extract, claude_verify
 from notifications.messages import DOC_ILLISIBLE, QUALITE_OCR
 
 logger = logging.getLogger(__name__)
@@ -259,7 +259,7 @@ async def upload_document(
     Upload un document — OCR + classification + extraction en temps reel.
 
     Le moteur complet du demo_server est utilise :
-    - OCR Tesseract → fallback Google DocAI si non classifiable
+    - OCR Google Document AI
     - Classification automatique du type de document
     - Extraction des donnees
     - Detection auto VN/VO (si vendeur)
@@ -502,6 +502,10 @@ async def upload_document(
         # Mettre a jour le dossier BDD
         if dossier_dict.get("type") and not dossier.type:
             dossier.type = dossier_dict["type"]
+            # Tarification automatique : 12 EUR moto, 14 EUR voiture
+            detected_upper = dossier_dict["type"].upper()
+            is_moto = detected_upper in ("MOTO", "L1E", "L2E", "L3E", "L4E", "L5E", "L6E", "L7E")
+            dossier.montant_honoraires = 12.0 if is_moto else 14.0
         if dossier_dict.get("vin") and not dossier.vin:
             dossier.vin = dossier_dict["vin"]
         if dossier_dict.get("immatriculation") and not dossier.immatriculation:
@@ -583,6 +587,14 @@ async def upload_document(
                     f"Ca prend 2 minutes."
                 )
 
+    # ─── Verification inter-documents (quand le dossier client est complet) ───
+    coherence_warnings: list[dict] = []
+    if source == "client" and dossier_complet and dossier_dict:
+        try:
+            coherence_warnings = await _verify_cross_documents(dossier_dict)
+        except Exception as e:
+            logger.warning(f"[Verify] Coherence inter-docs echouee: {e}")
+
     # ─── Analyse faces recto/verso ───
     faces_info = _analyze_document_faces(detected_type, extracted)
 
@@ -646,6 +658,7 @@ async def upload_document(
         "pro_docs_checklist": checklist if source == "vendeur" else None,
         "client_docs_checklist": checklist if source == "client" else None,
         "recapitulatif_validation": recap if source == "vendeur" and checklist and checklist.get("client_link_ready") else None,
+        "coherence_warnings": coherence_warnings if coherence_warnings else None,
     }
 
 
@@ -761,3 +774,55 @@ async def _build_dossier_dict(db: AsyncSession, dossier: DossierDB) -> dict:
         "assurance_flotte_couvre": (dossier.metadata_ or {}).get("assurance_flotte_couvre", False),
         "choix_assurance_pro": (dossier.metadata_ or {}).get("choix_assurance_pro"),
     }
+
+
+async def _verify_cross_documents(dossier_dict: dict) -> list[dict]:
+    """
+    Verifie la coherence inter-documents quand le dossier client est complet.
+    Compare : CNI/passeport vs CG (nom), CNI vs permis (nom + date naissance),
+    facture/CG vs COC (VIN).
+    """
+    warnings: list[dict] = []
+    all_docs = dossier_dict.get("documents", [])
+
+    # Indexer par type
+    by_type: dict[str, dict] = {}
+    for doc in all_docs:
+        t = doc.get("type")
+        if t and doc.get("extracted_data"):
+            by_type[t] = doc["extracted_data"]
+
+    # Identite : CNI ou PASSEPORT vs CG_BARREE (nom titulaire)
+    id_doc = by_type.get("CNI") or by_type.get("PASSEPORT")
+    cg_doc = by_type.get("CG_BARREE")
+    if id_doc and cg_doc:
+        try:
+            result = await claude_verify(id_doc, cg_doc, "identite_vs_cg")
+            if not result.get("coherent"):
+                warnings.append({
+                    "check": "identite_vs_cg",
+                    "coherent": False,
+                    "details": result.get("details", ""),
+                    "problemes": result.get("problemes", []),
+                })
+        except Exception as e:
+            logger.warning(f"[Verify] identite_vs_cg echoue: {e}")
+
+    # Vehicule : COC vs CG_BARREE ou FACTURE (VIN)
+    coc_doc = by_type.get("COC")
+    facture_doc = by_type.get("FACTURE")
+    vehicle_ref = coc_doc or facture_doc
+    if vehicle_ref and cg_doc:
+        try:
+            result = await claude_verify(vehicle_ref, cg_doc, "vehicule_vin")
+            if not result.get("coherent"):
+                warnings.append({
+                    "check": "vehicule_vin",
+                    "coherent": False,
+                    "details": result.get("details", ""),
+                    "problemes": result.get("problemes", []),
+                })
+        except Exception as e:
+            logger.warning(f"[Verify] vehicule_vin echoue: {e}")
+
+    return warnings

@@ -9,30 +9,24 @@ Templates :
 - dossier_rejete        → rejet avec motif
 - siv_confirme          → CG envoyée, CPI disponible
 - phase0_alerte         → blocage détecté en Phase 0 (gage/vol/OTCI)
+- client_a_uploade      → notification pro quand client dépose docs
+- cerfa_pret            → notification pro quand Cerfa est prêt
 
-Architecture : SMTP async (aiosmtplib) en dev, SendGrid en production.
+Backends :
+- development : log seulement
+- production  : SMTP async (aiosmtplib)
 """
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 from typing import Any
 
 logger = logging.getLogger(__name__)
 
 
-@dataclass
-class EmailConfig:
-    smtp_host: str = "localhost"
-    smtp_port: int = 587
-    smtp_user: str = ""
-    smtp_password: str = ""
-    from_email: str = "noreply@cartegrise.pro"
-    from_name: str = "Carte Grise Pro"
-
-
-# Templates (clé → sujet + corps simplifié)
-# En production, utiliser Jinja2 avec templates HTML
+# Templates (clé → sujet + corps)
 TEMPLATES: dict[str, dict[str, str]] = {
     "dossier_recu": {
         "subject": "Votre dossier {reference} a été reçu",
@@ -42,7 +36,7 @@ TEMPLATES: dict[str, dict[str, str]] = {
             "Nous traitons vos documents et reviendrons vers vous rapidement.\n\n"
             "Référence : {reference}\n"
             "Type : {type}\n\n"
-            "Cordialement,\nL'équipe Carte Grise Pro"
+            "Cordialement,\nL'équipe AutoDoc Pro"
         ),
     },
     "documents_manquants": {
@@ -52,7 +46,7 @@ TEMPLATES: dict[str, dict[str, str]] = {
             "Il nous manque les documents suivants pour traiter votre dossier {reference} :\n\n"
             "{documents_list}\n\n"
             "Merci de les transmettre au plus vite à votre professionnel.\n\n"
-            "Cordialement,\nL'équipe Carte Grise Pro"
+            "Cordialement,\nL'équipe AutoDoc Pro"
         ),
     },
     "correction_requise": {
@@ -62,7 +56,7 @@ TEMPLATES: dict[str, dict[str, str]] = {
             "Le dossier {reference} nécessite des corrections :\n\n"
             "{corrections_list}\n\n"
             "Merci de corriger ces points et de relancer le traitement.\n\n"
-            "Cordialement,\nL'équipe Carte Grise Pro"
+            "Cordialement,\nL'équipe AutoDoc Pro"
         ),
     },
     "dossier_accepte": {
@@ -70,11 +64,10 @@ TEMPLATES: dict[str, dict[str, str]] = {
         "body": (
             "Bonjour,\n\n"
             "Le dossier {reference} a passé tous les contrôles.\n"
-            "Diagnostic : {diagnostic}\n"
-            "Score : {score}/100\n\n"
-            "Estimation taxes : {tax_total}€ (indicatif)\n\n"
-            "Vous pouvez lancer le traitement depuis votre espace.\n\n"
-            "Cordialement,\nL'équipe Carte Grise Pro"
+            "Diagnostic : {diagnostic}\n\n"
+            "Estimation taxes : {tax_total} EUR (indicatif)\n\n"
+            "Vous pouvez generer le Cerfa depuis votre espace.\n\n"
+            "Cordialement,\nL'équipe AutoDoc Pro"
         ),
     },
     "dossier_rejete": {
@@ -84,7 +77,7 @@ TEMPLATES: dict[str, dict[str, str]] = {
             "Le dossier {reference} a été rejeté.\n\n"
             "Motif(s) :\n{motifs}\n\n"
             "Contactez-nous si vous pensez qu'il s'agit d'une erreur.\n\n"
-            "Cordialement,\nL'équipe Carte Grise Pro"
+            "Cordialement,\nL'équipe AutoDoc Pro"
         ),
     },
     "siv_confirme": {
@@ -94,7 +87,7 @@ TEMPLATES: dict[str, dict[str, str]] = {
             "Votre demande de carte grise a été soumise au SIV.\n"
             "Référence SIV : {siv_reference}\n\n"
             "Le Certificat Provisoire d'Immatriculation (CPI) est disponible.\n\n"
-            "Cordialement,\nL'équipe Carte Grise Pro"
+            "Cordialement,\nL'équipe AutoDoc Pro"
         ),
     },
     "docs_pro_qualite": {
@@ -104,13 +97,12 @@ TEMPLATES: dict[str, dict[str, str]] = {
             "Un ou plusieurs documents que vous avez déposés pour le dossier {reference} "
             "n'ont pas pu être lus correctement par notre système :\n\n"
             "{problemes_list}\n\n"
-            "Le lien au client ne sera envoyé qu'une fois vos documents lisibles et valides.\n\n"
-            "Merci de re-déposer les documents concernés depuis votre espace admin.\n\n"
+            "Merci de re-déposer les documents concernés depuis votre espace.\n\n"
             "Conseils :\n"
             "- Scanner le document bien à plat, avec un bon éclairage\n"
             "- Éviter les reflets, les doigts sur le document, les zones d'ombre\n"
             "- Privilégier le format PDF ou une photo nette en haute résolution\n\n"
-            "Cordialement,\nL'équipe Carte Grise Pro"
+            "Cordialement,\nL'équipe AutoDoc Pro"
         ),
     },
     "docs_pro_valides": {
@@ -122,7 +114,7 @@ TEMPLATES: dict[str, dict[str, str]] = {
             "Le lien de collecte a été envoyé automatiquement à votre client "
             "au {client_telephone}.\n\n"
             "Vous serez notifié dès que le client aura déposé ses documents.\n\n"
-            "Cordialement,\nL'équipe Carte Grise Pro"
+            "Cordialement,\nL'équipe AutoDoc Pro"
         ),
     },
     "phase0_alerte": {
@@ -133,7 +125,26 @@ TEMPLATES: dict[str, dict[str, str]] = {
             "{immatriculation} :\n\n"
             "{blockers}\n\n"
             "Le dossier ne peut pas être poursuivi tant que ce blocage n'est pas levé.\n\n"
-            "Cordialement,\nL'équipe Carte Grise Pro"
+            "Cordialement,\nL'équipe AutoDoc Pro"
+        ),
+    },
+    "client_a_uploade": {
+        "subject": "Votre client a déposé ses documents — Dossier {reference}",
+        "body": (
+            "Bonjour,\n\n"
+            "Votre client {client_nom} a déposé ses documents pour le dossier {reference}.\n\n"
+            "Documents reçus :\n{documents_list}\n\n"
+            "Connectez-vous à votre espace pour lancer le diagnostic.\n\n"
+            "Cordialement,\nL'équipe AutoDoc Pro"
+        ),
+    },
+    "cerfa_pret": {
+        "subject": "Cerfa prêt — Dossier {reference}",
+        "body": (
+            "Bonjour,\n\n"
+            "Le Cerfa du dossier {reference} est prêt.\n\n"
+            "Connectez-vous à votre espace pour le télécharger et le soumettre au SIV.\n\n"
+            "Cordialement,\nL'équipe AutoDoc Pro"
         ),
     },
 }
@@ -143,13 +154,8 @@ async def send_email(to: str, template: str, context: dict[str, Any]) -> bool:
     """
     Envoie un email transactionnel.
 
-    Args:
-        to: Adresse email du destinataire
-        template: Clé du template (voir TEMPLATES)
-        context: Variables de contexte pour le template
-
-    Returns:
-        True si envoyé avec succès, False sinon.
+    En dev : log seulement.
+    En prod : SMTP async via aiosmtplib.
     """
     tpl = TEMPLATES.get(template)
     if not tpl:
@@ -159,24 +165,36 @@ async def send_email(to: str, template: str, context: dict[str, Any]) -> bool:
     subject = tpl["subject"].format_map(_safe_context(context))
     body = tpl["body"].format_map(_safe_context(context))
 
-    # TODO: en production, remplacer par aiosmtplib ou SendGrid
-    logger.info(f"[Email] To={to} Subject={subject}")
-    logger.debug(f"[Email] Body={body[:200]}...")
+    from config.settings import get_settings
+    settings = get_settings()
 
-    # Placeholder — en dev, on log seulement
+    # Dev → log seulement
+    if settings.app_env.value == "development":
+        logger.info(f"[Email DEV] To={to} Subject={subject}")
+        return True
+
+    # Production → SMTP
     try:
-        # import aiosmtplib
-        # await aiosmtplib.send(
-        #     message=_build_mime(to, subject, body),
-        #     hostname=config.smtp_host,
-        #     port=config.smtp_port,
-        #     username=config.smtp_user,
-        #     password=config.smtp_password,
-        #     start_tls=True,
-        # )
+        import aiosmtplib
+
+        msg = MIMEMultipart()
+        msg["From"] = f"AutoDoc Pro <{settings.smtp_from_email}>"
+        msg["To"] = to
+        msg["Subject"] = subject
+        msg.attach(MIMEText(body, "plain", "utf-8"))
+
+        await aiosmtplib.send(
+            msg,
+            hostname=settings.smtp_host,
+            port=settings.smtp_port,
+            username=settings.smtp_user,
+            password=settings.smtp_password,
+            start_tls=True,
+        )
+        logger.info(f"[Email] Envoye to={to} subject={subject[:50]}")
         return True
     except Exception as e:
-        logger.error(f"[Email] Échec envoi à {to}: {e}")
+        logger.error(f"[Email] Echec envoi a {to}: {e}")
         return False
 
 

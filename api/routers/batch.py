@@ -138,14 +138,46 @@ async def launch_batch(
 
     await db.flush()
 
-    # TODO: pre-autorisation CB groupee (montant = honoraires x nb launched)
-    # TODO: lancer tasks Celery Phase 2 pour chaque dossier
+    # Pre-autorisation CB groupee
+    preauth_result = None
+    if launched:
+        total_cents = sum(
+            int((d.montant_honoraires or 14.0) * 100)
+            for d in dossiers
+            if str(d.id) in [l["id"] for l in launched]
+        )
+        if total_cents > 0:
+            from api.models.professionnel import Professionnel
+            pro = await db.get(Professionnel, dossiers[0].professionnel_id)
+            try:
+                from engine.payment.honoraires import HonorairesService
+                service = HonorairesService()
+                preauth = await service.preauthorize(
+                    dossier_id=dossiers[0].id,
+                    professionnel_id=dossiers[0].professionnel_id,
+                    amount_cents=total_cents,
+                    stripe_customer_id=pro.stripe_customer_id if pro else None,
+                )
+                preauth_result = {
+                    "preauth_id": preauth.preauth_id,
+                    "amount_cents": total_cents,
+                    "success": preauth.success,
+                }
+                # Sauvegarder le preauth_id sur chaque dossier lancé
+                if preauth.success and preauth.preauth_id:
+                    for d in dossiers:
+                        if str(d.id) in [l["id"] for l in launched]:
+                            d.payment_preauth_id = preauth.preauth_id
+                    await db.flush()
+            except Exception as e:
+                preauth_result = {"success": False, "error": str(e)}
 
     return {
         "launched": len(launched),
         "blocked": len(blocked),
         "dossiers_launched": launched,
         "dossiers_blocked": blocked,
+        "preauth": preauth_result,
     }
 
 

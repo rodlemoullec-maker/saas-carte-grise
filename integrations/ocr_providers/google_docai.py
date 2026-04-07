@@ -33,12 +33,15 @@ class GoogleDocAIProvider(BaseOCRProvider):
 
     async def process_document(self, file_bytes: bytes, mime_type: str) -> OCRResult:
         """Envoie un document a Google Document AI et retourne le texte extrait."""
-        from google.cloud import documentai_v1 as documentai
         import asyncio
 
-        # Appel synchrone wrappe en async
+        # Preprocessing images (contraste, nettete, redimensionnement)
+        processed_bytes = self.preprocess_image(file_bytes, mime_type)
+        # Si preprocesse en PNG, mettre a jour le mime_type
+        processed_mime = "image/png" if processed_bytes != file_bytes else mime_type
+
         result = await asyncio.get_event_loop().run_in_executor(
-            None, self._process_sync, file_bytes, mime_type
+            None, self._process_sync, processed_bytes, processed_mime
         )
         return result
 

@@ -25,8 +25,9 @@ PRO = {
         "le nom et l'adresse de votre structure — ca ne prend qu'une minute."
     ),
 
-    # Dossier
+    # Dossier — adapté selon type_compte
     "dossier_cree": "Dossier cree ! Deposez vos documents vehicule pour commencer.",
+    "dossier_cree_agent": "Dossier cree ! Deposez les documents du client et du vehicule.",
     "docs_manquants": (
         "Il nous manque encore quelques documents, ou certains ne sont pas tout a fait lisibles. "
         "Un petit ajustement et on est bons !"
@@ -37,8 +38,12 @@ PRO = {
     "attente_client": "En attente des documents de votre client. On vous previent des qu'il avance.",
     "client_a_uploade": "Bonne nouvelle ! Votre client a transmis ses documents. Le diagnostic est en cours.",
 
-    # Cerfa
+    # Cerfa — adapté selon type_compte
     "cerfa_pret": "Votre Cerfa est pret ! Telechargez-le et soumettez-le au SIV via votre portail habilite.",
+    "cerfa_pret_non_habilite": (
+        "Le dossier est pret ! Telechargez le dossier complet (ZIP) "
+        "et transmettez-le a votre agent habilite {agent_nom} pour soumission au SIV."
+    ),
 
     # Diagnostic
     "diagnostic_bloque": (
@@ -161,6 +166,21 @@ CLIENT = {
     "permis_insuffisant": (
         "Votre permis {categories} ne couvre pas cette puissance. "
         "Il vous faut un permis {permis_requis}. Rapprochez-vous de votre vendeur."
+    ),
+
+    # Variantes agent habilité (le pro n'est pas le vendeur)
+    "cpi_main_propre_agent": (
+        "C'est note ! {nom_commerce} vous contactera directement "
+        "une fois le dossier finalise aupres du SIV "
+        "pour que vous puissiez recuperer votre CPI."
+    ),
+    "dossier_termine_agent": (
+        "Merci, vos documents ont bien ete transmis. "
+        "Votre dossier de carte grise est en cours de finalisation par {nom_commerce}."
+    ),
+    "permis_insuffisant_agent": (
+        "Votre permis {categories} ne couvre pas cette puissance. "
+        "Il vous faut un permis {permis_requis}. Rapprochez-vous de {nom_commerce}."
     ),
 }
 
