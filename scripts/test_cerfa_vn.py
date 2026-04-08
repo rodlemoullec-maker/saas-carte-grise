@@ -8,6 +8,8 @@ annotate_cerfa_vn(
     vendeur_nom="GARAGE DUPONT SARL",
     constructeur_nom="STELLANTIS FRANCE",
     date_vente="15/03/2026",
+    date_reception="30/10/2025",
+    numero_k="e2*2007/46*0001*15",
     cachet_nom="GARAGE DUPONT SARL",
     cachet_adresse="17 rue de la Madeleine 27700",
     cachet_siret="12345678901234",

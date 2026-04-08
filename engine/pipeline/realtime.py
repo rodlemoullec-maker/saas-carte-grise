@@ -521,10 +521,24 @@ def extract_data(doc_type: str, text: str) -> dict:
                 # Strip trailing comma/space mais préserve les "." des acronymes (S.L., S.A.)
                 data["soussigne"] = m.group(1).strip().rstrip(", ")
                 break
+        # Date de réception par type — FR ("réception le 15/06/2025")
+        # ou EN ("granted on 30.10.2025"). Normalisation en JJ/MM/AAAA.
         m = re.search(r"[Rr]eception\s*(?:par\s*type)?\s*(?:le)?\s*[:\s]*(\d{2}/\d{2}/\d{4})", text)
-        if m: data["date_reception"] = m.group(1)
-        m = re.search(r"(?:n[.\s]*\(K\)|sous\s*le\s*n[.\s]*)\s*[:\s]*(e\d\*[\d/\*]+\w+)", text)
-        if m: data["numero_k"] = m.group(1).strip()
+        if m:
+            data["date_reception"] = m.group(1)
+        else:
+            m = re.search(r"granted\s+on\s+(\d{1,2})[./\-](\d{1,2})[./\-](\d{4})", text, re.IGNORECASE)
+            if m:
+                data["date_reception"] = f"{m.group(1).zfill(2)}/{m.group(2).zfill(2)}/{m.group(3)}"
+
+        # Numéro de réception européen "K" — format eN*directive/année*base*extension
+        # Présent sur tous les COC européens. Exemples :
+        #   e2*2007/46*0001*15  (voiture FR)
+        #   e9*168/2013*16436*02  (moto STARK)
+        # On match directement le format, sans dépendre du libellé qui varie selon les pays.
+        m = re.search(r"\b(e\d{1,2}\*\d{2,4}/\d{2,4}\*\d{3,6}\*\d{1,4})\b", text)
+        if m:
+            data["numero_k"] = m.group(1)
         m = re.search(r"(?:J\.?1|[Gg]enre\s*national)\s*[:\s]*([A-Z]{2,10})", text)
         if m: data["genre_national"] = m.group(1).strip()
         m = re.search(r"[Dd]enomination\s*commerciale\s*[:\s]*(.{2,50})", text)
