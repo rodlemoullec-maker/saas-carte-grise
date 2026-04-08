@@ -114,6 +114,79 @@ def _extract_hints_from_attachment_results(results: list[dict]) -> dict:
     return hints
 
 
+# ─── Helper : drop direct d'un PDF/image hors email ────────────────────────
+
+
+async def _upload_single_document(
+    file,
+    file_bytes: bytes,
+    target_dossier_id: str | None,
+    db: AsyncSession,
+):
+    """
+    Cas où l'agent dépose directement un PDF/JPG/PNG (pas un .eml/.msg).
+    On crée un dossier vide si nécessaire puis on déclenche le pipeline
+    d'upload standard du router /documents pour bénéficier du multi-pages.
+    """
+    import uuid as _uuid
+    import io
+    from api.routers.documents import upload_document
+    from fastapi import UploadFile
+
+    # 1) Créer (ou récupérer) le dossier cible
+    if target_dossier_id:
+        dossier = await db.get(DossierDB, target_dossier_id)
+        if not dossier:
+            raise HTTPException(404, "Dossier cible non trouvé")
+        dossier_id = dossier.id
+    else:
+        agent = await get_current_agent(db)
+        new = DossierDB(
+            id=str(_uuid.uuid4()),
+            reference=_make_reference(),
+            type=None,
+            status="PENDING",
+            professionnel_id=agent.id,
+        )
+        db.add(new)
+        await db.flush()
+        dossier_id = new.id
+
+    # 2) Reconstruire un UploadFile à partir des bytes pour appeler le pipeline.
+    # content_type doit passer par headers (pas de setter direct sur UploadFile).
+    from starlette.datastructures import Headers
+    new_upload = UploadFile(
+        filename=file.filename,
+        file=io.BytesIO(file_bytes),
+        headers=Headers({"content-type": file.content_type or "application/octet-stream"}),
+    )
+
+    upload_result = await upload_document(
+        dossier_id=dossier_id,
+        file=new_upload,
+        doc_type=None,
+        source_email_subject=None,
+        source_email_from=None,
+        db=db,
+    )
+
+    return {
+        "email": None,
+        "attachments_processed": [upload_result],
+        "attachments_skipped": [],
+        "suggested_dossier": {"id": dossier_id},
+        "next_action": "attached" if target_dossier_id else "create_new",
+        "dossier_id": dossier_id,
+        "message": "Document ajouté au dossier.",
+    }
+
+
+def _make_reference() -> str:
+    import random
+    from datetime import datetime
+    return f"CG-{datetime.utcnow().year}-{random.randint(10000, 99999)}"
+
+
 # ─── Endpoint principal — drag & drop d'un email entier ────────────────────
 
 
@@ -149,18 +222,10 @@ async def upload_email(
             "next_action": "create_new" | "attach_to_existing" | "attached"
         }
     """
-    # Vérifier l'agent
+    # Vérifier l'agent (créé d'office au démarrage, profil désormais optionnel)
     agent = await get_current_agent(db)
     if not agent:
         raise HTTPException(404, "Aucun agent configuré sur cette installation")
-    if not agent.setup_complete:
-        raise HTTPException(422, detail={
-            "error": "profil_incomplet",
-            "message": (
-                "Complétez d'abord le profil de l'agent (raison sociale, adresse, "
-                "habilitation, cachet, signature) avant de traiter un email."
-            ),
-        })
 
     # Lire le fichier
     file_bytes = await file.read()
@@ -168,6 +233,16 @@ async def upload_email(
         raise HTTPException(422, "Email vide")
     if len(file_bytes) > MAX_EMAIL_SIZE:
         raise HTTPException(422, f"Email trop volumineux (max {MAX_EMAIL_SIZE // (1024*1024)} MB)")
+
+    # Si l'utilisateur dépose directement un PDF/image (pas un email), on
+    # bascule sur le flux "document direct" : création d'un dossier vide +
+    # upload du fichier comme document unique.
+    fname_lower = (file.filename or "").lower()
+    is_email_file = fname_lower.endswith((".eml", ".msg")) or (
+        file.content_type or ""
+    ) in ("message/rfc822", "application/vnd.ms-outlook")
+    if not is_email_file:
+        return await _upload_single_document(file, file_bytes, target_dossier_id, db)
 
     # Parser l'email
     try:

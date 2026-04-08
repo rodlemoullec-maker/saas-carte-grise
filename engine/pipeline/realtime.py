@@ -68,8 +68,9 @@ DOC_TYPES = {
         ("destinataire", 0.5), ("facture electricite", 0.8),
     ],
     "CG_BARREE": [
-        ("certificat d'immatriculation", 0.6), ("carte grise", 0.6),
-        ("vendu le", 0.9), ("formule", 0.3), ("titulaire", 0.3),
+        ("certificat d'immatriculation", 1.0), ("carte grise", 1.0),
+        ("vendu le", 0.9), ("formule", 0.4), ("titulaire", 0.4),
+        ("date de 1", 0.5),  # "Date de 1ère immatriculation" = quasi unique CG
     ],
     "CERTIFICAT_CESSION": [
         ("declaration de cession", 1.0), ("cerfa 15776", 1.0),
@@ -1001,17 +1002,20 @@ def run_diagnostic(dossier: dict) -> dict:
     if flow == "VO":
         for d in by_type.get("CG_BARREE", []):
             ext = d.get("extracted_data", {})
-            # 5a. Barre diagonale
+            # 5a. Barre diagonale — warning au lieu de blocage : on extrait
+            # quand même les données du véhicule, l'agent peut continuer mais
+            # devra obtenir la CG barrée avant soumission SIV.
             if ext.get("barre_diagonale"):
                 infos.append({"code": "CG_BARREE_OK", "message": "CG barree en diagonale - OK"})
             else:
-                blocages.append({
-                    "code": "CG_NON_BARREE",
-                    "message": "La carte grise n'est pas barree en diagonale",
-                    "correction": (
-                        "Tracez une barre diagonale sur la carte grise, "
-                        "inscrivez \"vendu le\" suivi de la date et l'heure de la vente, "
-                        "ainsi que le nom et prenom de l'acheteur, puis signez."
+                warnings.append({
+                    "code": "CG_NON_BARREE_WARNING",
+                    "message": (
+                        "La carte grise n'est pas encore barree. Vous pouvez generer "
+                        "le Cerfa, mais avant la soumission au SIV, le vendeur doit "
+                        "tracer une barre diagonale, inscrire \"vendu le\" suivi de la "
+                        "date et l'heure de la vente, le nom et prenom de l'acheteur, "
+                        "puis signer."
                     ),
                 })
             # 5b. Date de vente sur la barre
@@ -1381,17 +1385,16 @@ def _auto_extract_dossier_fields(dossier: dict) -> None:
         if not dossier.get("immatriculation") and ext.get("immatriculation"):
             dossier["immatriculation"] = ext["immatriculation"]
 
-        # Nom/prenom client depuis facture (VN) ou CG barree (VO)
+        # Nom/prenom client (= ACHETEUR) :
+        # - VN : depuis la facture (case "Acheteur")
+        # - VO : exclusivement depuis la CNI de l'acheteur (cf. _auto_extract_client_fields).
+        #   On n'utilise NI le titulaire C.1 de la CG (= vendeur),
+        #   NI la barre manuscrite (souvent illisible).
         if dtype == "FACTURE":
             if not dossier.get("client_nom") and ext.get("acheteur_nom"):
                 dossier["client_nom"] = ext["acheteur_nom"]
             if not dossier.get("client_prenom") and ext.get("acheteur_prenom"):
                 dossier["client_prenom"] = ext["acheteur_prenom"]
-        elif dtype == "CG_BARREE":
-            if not dossier.get("client_nom") and ext.get("titulaire_nom"):
-                dossier["client_nom"] = ext["titulaire_nom"]
-            if not dossier.get("client_prenom") and ext.get("titulaire_prenom"):
-                dossier["client_prenom"] = ext["titulaire_prenom"]
 
 
 
@@ -2770,29 +2773,10 @@ def _check_identite_permis_coherence(dossier: dict) -> list:
                 dossier, doc_types_concernes,
             ))
 
-    # ─── 4. Nom acheteur sur CG barree ↔ CNI client ───
-    # La CG barree contient le nom de l'acheteur inscrit sur la barre horizontale.
-    # Ce nom doit correspondre au nom sur la CNI du client.
-    for d in dossier.get("documents_vendeur", []):
-        if d.get("type", "").upper() == "CG_BARREE":
-            ext_cg = d.get("extracted_data", {})
-            nom_acheteur_barre = (ext_cg.get("acheteur_nom_barre") or "").upper().strip()
-
-            if nom_acheteur_barre and nom_id and len(nom_acheteur_barre) > 1:
-                if (nom_acheteur_barre != nom_id
-                        and nom_acheteur_barre not in nom_id
-                        and nom_id not in nom_acheteur_barre):
-                    problems.append(_make_incoherence_problem(
-                        "INCOHERENCE_NOM_CG_BARREE",
-                        "Nom acheteur sur CG barree different de la CNI",
-                        (
-                            f"Nom acheteur inscrit sur la CG barree : '{nom_acheteur_barre}' — "
-                            f"Nom sur la CNI/passeport : '{nom_id}'. "
-                            "Le nom sur la barre de la CG doit correspondre a l'acheteur."
-                        ),
-                        dossier, ["CNI", "PASSEPORT", "CG_BARREE"],
-                    ))
-            break
+    # ─── 4. Nom acheteur sur CG barree — supprimé ───
+    # L'identité de l'acquéreur vient désormais directement de la CNI uploadée
+    # par l'agent. La barre manuscrite de la CG ne sert plus à rien dans le
+    # rapprochement (souvent illisible OCR + redondante avec la CNI).
 
     # ─── 5. Date vente CG barree ↔ date cession certificat 15776 ───
     date_vente_cg = None

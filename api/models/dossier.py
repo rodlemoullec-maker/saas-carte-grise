@@ -70,4 +70,5 @@ class DossierDB(Base, TimestampMixin):
 
     # Relations
     professionnel = relationship("Professionnel", back_populates="dossiers")
-    documents = relationship("DocumentDB", back_populates="dossier", lazy="selectin")
+    documents = relationship("DocumentDB", back_populates="dossier", lazy="selectin",
+                             cascade="all, delete-orphan", passive_deletes=True)

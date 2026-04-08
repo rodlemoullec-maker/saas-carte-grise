@@ -20,7 +20,7 @@ class DocumentDB(Base, TimestampMixin):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
 
     dossier_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("dossiers.id"), index=True,
+        String(36), ForeignKey("dossiers.id", ondelete="CASCADE"), index=True,
     )
 
     # Type et statut

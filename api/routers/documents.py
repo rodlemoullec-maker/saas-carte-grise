@@ -125,7 +125,7 @@ async def upload_document(
 
     # Découpage en documents logiques. Une page non reconnue est silencieusement
     # ignorée (juste loggée). Cf. décision produit : pas de pop-up "page non reconnue".
-    SCORE_MIN_CLASSIF = 0.40
+    SCORE_MIN_CLASSIF = 0.20
     logical_docs: list[dict] = []  # [{type, text, confidence, page_range, score}]
     if ocr_result and ocr_result.pages:
         # Étape 1 : classifier chaque page

@@ -19,13 +19,21 @@ from api.models.professionnel import Professionnel
 DBSession = Annotated[AsyncSession, Depends(get_db)]
 
 
-async def get_current_agent(db: DBSession) -> Professionnel | None:
+async def get_current_agent(db: DBSession) -> Professionnel:
     """
-    Récupère l'agent local courant.
-
-    En version locale, il y a un seul Professionnel (l'agent qui possède
-    cette installation). On retourne celui-là.
+    Récupère l'agent local courant. Crée un agent vide à la volée si aucun
+    n'existe — la version locale d'Imatra n'exige plus de profil agent
+    rempli pour fonctionner (cf. décision produit avril 2026).
     """
     from sqlalchemy import select
     result = await db.execute(select(Professionnel).limit(1))
-    return result.scalar_one_or_none()
+    agent = result.scalar_one_or_none()
+    if agent is None:
+        agent = Professionnel(
+            raison_sociale="(Mon cabinet)",
+            email="agent@local",
+            setup_complete=True,  # toujours True : profil désormais facultatif
+        )
+        db.add(agent)
+        await db.flush()
+    return agent

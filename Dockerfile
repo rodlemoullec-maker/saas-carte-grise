@@ -73,6 +73,7 @@ COPY integrations/ ./integrations/
 COPY notifications/ ./notifications/
 COPY storage/ ./storage/
 COPY config/ ./config/
+COPY site/assets/ ./site/assets/
 
 # ─── Frontend buildé depuis le stage précédent ─────────────────────────
 COPY --from=node-build /build/dist ./frontend/dist

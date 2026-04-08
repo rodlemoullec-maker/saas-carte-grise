@@ -87,7 +87,7 @@ class CerfaFiller:
             if cot.get("type") == "morale":
                 cotitulaire_nom = cot.get("raison_sociale", "")
             else:
-                cotitulaire_nom = f"{cot.get('nom', '')} {cot.get('prenom', '')}".strip()
+                cotitulaire_nom = f"{(cot.get('nom') or '')} {(cot.get('prenom') or '')}".strip()
 
         # Sexe
         sexe = t.get("sexe", "")
@@ -98,7 +98,7 @@ class CerfaFiller:
         personne_type = "morale" if t.get("type") == "morale" else "physique"
 
         # Nom titulaire
-        titulaire_nom = f"{t.get('nom_naissance', '')} {t.get('prenom', '')}".strip()
+        titulaire_nom = f"{(t.get('nom_naissance') or '')} {(t.get('prenom') or '')}".strip()
 
         out_path = output_path or str(Path(__file__).parent / "cerfa_vn_generated.png")
 
@@ -142,15 +142,18 @@ class CerfaFiller:
             usage="oui",
             couleur=v.get("couleur", ""),
             couleur_nuance=v.get("couleur_nuance", ""),
-            personne_type=personne_type,
-            sexe=sexe,
+            # Champs titulaire : remplis SEULEMENT si on a au moins un nom.
+            # Sinon on laisse tout vide pour ne pas pré-cocher de cases par défaut.
+            personne_type=personne_type if titulaire_nom else "",
+            sexe=sexe if titulaire_nom else "",
             titulaire_nom=titulaire_nom,
-            titulaire_nom_usage=t.get("nom_usage", ""),
-            titulaire_date_naissance=t.get("date_naissance", ""),
-            titulaire_lieu_naissance=t.get("commune_naissance", ""),
-            titulaire_dpt_naissance=t.get("departement_naissance", ""),
-            titulaire_pays_naissance=t.get("pays_naissance", "FRANCE"),
-            multi_propriete=str(metadata.get("nombre_titulaires", 1)),
+            titulaire_nom_usage=t.get("nom_usage", "") if titulaire_nom else "",
+            titulaire_date_naissance=t.get("date_naissance", "") if titulaire_nom else "",
+            titulaire_lieu_naissance=t.get("commune_naissance", "") if titulaire_nom else "",
+            titulaire_dpt_naissance=t.get("departement_naissance", "") if titulaire_nom else "",
+            titulaire_pays_naissance=(t.get("pays_naissance") or "") if titulaire_nom else "",
+            multi_propriete=(str(metadata.get("nombre_titulaires"))
+                             if metadata.get("nombre_titulaires") and titulaire_nom else ""),
             cotitulaire_nom=cotitulaire_nom,
             adresse_num_voie=a.get("numero_voie", ""),
             adresse_extension=a.get("extension", ""),
@@ -195,7 +198,7 @@ class CerfaFiller:
 
         # Type personne
         personne_type = "morale" if t.get("type") == "morale" else "physique"
-        titulaire_nom = f"{t.get('nom_naissance', '')} {t.get('prenom', '')}".strip()
+        titulaire_nom = f"{(t.get('nom_naissance') or '')} {(t.get('prenom') or '')}".strip()
         if personne_type == "morale":
             titulaire_nom = t.get("raison_sociale", "")
 
@@ -213,7 +216,7 @@ class CerfaFiller:
                 cotitulaire_nom = cot.get("raison_sociale", "")
                 cotitulaire_siret = cot.get("siren", "")
             else:
-                cotitulaire_nom = f"{cot.get('nom', '')} {cot.get('prenom', '')}".strip()
+                cotitulaire_nom = f"{(cot.get('nom') or '')} {(cot.get('prenom') or '')}".strip()
                 cotitulaire_nom_usage = cot.get("nom_usage", "")
 
         out_path = output_path or str(Path(__file__).parent / "cerfa_vo_generated.png")
@@ -234,21 +237,23 @@ class CerfaFiller:
             num_exploitation_agricole=v.get("num_exploitation_agricole", ""),
             couleur=v.get("couleur", ""),
             couleur_nuance=v.get("couleur_nuance", ""),
-            personne_type=personne_type,
-            sexe=sexe,
+            # Champs titulaire : remplis SEULEMENT si on a au moins un nom.
+            personne_type=personne_type if titulaire_nom else "",
+            sexe=sexe if titulaire_nom else "",
             titulaire_nom=titulaire_nom,
-            titulaire_nom_usage=t.get("nom_usage", ""),
-            titulaire_date_naissance=t.get("date_naissance", ""),
-            titulaire_lieu_naissance=t.get("commune_naissance", ""),
-            titulaire_dpt_naissance=t.get("departement_naissance", ""),
-            titulaire_pays_naissance=t.get("pays_naissance", "FRANCE"),
+            titulaire_nom_usage=t.get("nom_usage", "") if titulaire_nom else "",
+            titulaire_date_naissance=t.get("date_naissance", "") if titulaire_nom else "",
+            titulaire_lieu_naissance=t.get("commune_naissance", "") if titulaire_nom else "",
+            titulaire_dpt_naissance=t.get("departement_naissance", "") if titulaire_nom else "",
+            titulaire_pays_naissance=(t.get("pays_naissance") or "") if titulaire_nom else "",
             adresse_num_voie=a.get("numero_voie", ""),
             adresse_extension=a.get("extension", ""),
             adresse_type_voie=a.get("type_voie", ""),
             adresse_nom_voie=a.get("libelle_voie", ""),
             adresse_code_postal=a.get("code_postal", ""),
             adresse_commune=a.get("commune", ""),
-            multi_propriete=str(metadata.get("nombre_titulaires", 1)),
+            multi_propriete=(str(metadata.get("nombre_titulaires"))
+                             if metadata.get("nombre_titulaires") and titulaire_nom else ""),
             cotitulaire_nom=cotitulaire_nom,
             cotitulaire_nom_usage=cotitulaire_nom_usage,
             cotitulaire_siret=cotitulaire_siret,

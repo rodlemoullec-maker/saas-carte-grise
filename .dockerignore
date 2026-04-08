@@ -55,7 +55,9 @@ desktop.ini
 
 # ─── Documentation et site vitrine (pas dans le runtime) ──────────────────
 docs/
-site/
+site/*
+!site/assets
+!site/assets/**
 
 # ─── Mémoire Claude (privée) ──────────────────────────────────────────────
 .claude/

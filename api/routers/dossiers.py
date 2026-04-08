@@ -71,15 +71,7 @@ async def create_dossier(
     agent = await get_current_agent(db)
     if not agent:
         raise HTTPException(404, "Aucun agent configuré sur cette installation")
-    if not agent.setup_complete:
-        raise HTTPException(422, detail={
-            "error": "profil_incomplet",
-            "message": (
-                "Le profil de l'agent n'est pas complet. "
-                "Renseignez votre raison sociale, adresse, numéro d'habilitation, "
-                "puis uploadez votre cachet et signature avant de créer un dossier."
-            ),
-        })
+    # Profil agent désormais optionnel : aucun blocage sur setup_complete.
 
     dossier = DossierDB(
         id=str(uuid.uuid4()),
@@ -284,7 +276,7 @@ async def cerfa_preview(dossier_id: str, db: AsyncSession = Depends(get_db)):
     # Convertir le PDF en PNG première page
     try:
         from pdf2image import convert_from_bytes
-        images = convert_from_bytes(pdf_bytes, dpi=120, first_page=1, last_page=1)
+        images = convert_from_bytes(pdf_bytes, dpi=180, first_page=1, last_page=1)
         buf = BytesIO()
         images[0].save(buf, format="PNG")
         return Response(
