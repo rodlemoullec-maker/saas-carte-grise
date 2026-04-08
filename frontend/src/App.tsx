@@ -566,6 +566,33 @@ function DossiersListPage({ onOpen }: { onOpen: (id: string) => void }) {
 
 // ─── Page Détail dossier ───────────────────────────────────────────────────
 
+function CerfaPreview({ dossierId, refreshKey }: { dossierId: string; refreshKey: number }) {
+  // Aperçu live du Cerfa : refresh à chaque changement de refreshKey
+  // (ajout d'un document, lancement diagnostic, etc.) + cache-buster sur l'URL.
+  const [tick, setTick] = useState(0)
+  useEffect(() => { setTick(t => t + 1) }, [refreshKey])
+  const src = `${API}/dossiers/${dossierId}/cerfa-preview?t=${tick}`
+  return (
+    <div className="mb-4 border border-slate-200 rounded-lg overflow-hidden bg-slate-50">
+      <div className="px-3 py-2 text-xs text-slate-500 bg-white border-b border-slate-200 flex items-center justify-between">
+        <span>Aperçu Cerfa (mise à jour automatique)</span>
+        <button
+          onClick={() => setTick(t => t + 1)}
+          className="text-blue-600 hover:text-blue-800 inline-flex items-center gap-1"
+        >
+          <RefreshCw className="w-3 h-3" /> Rafraîchir
+        </button>
+      </div>
+      <img
+        src={src}
+        alt="Aperçu Cerfa"
+        className="w-full max-h-[600px] object-contain bg-white"
+        onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
+      />
+    </div>
+  )
+}
+
 function DossierDetailPage({ dossierId, onBack }: { dossierId: string; onBack: () => void }) {
   const [admin, setAdmin] = useState<any | null>(null)
   const [loading, setLoading] = useState(true)
@@ -716,6 +743,7 @@ function DossierDetailPage({ dossierId, onBack }: { dossierId: string; onBack: (
           <h3 className="text-sm font-semibold text-slate-900 mb-3 flex items-center gap-2">
             <Package className="w-4 h-4" /> Documents
           </h3>
+          <CerfaPreview dossierId={dossierId} refreshKey={admin?.documents_vendeur?.length || 0} />
           {(admin.documents_vendeur || []).length === 0 ? (
             <p className="text-xs text-slate-400">Aucun document pour l'instant.</p>
           ) : (

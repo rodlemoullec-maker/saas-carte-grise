@@ -95,100 +95,165 @@ async def upload_document(
     if len(file_bytes) == 0:
         raise HTTPException(status_code=422, detail="Fichier vide")
 
-    # Stocker le fichier (chiffré local)
+    # Stocker le fichier UNE SEULE FOIS (chiffré local). Si le fichier contient
+    # plusieurs documents (PDF multi-pages), on créera N rows en BDD pointant
+    # toutes vers ce même storage_path.
     store = get_document_store()
     sha256 = store.compute_sha256(file_bytes)
-    doc_id = str(uuid.uuid4())
-    storage_path = f"{dossier_id}/{doc_id}/{file.filename}"
+    upload_id = str(uuid.uuid4())
+    storage_path = f"{dossier_id}/{upload_id}/{file.filename}"
     await store.save(file_bytes, storage_path, file.content_type)
 
-    # Créer en BDD
-    document = DocumentDB(
-        id=doc_id,
-        dossier_id=dossier_id,
-        type="PENDING",
-        status="PENDING",
-        storage_path=storage_path,
-        original_filename=file.filename or "unknown",
-        mime_type=file.content_type,
-        file_size_bytes=len(file_bytes),
-        sha256=sha256,
-        source_email_subject=source_email_subject,
-        source_email_from=source_email_from,
-    )
-    db.add(document)
-    await db.flush()
-
     # ════════════════════════════════════════════════════════════════════
-    # PIPELINE LOCAL : PaddleOCR → classification → extraction
+    # PIPELINE LOCAL : PaddleOCR (par page) → classification (par page) →
+    # groupement → N documents logiques
     # ════════════════════════════════════════════════════════════════════
-    raw_text = ""
-    ocr_confidence = 0.0
+    ocr_result = None
     ocr_provider_used = "none"
-
     try:
         from integrations.ocr_providers import get_ocr_provider
         from config.settings import get_settings
         provider = get_ocr_provider(get_settings().ocr_provider)
         ocr_result = await provider.process_document(file_bytes, file.content_type or "")
-        raw_text = ocr_result.full_text
-        ocr_confidence = ocr_result.average_confidence
         ocr_provider_used = ocr_result.provider
         logger.info(
-            f"[OCR] {ocr_provider_used}: {ocr_confidence:.0%}, {len(raw_text)} chars"
+            f"[OCR] {ocr_provider_used}: {ocr_result.average_confidence:.0%}, "
+            f"{len(ocr_result.pages)} page(s), {len(ocr_result.full_text)} chars"
         )
     except Exception as e:
         logger.error(f"[OCR] échec : {e}")
 
-    # Qualité
-    if ocr_confidence < OCR_SEUIL_ILLISIBLE:
-        quality_status = "illisible"
-        quality_message = "Document illisible. Re-scannez ou photographiez à nouveau."
-    elif ocr_confidence < OCR_SEUIL_AVERTISSEMENT:
-        quality_status = "avertissement"
-        quality_message = "Lecture partielle — vérifiez les champs extraits."
-    else:
-        quality_status = "ok"
-        quality_message = "Document bien reçu et lisible."
+    # Découpage en documents logiques. Une page non reconnue est silencieusement
+    # ignorée (juste loggée). Cf. décision produit : pas de pop-up "page non reconnue".
+    SCORE_MIN_CLASSIF = 0.40
+    logical_docs: list[dict] = []  # [{type, text, confidence, page_range, score}]
+    if ocr_result and ocr_result.pages:
+        # Étape 1 : classifier chaque page
+        page_classifs = []
+        for page in ocr_result.pages:
+            try:
+                ptype, pscore, _ = classify_document(page.text)
+            except Exception:
+                ptype, pscore = "AUTRE", 0.0
+            if pscore < SCORE_MIN_CLASSIF:
+                logger.info(f"[Classify] page {page.page_number} non reconnue (score {pscore:.2f}) — ignorée")
+                ptype = "INCONNU"
+            page_classifs.append({"page": page, "type": ptype, "score": pscore})
 
-    # Classification
-    detected_type = "PENDING"
+        # Étape 2 : grouper les pages consécutives de même type (sauf INCONNU)
+        i = 0
+        while i < len(page_classifs):
+            cur = page_classifs[i]
+            if cur["type"] == "INCONNU":
+                i += 1
+                continue
+            j = i
+            while j + 1 < len(page_classifs) and page_classifs[j + 1]["type"] == cur["type"]:
+                j += 1
+            group_pages = [page_classifs[k]["page"] for k in range(i, j + 1)]
+            text = "\n\n".join(p.text for p in group_pages)
+            avg_conf = sum(p.confidence for p in group_pages) / len(group_pages)
+            logical_docs.append({
+                "type": cur["type"],
+                "text": text,
+                "confidence": avg_conf,
+                "score": cur["score"],
+                "page_range": f"{group_pages[0].page_number}-{group_pages[-1].page_number}"
+                              if len(group_pages) > 1 else str(group_pages[0].page_number),
+                "page_count": len(group_pages),
+            })
+            i = j + 1
+
+    # Si rien n'a été reconnu, on crée quand même UN document marqué "AUTRE"
+    # pour que l'agent puisse le retrouver dans la liste et le classer manuellement.
+    if not logical_docs:
+        logical_docs = [{
+            "type": "AUTRE",
+            "text": ocr_result.full_text if ocr_result else "",
+            "confidence": ocr_result.average_confidence if ocr_result else 0.0,
+            "score": 0.0,
+            "page_range": "1",
+            "page_count": 1,
+        }]
+
+    logger.info(f"[Upload] {len(logical_docs)} document(s) logique(s) détecté(s) dans {file.filename}")
+
+    # Variables compatibilité réponse (premier doc créé)
+    raw_text = logical_docs[0]["text"]
+    ocr_confidence = logical_docs[0]["confidence"]
+    document = None  # sera assigné au premier DocumentDB créé ci-dessous
+
+    created_docs = []
+    detected_type = "AUTRE"
     cls_confidence = 0.0
     extracted: dict = {}
+    quality_status = "ok"
+    quality_message = "Document bien reçu et lisible."
 
-    if quality_status != "illisible" and raw_text.strip():
-        if doc_type and doc_type not in ("PENDING", "AUTRE"):
-            detected_type = doc_type
-            cls_confidence = 1.0
+    for idx, ldoc in enumerate(logical_docs):
+        ld_text = ldoc["text"]
+        ld_conf = ldoc["confidence"]
+        ld_type = ldoc["type"]
+
+        # Qualité par doc logique
+        if ld_conf < OCR_SEUIL_ILLISIBLE:
+            ld_quality = "illisible"
+        elif ld_conf < OCR_SEUIL_AVERTISSEMENT:
+            ld_quality = "avertissement"
         else:
+            ld_quality = "ok"
+
+        # Si l'agent a forcé doc_type au upload, on l'applique uniquement au 1er doc logique
+        if idx == 0 and doc_type and doc_type not in ("PENDING", "AUTRE"):
+            ld_type = doc_type
+            cls_score = 1.0
+        else:
+            cls_score = ldoc["score"]
+
+        # Extraction si type reconnu
+        ld_extracted: dict = {}
+        if ld_quality != "illisible" and ld_type not in ("AUTRE", "PENDING") and ld_text.strip():
             try:
-                detected_type, cls_confidence, _ = classify_document(raw_text)
+                ld_extracted = extract_data(ld_type, ld_text)
             except Exception as e:
-                logger.warning(f"[Classify] échec : {e}")
+                logger.warning(f"[Extract] échec sur {ld_type} : {e}")
+        # Métadonnée page_range stockée dans extracted_data
+        ld_extracted["__page_range"] = ldoc["page_range"]
+        ld_extracted["__page_count"] = ldoc["page_count"]
 
-        # Extraction
-        if detected_type and detected_type not in ("AUTRE", "PENDING"):
-            try:
-                extracted = extract_data(detected_type, raw_text)
-            except Exception as e:
-                logger.warning(f"[Extract] échec : {e}")
-                extracted = {}
-
-    doc_status = "REJECTED" if quality_status == "illisible" else "EXTRACTED"
-
-    # Mise à jour du document
-    document.type = detected_type if detected_type != "PENDING" else (doc_type or "AUTRE")
-    document.status = doc_status
-    document.ocr_provider = ocr_provider_used
-    document.ocr_confidence = ocr_confidence
-    document.ocr_raw_text = raw_text
-    document.extracted_data = extracted
-    document.classification_confidence = cls_confidence
-    document.auto_classified = doc_type is None
+        ld_doc_id = str(uuid.uuid4())
+        new_doc = DocumentDB(
+            id=ld_doc_id,
+            dossier_id=dossier_id,
+            type=ld_type,
+            status="REJECTED" if ld_quality == "illisible" else "EXTRACTED",
+            storage_path=storage_path,  # Tous les docs logiques partagent le même fichier source
+            original_filename=file.filename or "unknown",
+            mime_type=file.content_type,
+            file_size_bytes=len(file_bytes),
+            sha256=sha256,
+            source_email_subject=source_email_subject,
+            source_email_from=source_email_from,
+            ocr_provider=ocr_provider_used,
+            ocr_confidence=ld_conf,
+            ocr_raw_text=ld_text,
+            extracted_data=ld_extracted,
+            classification_confidence=cls_score,
+            auto_classified=doc_type is None,
+        )
+        db.add(new_doc)
+        created_docs.append(new_doc)
+        if document is None:
+            document = new_doc
+            detected_type = ld_type
+            cls_confidence = cls_score
+            extracted = ld_extracted
+            quality_status = ld_quality
 
     # Auto-détection VN/VO et extraction des champs du dossier
-    if detected_type in ("COC", "FACTURE", "CG_BARREE"):
-        # Construire le dict dossier pour le pipeline
+    # Examen sur l'ensemble des documents logiques créés (et plus seulement le premier)
+    all_types = {d.type for d in created_docs}
+    if all_types & {"COC", "FACTURE", "CG_BARREE"}:
         dossier_dict = await _build_dossier_dict(db, dossier)
         try:
             new_type = _auto_detect_dossier_type(dossier_dict)
@@ -205,7 +270,7 @@ async def upload_document(
         except Exception as e:
             logger.warning(f"[AutoExtract dossier] échec : {e}")
 
-    if detected_type in ("CNI", "PASSEPORT", "PERMIS", "DOMICILE"):
+    if all_types & {"CNI", "PASSEPORT", "PERMIS", "DOMICILE"}:
         dossier_dict = await _build_dossier_dict(db, dossier)
         try:
             updates = _auto_extract_client_fields(dossier_dict)
@@ -233,6 +298,16 @@ async def upload_document(
             "confidence": cls_confidence,
         },
         "extracted": extracted,
+        # Si plusieurs documents logiques détectés dans le même fichier
+        "logical_documents": [
+            {
+                "id": d.id,
+                "type": d.type,
+                "page_range": (d.extracted_data or {}).get("__page_range", "1"),
+                "confidence": d.ocr_confidence,
+            }
+            for d in created_docs
+        ],
     }
 
 

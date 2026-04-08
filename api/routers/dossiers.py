@@ -229,6 +229,74 @@ async def get_relance_email(dossier_id: str, db: AsyncSession = Depends(get_db))
     return generate_relance_email(dossier=dossier, agent=agent)
 
 
+# ─── Aperçu Cerfa live (PNG) ─────────────────────────────────────────────────
+
+
+@router.get("/{dossier_id}/cerfa-preview")
+async def cerfa_preview(dossier_id: str, db: AsyncSession = Depends(get_db)):
+    """
+    Renvoie un aperçu PNG du Cerfa en cours de remplissage.
+
+    Contrairement à /cerfa, cet endpoint :
+    - ne vérifie PAS les blocages (peut être appelé même si le dossier est incomplet)
+    - ne persiste rien (régénéré à chaque appel)
+    - retourne directement l'image PNG
+    Utilisé par le frontend pour le panneau "Aperçu Cerfa" en temps réel.
+    """
+    import asyncio
+    from fastapi.responses import Response
+    from io import BytesIO
+    from PIL import Image
+    from api.routers.documents import _build_dossier_dict
+    from engine.cerfa_automation.cerfa_filler import CerfaFiller
+
+    dossier = await db.get(DossierDB, dossier_id)
+    if not dossier:
+        raise HTTPException(404, "Dossier non trouvé")
+
+    dossier_type = "VN" if (dossier.type or "").upper() == "VN" else "VO"
+    dossier_dict = await _build_dossier_dict(db, dossier)
+    cerfa_data = CerfaFiller.build_data_from_dossier(dossier_dict)
+
+    metadata = dossier.metadata_ or {}
+    cnit_manuel = metadata.get("cnit_manuel")
+    if cnit_manuel:
+        cerfa_data.setdefault("vehicule", {})["cnit"] = cnit_manuel
+
+    # On génère un PDF puis on convertit la première page en PNG pour
+    # l'aperçu (PIL gère ça via pdf2image plus bas, mais le filler nous
+    # rend déjà un PNG intermédiaire à côté du PDF — on l'exploite).
+    try:
+        filler = CerfaFiller()
+        pdf_bytes = await asyncio.to_thread(
+            filler.fill_and_download, cerfa_data, None, dossier_type
+        )
+    except Exception as e:
+        logger.warning(f"[Preview Cerfa] échec génération : {e}")
+        # Fallback : retourner l'image vierge du Cerfa pour ne pas casser l'UI
+        from pathlib import Path
+        blank_name = "cerfa_vn_page1_blank.png" if dossier_type == "VN" else "cerfa_vo_page1_blank.png"
+        blank_path = Path(__file__).parent.parent.parent / "site" / "assets" / blank_name
+        if blank_path.exists():
+            return Response(content=blank_path.read_bytes(), media_type="image/png")
+        raise HTTPException(500, f"Aperçu indisponible : {e}")
+
+    # Convertir le PDF en PNG première page
+    try:
+        from pdf2image import convert_from_bytes
+        images = convert_from_bytes(pdf_bytes, dpi=120, first_page=1, last_page=1)
+        buf = BytesIO()
+        images[0].save(buf, format="PNG")
+        return Response(
+            content=buf.getvalue(),
+            media_type="image/png",
+            headers={"Cache-Control": "no-store"},
+        )
+    except Exception as e:
+        logger.warning(f"[Preview Cerfa] conversion PDF→PNG échouée : {e}")
+        raise HTTPException(500, f"Aperçu indisponible : {e}")
+
+
 # ─── Génération du Cerfa (100% PIL local) ────────────────────────────────────
 
 
