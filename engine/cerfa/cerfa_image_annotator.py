@@ -312,18 +312,23 @@ def annotate_cerfa_vn(
         draw.line([(sig_dx+10, sig_dy+14), (sig_dx+110, sig_dy+12)], fill=black, width=1)
 
     # ─── Champs techniques du tableau véhicule (200 DPI) ───
-    # Ligne Marque (D.1) — à droite du label, y≈380
+    # Décalage de 10px à droite pour ne pas toucher le séparateur de cellule.
+    # Ligne Marque (D.1)
     if marque_d1:
-        draw.text((519, 490), marque_d1, fill=black, font=font_xl)
-    # Type Variante Version (D.2) — y≈418
+        draw.text((535, 490), marque_d1, fill=black, font=font_xl)
+    # Type Variante Version (D.2)
     if type_variante_d2:
-        draw.text((519, 548), type_variante_d2, fill=black, font=font_xl)
+        draw.text((535, 548), type_variante_d2, fill=black, font=font_xl)
+    # Dénomination commerciale (D.3) — case dédiée en haut à droite
+    # (au-dessus de USAGE / COULEUR DOMINANTE), PAS dans le tableau technique.
+    if denomination_d3:
+        draw.text((1170, 975), denomination_d3, fill=black, font=font_xl)
     # CNIT D.2.1
     if cnit_d21:
-        draw.text((519, 600), cnit_d21, fill=black, font=font_xl)
+        draw.text((535, 600), cnit_d21, fill=black, font=font_xl)
     # VIN E
     if vin_e:
-        draw.text((1058, 600), vin_e, fill=black, font=font_xl)
+        draw.text((1075, 600), vin_e, fill=black, font=font_xl)
     # Masse F.1 (masse en charge max tech)
     if masse_f1:
         draw.text((518, 660), masse_f1, fill=black, font=font_xl)

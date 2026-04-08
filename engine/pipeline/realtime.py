@@ -52,9 +52,16 @@ DOC_TYPES = {
         ("categories", 0.3), ("prefet", 0.4),
     ],
     "COC": [
-        ("certificat de conformite", 1.0), ("certificate of conformity", 0.9),
+        # FR
+        ("certificat de conformite", 1.0),
         ("homologation", 0.5), ("cnit", 0.5), ("puissance nette", 0.6),
         ("masse en charge", 0.4),
+        # EN — la plupart des COC européens sont rédigés en anglais
+        ("certificate of conformity", 1.0),
+        ("ec certificate", 1.0),
+        ("complete vehicles", 0.6),
+        ("manufacturer", 0.4), ("vehicle identification number", 0.5),
+        ("type approval", 0.6),
     ],
     "FACTURE": [
         ("facture n", 0.9), ("total ttc", 0.7), ("prix", 0.3),
@@ -379,15 +386,26 @@ def extract_data(doc_type: str, text: str) -> dict:
 
         # ─── Extraction specifique CNI ───
         if doc_type == "CNI":
-            # Format Google DocAI CNI (champs sur lignes separees)
             if not data.get("nom_naissance"):
                 m = re.search(r"C\.?1\s+([A-Z]{2,30})", text)
                 if m: data["nom_naissance"] = m.group(1).strip()
-            if not data.get("prenoms"):
-                nom = data.get("nom_naissance", "")
-                if nom:
-                    m = re.search(re.escape(nom) + r"\s*\n\s*([A-Z][a-zÀ-ÿ]{1,20})", text)
-                    if m: data["prenoms"] = m.group(1).strip()
+            # Prenoms : capture la (les) ligne(s) qui suivent l'étiquette
+            # "Prénom(s) :" — surtout PAS le mot "Prénom" lui-même.
+            if not data.get("prenoms") or data.get("prenoms", "").lower().startswith("pr"):
+                m = re.search(
+                    r"[Pp]r[eé]nom[s]?\(?\s*s?\s*\)?\s*:?\s*\n+([A-ZÀ-Ÿ][A-Za-zÀ-ÿ\-' ]{1,30})(?:\s*\n([A-ZÀ-Ÿ][A-Za-zÀ-ÿ\-' ]{1,30}))?",
+                    text,
+                )
+                if m:
+                    p1 = m.group(1).strip()
+                    p2 = (m.group(2) or "").strip()
+                    # Filtre les faux positifs (mots qui sont en fait des labels)
+                    bad = {"sexe", "ne", "née", "à", "signature", "carte", "nationalité", "république"}
+                    if p1.lower() not in bad and len(p1) >= 2:
+                        if p2 and p2.lower() not in bad and len(p2) >= 2:
+                            data["prenoms"] = f"{p1}, {p2}"
+                        else:
+                            data["prenoms"] = p1
             # NOTE : l'adresse de la CNI n'est PAS extraite pour le Cerfa.
             # L'adresse du Cerfa vient du justificatif de domicile uniquement.
 
@@ -475,15 +493,103 @@ def extract_data(doc_type: str, text: str) -> dict:
                 data["date_obtention_b"] = data["date_delivrance"]
 
     elif doc_type == "COC":
-        # Marque (FR: "Marque", EN: "Make", ou champ 0.1)
-        m = re.search(r"(?:0\.1\.?\s*)?(?:[Mm]arque|[Mm]ake)\s*[:\s(]*([A-Z][A-Za-z\-]{1,20})", text)
-        if m: data["marque"] = m.group(1).strip()
-        # Modele / denomination commerciale (FR + EN)
-        m = re.search(r"(?:[Dd]enomination\s*(?:commerciale)?|[Cc]ommercial\s*name)\s*[:\s]*(.{2,50})", text)
-        if m: data["modele"] = m.group(1).strip()
-        # Type (champ 0.2)
-        m = re.search(r"(?:0\.2\.?\s*)?[Tt]ype\s*[:\s]*([A-Z][A-Za-z0-9\- ]{1,30})", text)
-        if m and not data.get("modele"): data["modele"] = m.group(1).strip()
+        # Helper : ligne après une étiquette précise
+        def _next_line(label_pattern: str) -> str | None:
+            m = re.search(label_pattern + r"[^\n]*\n([^\n]+)", text)
+            return m.group(1).strip() if m else None
+
+        # 0.1 Marque (commercial trade name)
+        v = _next_line(r"0\.1\.?\s*\n?\s*(?:Make|Marque)")
+        if v and v.lower() not in ("trade", "make", "marque"):
+            data["marque"] = v.split()[0]  # premier mot uniquement
+
+        # 0.2 Type
+        v = _next_line(r"0\.2\.?\s*\n?\s*Type")
+        if v and v.lower() not in ("type",):
+            data["type_variante_version"] = v
+            if not data.get("modele"):
+                data["modele"] = v
+
+        # 0.2.3 Commercial name (le vrai nom commercial - "VARG")
+        v = _next_line(r"0\.2\.3\.?")
+        if v and v.upper() not in ("VARG",) and len(v) <= 30 and not any(c in v for c in [':', '.']):
+            data["modele"] = v
+        elif v:
+            # Cas STARK : "0.2.3.\nVARG" → on récupère VARG
+            if re.match(r"^[A-Z][A-Z0-9 \-]{0,30}$", v):
+                data["modele"] = v
+
+        # 0.3 Vehicle category
+        v = _next_line(r"0\.3\.?\s*\n?\s*Vehicle\s*category")
+        if v and re.match(r"^[A-Z]\d", v):
+            data["categorie_j"] = v
+
+        # 0.4 Constructeur (nom complet) — déjà capturé via les regex `soussigne`
+
+        # 1.0 VIN (Vehicle identification number)
+        v = _next_line(r"1\.0\.?\s*\n?\s*Vehicle\s*identification\s*number")
+        if v:
+            # VIN = 17 caractères alphanumériques (sans I, O, Q)
+            mvin = re.search(r"\b([A-HJ-NPR-Z0-9]{17})\b", v)
+            if mvin:
+                data["vin"] = mvin.group(1)
+
+        # 1.8 Vitesse maximale [km/h]
+        v = _next_line(r"1\.8\.?\s*\n?\s*Maximum\s*speed")
+        if v:
+            mn = re.search(r"\d+", v)
+            if mn:
+                data["vitesse_max"] = int(mn.group(0))
+
+        # 2.1.1 Mass in running order = G (poids vide en service)
+        v = _next_line(r"2\.1\.1\.?\s*\n?\s*Mass\s*in\s*running\s*order")
+        if v:
+            mn = re.search(r"\d+", v)
+            if mn:
+                data["masse_g"] = mn.group(0)
+                data["poids_vide_g1"] = mn.group(0)
+
+        # 2.1.3 Technically permissible max laden mass = F.1
+        v = _next_line(r"2\.1\.3\.?\s*\n?\s*Technically\s*permissible\s*max\w*\s*laden\s*mass")
+        if v:
+            mn = re.search(r"\d+", v)
+            if mn:
+                data["masse_f1"] = mn.group(0)
+                data["ptac_kg"] = int(mn.group(0))
+
+        # 3.3.1 Electric vehicle configuration → énergie
+        v = _next_line(r"3\.3\.1\.?\s*\n?\s*Electric\s*vehicle\s*configuration")
+        if v and re.search(r"electric", v, re.IGNORECASE):
+            data["energie"] = "electrique"
+
+        # 3.3.3.4 Puissance électrique max 30 min [kW] → P.2
+        v = _next_line(r"3\.3\.3\.4\.?\s*\n?\s*Maximum\s*30\s*minutes\s*power")
+        if v:
+            mn = re.search(r"\d+", v)
+            if mn:
+                data["puissance_nette_p2"] = mn.group(0)
+                data["puissance_kw"] = int(mn.group(0))
+
+        # 6.16.1 Number of seating positions → S.1
+        v = _next_line(r"6\.16\.1\.?\s*\n?\s*Number\s*of\s*seating\s*positions")
+        if v:
+            mn = re.search(r"\d+", v)
+            if mn:
+                data["places_assises"] = int(mn.group(0))
+                data["places_s1"] = mn.group(0)
+
+        # 4.0.1 Environmental step → V.9 classe environnementale
+        v = _next_line(r"4\.0\.1\.?\s*\n?\s*Environmental\s*step")
+        if v and len(v) <= 30:
+            data["classe_env"] = v.strip()
+
+        # Q : rapport puissance/masse (moto uniquement, kW/kg) — calculé
+        if data.get("puissance_kw") and data.get("masse_g"):
+            try:
+                ratio = float(data["puissance_kw"]) / float(data["masse_g"])
+                data["rapport_puiss_masse"] = f"{ratio:.3f}".rstrip("0").rstrip(".")
+            except (ValueError, ZeroDivisionError):
+                pass
         # Energie (FR: Carburant/Energie, EN: Electric/Fuel, ou "pure electric")
         m = re.search(r"(?:[Cc]arburant|[Ee]nergie|[Ff]uel|[Ee]lectric\s*vehicle\s*configuration)\s*[:\s]*([A-Za-z\s]{2,30})", text)
         if m:
@@ -1065,6 +1171,30 @@ def run_diagnostic(dossier: dict) -> dict:
             if ext.get("co2_wltp"):
                 infos.append({"code": "COC_CO2", "message": f"CO2 WLTP : {ext['co2_wltp']} g/km"})
 
+            # Warning : puissance administrative P.6 manquante.
+            # Pour les motos électriques (et plus généralement les véhicules
+            # dont le COC ne contient pas la puissance fiscale française),
+            # l'agent doit la saisir à la main avant soumission SIV.
+            cat = (ext.get("categorie_j") or "").upper()
+            if not ext.get("puissance_cv"):
+                if cat.startswith("L"):
+                    msg_complement = (
+                        " Pour les motos électriques considérées comme "
+                        "équivalentes >125 cc, la valeur dépend de l'arrêté "
+                        "ministériel de réception type — vérifiez auprès "
+                        "de la base SIV ou du constructeur."
+                    )
+                else:
+                    msg_complement = ""
+                warnings.append({
+                    "code": "P6_PUISSANCE_ADMIN_MANQUANTE",
+                    "message": (
+                        "La puissance administrative (P.6) n'a pas été "
+                        "trouvée dans le COC. Saisissez-la manuellement "
+                        "sur le Cerfa avant soumission SIV." + msg_complement
+                    ),
+                })
+
     # ─── 7. Estimation taxes (si COC disponible) ──────────────────────────
     tax_estimate = None
     coc_data = {}
@@ -1346,20 +1476,23 @@ def _deduce_sexe_from_prenom(prenom: str | None) -> str | None:
 
 def _auto_detect_dossier_type(dossier: dict) -> None:
     """
-    Deduit automatiquement VN ou VO a partir des documents deposes par le pro.
+    Déduit automatiquement VN ou VO à partir des documents déposés par le pro.
 
-    - CG barrée detectee → VO (vehicule occasion)
-    - COC + Facture detectes → VN (vehicule neuf)
-    - COC seul → indetermine (peut etre VN ou VO)
+    Règle métier : la présence d'un COC est l'indicateur fort d'un véhicule
+    NEUF. Pour une occasion, le SIV a déjà l'homologation en base et le COC
+    n'est jamais redemandé. Donc :
+      - COC présent → VN (même si une CG est aussi présente, ex: CG provisoire,
+        moto qui vient d'être immatriculée par le concessionnaire, etc.)
+      - CG_BARREE seule (sans COC) → VO
+      - FACTURE seule → VN (le COC suivra)
     """
     doc_types = {d.get("type", "").upper() for d in dossier.get("documents_vendeur", [])}
 
-    if "CG_BARREE" in doc_types:
-        dossier["type"] = "VO"
-    elif "COC" in doc_types and "FACTURE" in doc_types:
+    if "COC" in doc_types:
         dossier["type"] = "VN"
+    elif "CG_BARREE" in doc_types:
+        dossier["type"] = "VO"
     elif "FACTURE" in doc_types:
-        # Facture seule → probablement VN (le COC manque encore)
         dossier["type"] = "VN"
     # Sinon on ne change pas (reste None ou la valeur precedente)
 
@@ -1404,19 +1537,26 @@ def _auto_extract_client_fields(dossier: dict) -> None:
     - Sexe deduit du prenom (CNI)
     - Detection personne morale (si Kbis uploade)
     """
-    for d in dossier.get("documents_client", []):
+    # En version locale, tous les docs sont dans documents_vendeur.
+    # On parcourt les deux listes pour rester compatible avec l'historique.
+    for d in dossier.get("documents_client", []) + dossier.get("documents_vendeur", []):
         ext = d.get("extracted_data", {})
         if not ext:
             continue
 
         dtype = d.get("type", "").upper()
 
-        # Deduire le sexe depuis le prenom de la CNI
+        # Sexe : prioritairement extrait directement de la CNI/passeport
+        # (champ "Sexe : M/F"), sinon en dernier recours déduit du prénom.
         if dtype in ("CNI", "PASSEPORT") and not dossier.get("client_sexe"):
-            prenom = ext.get("prenoms") or ext.get("prenom")
-            sexe = _deduce_sexe_from_prenom(prenom)
-            if sexe:
-                dossier["client_sexe"] = sexe
+            sexe_extrait = (ext.get("sexe") or "").upper().strip()
+            if sexe_extrait in ("M", "F"):
+                dossier["client_sexe"] = sexe_extrait
+            else:
+                prenom = ext.get("prenoms") or ext.get("prenom")
+                sexe = _deduce_sexe_from_prenom(prenom)
+                if sexe:
+                    dossier["client_sexe"] = sexe
 
             # Mettre a jour nom/prenom depuis la CNI (plus fiable que facture/CG)
             if ext.get("nom_naissance"):

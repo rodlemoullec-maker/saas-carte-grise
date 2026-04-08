@@ -133,7 +133,11 @@ async def _upload_single_document(
     from api.routers.documents import upload_document
     from fastapi import UploadFile
 
-    # 1) Créer (ou récupérer) le dossier cible
+    # 1) Cible : si l'agent a explicitement choisi un dossier, l'utiliser.
+    # Sinon : on attache au dossier PENDING le plus récent (un seul dossier
+    # en construction à la fois — comportement attendu pour la session
+    # d'agglomération CG + COC + CNI + permis + …). Si aucun, on crée.
+    from sqlalchemy import select
     if target_dossier_id:
         dossier = await db.get(DossierDB, target_dossier_id)
         if not dossier:
@@ -141,16 +145,28 @@ async def _upload_single_document(
         dossier_id = dossier.id
     else:
         agent = await get_current_agent(db)
-        new = DossierDB(
-            id=str(_uuid.uuid4()),
-            reference=_make_reference(),
-            type=None,
-            status="PENDING",
-            professionnel_id=agent.id,
+        # Chercher le dossier PENDING le plus récent de cet agent
+        result = await db.execute(
+            select(DossierDB)
+            .where(DossierDB.professionnel_id == agent.id)
+            .where(DossierDB.status == "PENDING")
+            .order_by(DossierDB.created_at.desc())
+            .limit(1)
         )
-        db.add(new)
-        await db.flush()
-        dossier_id = new.id
+        existing = result.scalar_one_or_none()
+        if existing:
+            dossier_id = existing.id
+        else:
+            new = DossierDB(
+                id=str(_uuid.uuid4()),
+                reference=_make_reference(),
+                type=None,
+                status="PENDING",
+                professionnel_id=agent.id,
+            )
+            db.add(new)
+            await db.flush()
+            dossier_id = new.id
 
     # 2) Reconstruire un UploadFile à partir des bytes pour appeler le pipeline.
     # content_type doit passer par headers (pas de setter direct sur UploadFile).

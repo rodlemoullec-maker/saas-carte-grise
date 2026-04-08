@@ -256,16 +256,22 @@ async def upload_document(
     if all_types & {"COC", "FACTURE", "CG_BARREE"}:
         dossier_dict = await _build_dossier_dict(db, dossier)
         try:
-            new_type = _auto_detect_dossier_type(dossier_dict)
-            if new_type and not dossier.type:
+            # _auto_detect_dossier_type modifie dossier_dict["type"] in place.
+            _auto_detect_dossier_type(dossier_dict)
+            new_type = dossier_dict.get("type")
+            # Toujours réévaluer : si un COC arrive après une CG, le dossier
+            # doit basculer de VO → VN.
+            if new_type:
                 dossier.type = new_type
         except Exception as e:
             logger.warning(f"[AutoDetect] échec : {e}")
 
         try:
-            updates = _auto_extract_dossier_fields(dossier_dict)
-            for k, v in (updates or {}).items():
-                if hasattr(dossier, k) and not getattr(dossier, k):
+            # Modifie dossier_dict in place ; on lit les champs ensuite.
+            _auto_extract_dossier_fields(dossier_dict)
+            for k in ("vin", "immatriculation", "client_nom", "client_prenom"):
+                v = dossier_dict.get(k)
+                if v and hasattr(dossier, k) and not getattr(dossier, k):
                     setattr(dossier, k, v)
         except Exception as e:
             logger.warning(f"[AutoExtract dossier] échec : {e}")
@@ -273,9 +279,11 @@ async def upload_document(
     if all_types & {"CNI", "PASSEPORT", "PERMIS", "DOMICILE"}:
         dossier_dict = await _build_dossier_dict(db, dossier)
         try:
-            updates = _auto_extract_client_fields(dossier_dict)
-            for k, v in (updates or {}).items():
-                if hasattr(dossier, k) and not getattr(dossier, k):
+            _auto_extract_client_fields(dossier_dict)
+            for k in ("client_nom", "client_prenom", "client_sexe",
+                      "is_personne_morale", "siren", "raison_sociale"):
+                v = dossier_dict.get(k)
+                if v is not None and hasattr(dossier, k) and not getattr(dossier, k):
                     setattr(dossier, k, v)
         except Exception as e:
             logger.warning(f"[AutoExtract client] échec : {e}")

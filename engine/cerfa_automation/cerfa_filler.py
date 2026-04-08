@@ -291,7 +291,8 @@ class CerfaFiller:
         # Vehicule
         d["demarche"] = "Certificat"
         d["vehicule"]["immatriculation"] = dossier.get("immatriculation") or ""
-        d["vehicule"]["genre_national"] = "VP"
+        # Genre national : déduit ci-dessous depuis la catégorie L/M/N du COC.
+        # Pas de défaut "VP" — laissé vide si la catégorie est inconnue.
 
         # Depuis les documents extraits
         for doc in docs:
@@ -299,33 +300,64 @@ class CerfaFiller:
             dtype = doc.get("type", "")
 
             if dtype == "COC":
-                d["vehicule"]["marque"] = ext.get("marque", "")
-                d["vehicule"]["denomination_commerciale"] = ext.get("denomination") or ext.get("modele", "")
-                d["vehicule"]["numero_identification"] = ext.get("vin") or dossier.get("vin", "")
-                d["vehicule"]["type_variante_version"] = ext.get("type_variante_version", "")
-                d["vehicule"]["cnit"] = ext.get("cnit", "")
-                d["vehicule"]["genre_national"] = ext.get("genre_national", "VP")
-                d["vehicule"]["soussigne"] = ext.get("soussigne", "")
-                d["vehicule"]["date_reception"] = ext.get("date_reception", "")
-                d["vehicule"]["numero_k"] = ext.get("numero_k", "")
-                d["vehicule"]["energie"] = ext.get("energie", "")
-                d["vehicule"]["puissance_cv"] = str(ext.get("puissance_cv") or "")
-                d["vehicule"]["co2_wltp"] = str(ext.get("co2_wltp") or "")
-                d["vehicule"]["places"] = str(ext.get("places_assises") or ext.get("places") or "")
-                d["vehicule"]["ptac_kg"] = str(ext.get("ptac_kg") or ext.get("masse_f2") or "")
-                d["vehicule"]["classe_env"] = ext.get("classe_env", "")
-                d["vehicule"]["masse_f1"] = str(ext.get("masse_f1") or ext.get("masse_kg") or "")
-                d["vehicule"]["masse_g"] = str(ext.get("masse_g") or "")
-                d["vehicule"]["masse_f3"] = str(ext.get("masse_f3") or "")
-                d["vehicule"]["poids_vide_g1"] = str(ext.get("poids_vide_g1") or "")
-                d["vehicule"]["cylindree_p1"] = str(ext.get("cylindree_p1") or ext.get("cylindree_cc") or "")
-                d["vehicule"]["puissance_nette_p2"] = str(ext.get("puissance_nette_p2") or ext.get("puissance_kw") or "")
-                d["vehicule"]["categorie_j"] = ext.get("categorie_j", "")
-                d["vehicule"]["carrosserie_j2"] = ext.get("carrosserie_j2", "")
-                d["vehicule"]["carrosserie_j3"] = ext.get("carrosserie_j3", "")
-                d["vehicule"]["niveau_sonore_u1"] = str(ext.get("niveau_sonore_u1") or "")
-                d["vehicule"]["vitesse_moteur_u2"] = str(ext.get("vitesse_moteur_u2") or "")
-                d["vehicule"]["places_debout_s2"] = str(ext.get("places_debout_s2") or "")
+                # Helper local : ne remplit que si la valeur n'existe pas déjà.
+                # Évite que le COC écrase les données déjà extraites de la CG.
+                def _set(key, value):
+                    if value and not d["vehicule"].get(key):
+                        d["vehicule"][key] = value
+
+                _set("marque", ext.get("marque"))
+                _set("denomination_commerciale", ext.get("denomination") or ext.get("modele"))
+                _set("numero_identification", ext.get("vin") or dossier.get("vin"))
+                _set("type_variante_version", ext.get("type_variante_version"))
+                _set("cnit", ext.get("cnit"))
+                # Genre national : si l'extracteur n'a pas trouvé J.1, on le
+                # déduit de la catégorie européenne L/M/N (champ 0.3 du COC).
+                _genre = ext.get("genre_national")
+                if not _genre:
+                    cat = (ext.get("categorie_j") or "").upper()
+                    if cat.startswith("L1"): _genre = "CYCL"
+                    elif cat.startswith("L2"): _genre = "TRIL"
+                    elif cat.startswith("L3"): _genre = "MTL"
+                    elif cat.startswith("L4"): _genre = "MTLS"
+                    elif cat.startswith("L5"): _genre = "TM"
+                    elif cat.startswith("L6"): _genre = "QM"
+                    elif cat.startswith("L7"): _genre = "QLEM"
+                    elif cat.startswith("M1"): _genre = "VP"
+                    elif cat.startswith("M2") or cat.startswith("M3"): _genre = "TCP"
+                    elif cat.startswith("N1"): _genre = "CTTE"
+                    elif cat.startswith("N2") or cat.startswith("N3"): _genre = "CAM"
+                _set("genre_national", _genre)
+                _set("soussigne", ext.get("soussigne"))
+                _set("date_reception", ext.get("date_reception"))
+                _set("numero_k", ext.get("numero_k"))
+                _set("energie", ext.get("energie"))
+                _set("puissance_cv", str(ext.get("puissance_cv")) if ext.get("puissance_cv") else None)
+                _set("co2_wltp", str(ext.get("co2_wltp")) if ext.get("co2_wltp") else None)
+                _set("places", str(ext.get("places_assises") or ext.get("places")) if (ext.get("places_assises") or ext.get("places")) else None)
+                _set("ptac_kg", str(ext.get("ptac_kg") or ext.get("masse_f2")) if (ext.get("ptac_kg") or ext.get("masse_f2")) else None)
+                _set("classe_env", ext.get("classe_env"))
+                _set("rapport_puiss_masse", ext.get("rapport_puiss_masse"))
+                # CO2 = 0 pour véhicule électrique (information factuelle)
+                if (ext.get("energie") or "").lower() in ("electrique", "electric"):
+                    _set("co2_wltp", "0")
+                # Puissance administrative (P.6) : non calculée automatiquement.
+                # Pour les voitures : formule (CO2/45) + (kW/40)^1.6, mais
+                # pour les motos électriques la valeur dépend de l'arrêté de
+                # réception et n'est pas standardisée. Laissée vide → l'agent
+                # saisit la valeur officielle qui figurera sur la CG.
+                _set("masse_f1", str(ext.get("masse_f1") or ext.get("masse_kg")) if (ext.get("masse_f1") or ext.get("masse_kg")) else None)
+                _set("masse_g", str(ext.get("masse_g")) if ext.get("masse_g") else None)
+                _set("masse_f3", str(ext.get("masse_f3")) if ext.get("masse_f3") else None)
+                _set("poids_vide_g1", str(ext.get("poids_vide_g1")) if ext.get("poids_vide_g1") else None)
+                _set("cylindree_p1", str(ext.get("cylindree_p1") or ext.get("cylindree_cc")) if (ext.get("cylindree_p1") or ext.get("cylindree_cc")) else None)
+                _set("puissance_nette_p2", str(ext.get("puissance_nette_p2") or ext.get("puissance_kw")) if (ext.get("puissance_nette_p2") or ext.get("puissance_kw")) else None)
+                _set("categorie_j", ext.get("categorie_j"))
+                _set("carrosserie_j2", ext.get("carrosserie_j2"))
+                _set("carrosserie_j3", ext.get("carrosserie_j3"))
+                _set("niveau_sonore_u1", str(ext.get("niveau_sonore_u1")) if ext.get("niveau_sonore_u1") else None)
+                _set("vitesse_moteur_u2", str(ext.get("vitesse_moteur_u2")) if ext.get("vitesse_moteur_u2") else None)
+                _set("places_debout_s2", str(ext.get("places_debout_s2")) if ext.get("places_debout_s2") else None)
 
             elif dtype == "FACTURE":
                 d["vehicule"]["numero_identification"] = ext.get("vin") or d["vehicule"].get("numero_identification", "")
@@ -372,14 +404,16 @@ class CerfaFiller:
                         d["vehicule"]["couleur_nuance"] = "clair"
 
             elif dtype in ("CNI", "PASSEPORT"):
-                d["titulaire"]["nom_naissance"] = ext.get("nom", "")
-                d["titulaire"]["prenom"] = ext.get("prenoms", "")
+                # Le bon champ est nom_naissance (pas nom)
+                d["titulaire"]["nom_naissance"] = ext.get("nom_naissance") or ext.get("nom", "")
+                d["titulaire"]["prenom"] = ext.get("prenoms") or ext.get("prenom", "")
                 d["titulaire"]["date_naissance"] = ext.get("date_naissance", "")
                 d["titulaire"]["commune_naissance"] = ext.get("lieu_naissance", "")
-                nat = ext.get("nationalite", "")
-                if nat.lower() in ("francaise", "francais"):
+                # Normalisation pays : "Française"/"Français" → FRANCE
+                nat = (ext.get("nationalite") or "").strip().lower().rstrip("e")
+                if nat in ("francais", "français"):
                     d["titulaire"]["pays_naissance"] = "FRANCE"
-                else:
+                elif nat:
                     d["titulaire"]["pays_naissance"] = nat.upper()
 
             elif dtype == "PERMIS":
@@ -423,16 +457,18 @@ class CerfaFiller:
                     "NICE": "06", "NANTES": "44", "BORDEAUX": "33", "LILLE": "59"}
         d["titulaire"]["departement_naissance"] = dept_map.get(lieu, cp[:2] if cp else "")
 
-        # Sexe et type (Kbis override si detecte)
-        d["titulaire"]["sexe"] = dossier.get("client_sexe") or "M"
-        if not has_kbis:
-            d["titulaire"]["type"] = "morale" if dossier.get("is_personne_morale") else "physique"
+        # Sexe et type — UNIQUEMENT si on a un nom de titulaire, sinon laissé
+        # vide pour ne rien cocher par défaut sur le Cerfa.
+        if d["titulaire"].get("nom_naissance"):
+            d["titulaire"]["sexe"] = dossier.get("client_sexe") or ""
+            if not has_kbis:
+                d["titulaire"]["type"] = "morale" if dossier.get("is_personne_morale") else "physique"
 
-        # Fallback nom/prenom depuis le dossier
-        if not d["titulaire"].get("nom_naissance"):
-            d["titulaire"]["nom_naissance"] = dossier.get("client_nom", "")
-        if not d["titulaire"].get("prenom"):
-            d["titulaire"]["prenom"] = dossier.get("client_prenom", "")
+        # Fallback nom/prenom depuis le dossier (uniquement valeurs réelles)
+        if not d["titulaire"].get("nom_naissance") and dossier.get("client_nom"):
+            d["titulaire"]["nom_naissance"] = dossier["client_nom"]
+        if not d["titulaire"].get("prenom") and dossier.get("client_prenom"):
+            d["titulaire"]["prenom"] = dossier["client_prenom"]
 
         # VIN fallback
         if not d["vehicule"].get("numero_identification"):

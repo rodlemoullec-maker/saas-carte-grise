@@ -58,11 +58,13 @@ class PaddleOcrProvider(BaseOCRProvider):
             try:
                 cls._ocr_instance = PaddleOCR(
                     lang=language,
+                    # Mobile : léger et stable sur aarch64. Le server est
+                    # plus précis mais crash en mémoire sur Mac mini.
                     text_detection_model_name="PP-OCRv5_mobile_det",
                     text_recognition_model_name="latin_PP-OCRv5_mobile_rec",
-                    use_doc_orientation_classify=False,
+                    use_doc_orientation_classify=True,
                     use_doc_unwarping=False,
-                    use_textline_orientation=False,
+                    use_textline_orientation=True,
                 )
             except (TypeError, ValueError):
                 # Fallback PaddleOCR 2.x
