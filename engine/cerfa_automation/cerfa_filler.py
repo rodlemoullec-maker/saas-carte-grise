@@ -351,6 +351,20 @@ class CerfaFiller:
                 d["vehicule"]["numero_formule"] = ext.get("numero_formule", "")
                 d["vehicule"]["genre_national"] = ext.get("genre_national") or d["vehicule"].get("genre_national", "VP")
                 d["vehicule"]["date_achat"] = ext.get("date_vente", "")
+                # Couleur (case R de la CG française) — même mapping que pour la facture
+                couleur_raw = ext.get("couleur", "")
+                if couleur_raw and not d["vehicule"].get("couleur"):
+                    couleur_map = {"noir":"noir","marron":"marron","rouge":"rouge","orange":"orange",
+                                   "jaune":"jaune","vert":"vert","bleu":"bleu","beige":"beige",
+                                   "gris":"gris","blanc":"blanc"}
+                    for p in couleur_raw.lower().split():
+                        if p in couleur_map:
+                            d["vehicule"]["couleur"] = couleur_map[p]
+                            break
+                    if "fonce" in couleur_raw.lower():
+                        d["vehicule"]["couleur_nuance"] = "fonce"
+                    elif "clair" in couleur_raw.lower():
+                        d["vehicule"]["couleur_nuance"] = "clair"
 
             elif dtype in ("CNI", "PASSEPORT"):
                 d["titulaire"]["nom_naissance"] = ext.get("nom", "")

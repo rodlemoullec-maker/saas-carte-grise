@@ -678,6 +678,14 @@ def extract_data(doc_type: str, text: str) -> dict:
         m = re.search(r"[Vv]endu\s*le\s*[:\s]*(\d{2}[./]\d{2}[./]\d{4})", text)
         if m: data["date_vente"] = m.group(1)
         data["barre_diagonale"] = bool(re.search(r"barr[eé]|diagonale|vendu le", text, re.IGNORECASE))
+        # Couleur (case R de la CG française) — laissée vide si ambigu, le SIV
+        # met "INDÉTERMINÉE" par défaut. Cf. décision produit : pas de mapping
+        # marketing étendu, on ne reconnaît que les 10 couleurs standard.
+        m = re.search(r"\bR\s*[:\s]+([A-Za-zÀ-ÿ ]{2,30})", text)
+        if not m:
+            m = re.search(r"[Cc]ouleur\s*[:\s]*([A-Za-zÀ-ÿ ]{2,30})", text)
+        if m:
+            data["couleur"] = m.group(1).strip().lower()
 
         # Nom de l'acheteur inscrit sur la barre horizontale
         # Formats courants : "vendu le JJ/MM/AAAA à NOM PRENOM"
