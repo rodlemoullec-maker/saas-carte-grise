@@ -1,0 +1,61 @@
+"""Génère un Cerfa VN 13749 de test avec des données fictives complètes."""
+from engine.cerfa.cerfa_image_annotator import annotate_cerfa_vn
+
+annotate_cerfa_vn(
+    image_path="site/assets/cerfa_vn_page1_blank.png",
+    output_path="/tmp/cerfa_vn_test.png",
+    # Vendeur (concession)
+    vendeur_nom="GARAGE DUPONT SARL",
+    constructeur_nom="STELLANTIS FRANCE",
+    date_vente="15/03/2026",
+    cachet_nom="GARAGE DUPONT SARL",
+    cachet_adresse="17 rue de la Madeleine 27700",
+    cachet_siret="12345678901234",
+    certificat_source="constructeur",
+    # Véhicule
+    marque_d1="PEUGEOT",
+    type_variante_d2="3008-II",
+    cnit_d21="MPE1100A012",
+    vin_e="VF3MJEHZRMS123456",
+    denomination_d3="3008 GT 1.5 BlueHDi",
+    masse_f1="2380",
+    masse_f2="2380",
+    masse_f3="4380",
+    masse_g="1620",
+    poids_vide_g1="1480",
+    categorie_j="M1",
+    genre_j1="VP",
+    carrosserie_j2="AC",
+    carrosserie_j3="CI",
+    cylindree_p1="1499",
+    puissance_nette_p2="96",
+    puissance_admin_p6="6",
+    energie_p3="GO",
+    places_s1="5",
+    places_s2="5",
+    rapport_puiss_masse="65",
+    niveau_sonore_u1="71",
+    vitesse_moteur_u2="3000",
+    co2_v7="124",
+    classe_env_v9="EURO6D",
+    # Couleur
+    couleur="bleu",
+    couleur_nuance="fonce",
+    usage="non",
+    # Titulaire (acheteur)
+    personne_type="physique",
+    sexe="M",
+    titulaire_nom="MARTIN Jean-Pierre",
+    titulaire_date_naissance="12/05/1985",
+    titulaire_lieu_naissance="ROUEN",
+    titulaire_dpt_naissance="76",
+    titulaire_pays_naissance="FRANCE",
+    # Adresse
+    adresse_num_voie="42",
+    adresse_extension="bis",
+    adresse_type_voie="RUE",
+    adresse_nom_voie="DE LA REPUBLIQUE",
+    adresse_code_postal="75011",
+    adresse_commune="PARIS",
+)
+print("OK → /tmp/cerfa_vn_test.png")

@@ -40,6 +40,7 @@ def _get_fonts():
 def annotate_cerfa_vn(
     image_path: str,
     vendeur_nom: str = "",
+    constructeur_nom: str = "",  # ex : "PEUGEOT SA" — soussigné du certificat de conformité
     date_vente: str = "",  # JJ/MM/AAAA
     cachet_nom: str = "",
     cachet_adresse: str = "",
@@ -127,11 +128,13 @@ def annotate_cerfa_vn(
         if pos:
             _draw_check(draw, pos[0], pos[1])
 
-    # Certificat de conformité — Je soussigné (y=487, x=112)
-    if vendeur_nom:
-        draw.text((95, 493), nom_court, fill=black, font=font_big)
+    # Certificat de conformité — Je soussigné = constructeur ou son représentant
+    # (PEUGEOT SA, STELLANTIS FRANCE, RENAULT SAS, etc.) — JAMAIS le vendeur/garage
+    if constructeur_nom:
+        constructeur_court = constructeur_nom.split(" - ")[0] if " - " in constructeur_nom else constructeur_nom
+        draw.text((95, 493), constructeur_court, fill=black, font=font_big)
 
-    # Certificat de vente — Je soussigné : (y=1047, x=95)
+    # Certificat de vente — Je soussigné = vendeur (garage / concession)
     if vendeur_nom:
         draw.text((95, 1047), nom_court, fill=black, font=font_big)
 

@@ -505,8 +505,22 @@ def extract_data(doc_type: str, text: str) -> dict:
         # Champs supplementaires COC
         m = re.search(r"(?:D\.?2\s*)?[Tt]ype\s*[Vv]ariante\s*[Vv]ersion\s*[:\s]*([A-Z0-9][A-Za-z0-9 ]{2,30})", text)
         if m: data["type_variante_version"] = m.group(1).strip()
-        m = re.search(r"[Ss]oussign[eé]\s*[:\s]*(.{2,50})", text)
-        if m: data["soussigne"] = m.group(1).strip()
+        # Nom du constructeur (= "Je soussigné" du Cerfa 13749).
+        # Sur un COC européen standard, le constructeur figure dans :
+        #   0.4. Company name and address of manufacturer / Nom et adresse du constructeur
+        #   3.1.2.1. Manufacturer / Constructeur (backup)
+        # Le champ "The undersigned (Anton Wass)" en haut est la PERSONNE qui signe,
+        # pas le constructeur — on ne l'utilise PAS.
+        constructeur_patterns = [
+            r"0\.4\.?\s*(?:Company\s+name\s+and\s+address\s+of\s+manufacturer|Nom\s+et\s+adresse\s+du\s+constructeur)\s*[:\s]*([A-Z][A-Za-zÀ-ÿ0-9&\.\,\- ]{2,80}?)(?:\n|\s{2,}|Carrer|Calle|Rue|Strasse|Via|Avenue|Avenida|Bahnhofstr)",
+            r"3\.1\.2\.1\.?\s*(?:Manufacturer|Constructeur)\s*[:\s]*([A-Z][A-Za-zÀ-ÿ0-9&\.\,\- ]{2,80}?)(?:\n|\s{2,})",
+        ]
+        for pat in constructeur_patterns:
+            m = re.search(pat, text)
+            if m:
+                # Strip trailing comma/space mais préserve les "." des acronymes (S.L., S.A.)
+                data["soussigne"] = m.group(1).strip().rstrip(", ")
+                break
         m = re.search(r"[Rr]eception\s*(?:par\s*type)?\s*(?:le)?\s*[:\s]*(\d{2}/\d{2}/\d{4})", text)
         if m: data["date_reception"] = m.group(1)
         m = re.search(r"(?:n[.\s]*\(K\)|sous\s*le\s*n[.\s]*)\s*[:\s]*(e\d\*[\d/\*]+\w+)", text)

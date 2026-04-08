@@ -105,6 +105,7 @@ class CerfaFiller:
         annotate_cerfa_vn(
             image_path=blank_path,
             vendeur_nom=vendeur_nom,
+            constructeur_nom=v.get("soussigne", ""),
             date_vente=v.get("date_achat", ""),
             cachet_nom=v.get("cachet_nom", vendeur_nom.split(" - ")[0] if " - " in vendeur_nom else vendeur_nom),
             cachet_adresse=v.get("cachet_adresse", ""),
