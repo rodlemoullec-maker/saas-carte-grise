@@ -960,6 +960,43 @@ def run_diagnostic(dossier: dict) -> dict:
             except (ValueError, IndexError):
                 warnings.append({"code": "CNI_DATE_ILLISIBLE", "message": "Date d'expiration CNI non lisible"})
 
+    # ─── 4 bis. Lisibilité OCR du nom/prénom (CNI / Passeport) ────────────
+    # Si l'OCR n'a pas pu lire correctement le nom ou le prénom, on émet un
+    # warning (non bloquant) pour informer l'agent — le Cerfa reste générable.
+    # L'agent peut ensuite saisir manuellement les valeurs avant soumission SIV.
+    def _looks_illegible(value: str) -> bool:
+        if not value:
+            return True
+        v = value.strip()
+        if len(v) < 2:
+            return True
+        # Beaucoup de chiffres ou caractères spéciaux dans un nom => OCR raté
+        bad_chars = sum(1 for c in v if not (c.isalpha() or c in " -'À-ÿ"))
+        if bad_chars / max(len(v), 1) > 0.3:
+            return True
+        return False
+
+    for d in by_type.get("CNI", []) + by_type.get("PASSEPORT", []):
+        ext = d.get("extracted_data", {})
+        nom_brut = ext.get("nom_naissance", "") or ""
+        prenoms_brut = ext.get("prenoms", "") or ""
+        if _looks_illegible(nom_brut):
+            warnings.append({
+                "code": "NOM_OCR_ILLISIBLE",
+                "message": (
+                    "Le nom n'a pas pu être lu correctement par l'OCR sur la pièce d'identité. "
+                    "Vérifiez et corrigez manuellement avant soumission SIV."
+                ),
+            })
+        if _looks_illegible(prenoms_brut):
+            warnings.append({
+                "code": "PRENOM_OCR_ILLISIBLE",
+                "message": (
+                    "Le prénom n'a pas pu être lu correctement par l'OCR sur la pièce d'identité. "
+                    "Vérifiez et corrigez manuellement avant soumission SIV."
+                ),
+            })
+
     # ─── 5. CG barree (VO uniquement) ─────────────────────────────────────
     if flow == "VO":
         for d in by_type.get("CG_BARREE", []):
@@ -1044,9 +1081,15 @@ def run_diagnostic(dossier: dict) -> dict:
         )
 
     # ─── 8. Diagnostic final ──────────────────────────────────────────────
-    # Binaire : VERT (tout ok, Cerfa generable) ou ROUGE (blocage)
+    # Tri-couleur :
+    #   ROUGE  = au moins un blocage (Cerfa non générable, relance client requise)
+    #   ORANGE = pas de blocage mais des warnings (Cerfa générable, agent doit
+    #            vérifier manuellement les points signalés avant soumission SIV)
+    #   VERT   = aucun blocage, aucun warning (Cerfa générable sereinement)
     if blocages:
         diagnostic = "ROUGE"
+    elif warnings:
+        diagnostic = "ORANGE"
     else:
         diagnostic = "VERT"
 
@@ -1058,7 +1101,8 @@ def run_diagnostic(dossier: dict) -> dict:
         "tax_estimate": tax_estimate,
         "documents_analyses": len(docs),
         "types_detectes": list(by_type.keys()),
-        "cerfa_disponible": diagnostic == "VERT",
+        # Cerfa générable en VERT et ORANGE — bloqué uniquement en ROUGE
+        "cerfa_disponible": diagnostic in ("VERT", "ORANGE"),
     }
 
 
