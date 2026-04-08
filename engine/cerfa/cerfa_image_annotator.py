@@ -118,21 +118,18 @@ def annotate_cerfa_vn(
 
     nom_court = vendeur_nom.split(" - ")[0] if " - " in vendeur_nom else vendeur_nom
 
-    # Case constructeur / représentant accrédité
-    if certificat_source:
-        source_positions = {
-            "constructeur": (1015, 394),
-            "representant": (1253, 394),
-        }
-        pos = source_positions.get(certificat_source.lower())
-        if pos:
-            _draw_check(draw, pos[0], pos[1])
-
-    # Certificat de conformité — Je soussigné = constructeur ou son représentant
-    # (PEUGEOT SA, STELLANTIS FRANCE, RENAULT SAS, etc.) — JAMAIS le vendeur/garage
-    if constructeur_nom:
-        constructeur_court = constructeur_nom.split(" - ")[0] if " - " in constructeur_nom else constructeur_nom
-        draw.text((95, 493), constructeur_court, fill=black, font=font_big)
+    # ─── BLOC CERTIFICAT DE CONFORMITÉ (haut du Cerfa) ───
+    # Volontairement LAISSÉ VIDE par l'agent SIV : c'est un acte juridique
+    # réservé au constructeur (ou son représentant accrédité dans l'UE), qui
+    # le matérialise via le COC européen joint séparément au dossier SIV.
+    # Sont donc NON DESSINÉS ici :
+    #   - case "constructeur / représentant accrédité"
+    #   - "Je soussigné… certifie que…"
+    #   - date de réception par type
+    #   - n° (K)
+    # En revanche, tous les champs techniques (D.1, D.2, D.3, E, F.x, G, J,
+    # P.x, S.x, U.x, V.x) sont remplis plus bas : ce sont de simples
+    # transcriptions du COC, pas une certification.
 
     # Certificat de vente — Je soussigné = vendeur (garage / concession)
     if vendeur_nom:
