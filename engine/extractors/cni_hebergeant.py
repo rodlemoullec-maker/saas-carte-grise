@@ -13,6 +13,7 @@ from typing import Any
 
 from engine.extractors.base import BaseExtractor, ExtractionResult
 from engine.models.documents import ExtractedCNIHebergeant
+from engine.ocr_patterns import OptimizedExtraction
 
 
 def _parse_date(s: str) -> str | None:

@@ -10,6 +10,7 @@ from typing import Any
 
 from engine.extractors.base import BaseExtractor, ExtractionResult
 from engine.models.documents import ExtractedPermis
+from engine.ocr_patterns import OptimizedExtraction
 
 
 class PermisExtractor(BaseExtractor[ExtractedPermis]):
@@ -112,7 +113,7 @@ RÈGLES IMPORTANTES :
                 if m:
                     data["prenom"] = m.group(1).strip()
 
-        # ── Date de naissance ─────────────────────────────────────────────────
+        # ── Date de naissance — Pattern optimisé (1-2 digits, 4 ou 2 ans, tiret/slash/point) ─
         m = re.search(
             r"(?:n[eé](?:\s*le)?|[Dd]ate\s*(?:of\s*birth|de\s*naissance)|[Nn]aissance|[Dd]ate\s*of\s*birth)\s*[:/]?\s*"
             r"(\d{1,2}[./]\d{1,2}[./]\d{4})",
@@ -120,14 +121,7 @@ RÈGLES IMPORTANTES :
             re.IGNORECASE,
         )
         if m:
-            date_str = m.group(1)
-            for fmt in ("%d.%m.%Y", "%d/%m/%Y"):
-                try:
-                    d = datetime.strptime(date_str, fmt)
-                    data["date_naissance"] = d.strftime("%Y-%m-%d")
-                    break
-                except ValueError:
-                    continue
+            data["date_naissance"] = OptimizedExtraction.extract_date(m.group(1))
 
         # ── Numéro de permis ──────────────────────────────────────────────────
         m = re.search(
@@ -188,14 +182,7 @@ RÈGLES IMPORTANTES :
             re.IGNORECASE,
         )
         if m:
-            date_str = m.group(1)
-            for fmt in ("%d.%m.%Y", "%d/%m/%Y"):
-                try:
-                    d = datetime.strptime(date_str, fmt)
-                    data["date_delivrance"] = d.strftime("%Y-%m-%d")
-                    break
-                except ValueError:
-                    continue
+            data["date_delivrance"] = OptimizedExtraction.extract_date(m.group(1))
 
         # ── Pays d'émission ───────────────────────────────────────────────────
         pays = "FR"

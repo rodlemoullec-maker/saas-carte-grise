@@ -12,6 +12,7 @@ from typing import Any
 
 from engine.extractors.base import BaseExtractor, ExtractionResult
 from engine.models.documents import ExtractedDomicile
+from engine.ocr_patterns import OptimizedExtraction
 
 
 class DomicileExtractor(BaseExtractor[ExtractedDomicile]):

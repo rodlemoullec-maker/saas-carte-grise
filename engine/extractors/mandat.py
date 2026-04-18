@@ -12,6 +12,7 @@ from typing import Any
 
 from engine.extractors.base import BaseExtractor, ExtractionResult
 from engine.models.documents import ExtractedMandat
+from engine.ocr_patterns import OptimizedExtraction
 
 
 def _parse_date(s: str) -> str | None:
@@ -51,7 +52,12 @@ class MandatExtractor(BaseExtractor[ExtractedMandat]):
         if m:
             data["vin"] = m.group(1)
 
-        # ── Immatriculation ───────────────────────────────────────────────────
+        # ── VIN — Pattern optimisé robuste aux variations OCR ─────────────────
+        vin = OptimizedExtraction.extract_vin(text)
+        if vin:
+            data["vin"] = vin
+
+        # ── Immatriculation ────────────────────────────────────────
         m = IMMAT_RE.search(text)
         if m:
             data["immatriculation"] = m.group(1).replace(" ", "-").upper()
@@ -102,11 +108,9 @@ class MandatExtractor(BaseExtractor[ExtractedMandat]):
         if m:
             data["date_mandat"] = _parse_date(m.group(1))
 
-        # ── Signature du mandant ──────────────────────────────────────────────
-        data["signature_mandant"] = bool(
-            re.search(r"\[signature\]|\[SIGN[ÉE][E]?\]|[Ss]ignature\s*(?:du\s*)?[Mm]andant", text)
-            and not re.search(r"\[MISSING/BLANK\]|\[NON SIGNÉE\]", text)
-        )
+        # ── Signature du mandant — Détection robuste trois états ─────────────
+        sig = OptimizedExtraction.is_signature_present(text)
+        data["signature_mandant"] = bool(sig)  # None (indéterminé) → False par sécurité
 
         # ── Validation ────────────────────────────────────────────────────────
         has_vin = bool(data.get("vin"))

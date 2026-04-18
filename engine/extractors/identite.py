@@ -19,6 +19,7 @@ from typing import Any
 
 from engine.extractors.base import BaseExtractor, ExtractionResult
 from engine.models.documents import ExtractedIdentite
+from engine.ocr_patterns import OptimizedExtraction
 
 
 # Table des grandes villes → département (pour déduire le département de naissance)
@@ -142,11 +143,11 @@ class IdentiteExtractor(BaseExtractor[ExtractedIdentite]):
 
         # ─── Nom (texte visuel) ───
         if not data.get("nom_naissance"):
-            m = re.search(r"[Nn]om/[Ss]urname\s*\(\d\)\s*\n\s*([A-Z][A-Z\- ]{1,40})", text)
+            m = re.search(r"[Nn]om/[Ss]urname\s*\(\d\)\s*\n\s*([A-ZÀ-ÿ][A-ZÀ-ÿ\- ]{1,40})", text)
             if m:
                 data["nom_naissance"] = m.group(1).strip()
             else:
-                m = re.search(r"[Nn]om\s*(?:de\s*naissance)?\s*[:\s]*([A-Z][A-Z\- ]{1,40})", text)
+                m = re.search(r"[Nn]om\s*(?:de\s*naissance)?\s*[:\s]*([A-ZÀ-ÿ][A-ZÀ-ÿ\- ]{1,40})", text)
                 if m:
                     data["nom_naissance"] = m.group(1).strip()
 
