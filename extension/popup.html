@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Imatra — Auto-saisie SIV</title>
+  <style>
+    body { font-family: -apple-system, system-ui, sans-serif; width: 320px; margin: 0; padding: 16px; }
+    h1 { font-size: 14px; margin: 0 0 12px; color: #0f172a; }
+    label { display: block; font-size: 11px; color: #64748b; margin-bottom: 4px; }
+    input { width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; box-sizing: border-box; }
+    button { width: 100%; padding: 10px; background: #2563eb; color: white; border: 0; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; margin-top: 12px; }
+    button:hover { background: #1d4ed8; }
+    button:disabled { background: #cbd5e1; cursor: not-allowed; }
+    .status { margin-top: 12px; padding: 8px; border-radius: 6px; font-size: 12px; }
+    .ok { background: #ecfdf5; color: #065f46; }
+    .err { background: #fef2f2; color: #991b1b; }
+    .muted { font-size: 10px; color: #94a3b8; margin-top: 12px; text-align: center; }
+  </style>
+</head>
+<body>
+  <h1>Imatra — Auto-saisie SIV</h1>
+  <label for="ref">Référence du dossier</label>
+  <input id="ref" type="text" placeholder="CG-2026-XXXXX" />
+  <button id="fill">Pré-remplir le formulaire SIV</button>
+  <div id="status"></div>
+  <div class="muted">Connecté à http://localhost:8001</div>
+  <script src="popup.js"></script>
+</body>
+</html>

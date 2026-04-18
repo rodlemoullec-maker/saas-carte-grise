@@ -1,53 +1,43 @@
 """
-CerfaFiller - Remplissage automatique du Cerfa 13750*07 via Playwright.
+CerfaFiller — Génération locale 100% PIL des Cerfa 13749 (VN) et 13750 (VO).
 
-Utilise le formulaire officiel sur service-public.gouv.fr pour generer
-un PDF parfaitement rempli par le site lui-meme.
-
-URL : https://www.service-public.gouv.fr/simulateur/calcul/13750
+Aucune dépendance externe : ni Playwright, ni service-public.gouv.fr,
+ni connexion internet. Tout est généré sur la machine de l'agent à partir
+des images vierges des Cerfa et des positions pixel des champs.
 
 Usage :
     from engine.cerfa_automation.cerfa_filler import CerfaFiller
-    pdf_bytes = CerfaFiller().fill_and_download(data)
+    pdf_bytes = CerfaFiller().fill_and_download(data, dossier_type="VN")
 """
 from __future__ import annotations
 
 import logging
-import time
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-CERFA_URLS = {
-    "VN": "https://www.service-public.gouv.fr/simulateur/calcul/13749",
-    "VO": "https://www.service-public.gouv.fr/simulateur/calcul/13750",
-}
-USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-
 
 class CerfaFiller:
-    """Remplit le Cerfa 13750*07 sur service-public.fr et telecharge le PDF."""
+    """Génère les Cerfa 13749 (VN) et 13750 (VO) en local via PIL."""
 
     def __init__(self, headless: bool = True):
+        # `headless` conservé pour compat — n'a aucun effet, tout est local
         self.headless = headless
 
     def fill_and_download(self, data: dict, output_path: str | None = None, dossier_type: str = "VO") -> bytes:
         """
-        Génère le Cerfa PDF rempli.
-
-        - VN (13749) : 100% PIL, zéro Playwright
-        - VO (13750) : Playwright via service-public.gouv.fr
+        Génère le Cerfa PDF rempli, 100% en local via PIL.
 
         Args:
-            data: dict avec vehicule, titulaire, cotitulaire
-            output_path: si fourni, sauve le PDF a ce chemin
+            data: dict avec vehicule, titulaire, cotitulaire, metadata
+            output_path: si fourni, sauve le PDF à ce chemin
+            dossier_type: "VN" / "VO"
 
         Returns:
-            bytes du PDF genere
+            bytes du PDF généré
         """
         if dossier_type == "VN":
             return self._generate_vn_pil(data, output_path)
-
         return self._generate_vo_pil(data, output_path)
 
     def _generate_vn_pil(self, data: dict, output_path: str | None = None) -> bytes:
@@ -97,7 +87,7 @@ class CerfaFiller:
             if cot.get("type") == "morale":
                 cotitulaire_nom = cot.get("raison_sociale", "")
             else:
-                cotitulaire_nom = f"{cot.get('nom', '')} {cot.get('prenom', '')}".strip()
+                cotitulaire_nom = f"{(cot.get('nom') or '')} {(cot.get('prenom') or '')}".strip()
 
         # Sexe
         sexe = t.get("sexe", "")
@@ -108,13 +98,14 @@ class CerfaFiller:
         personne_type = "morale" if t.get("type") == "morale" else "physique"
 
         # Nom titulaire
-        titulaire_nom = f"{t.get('nom_naissance', '')} {t.get('prenom', '')}".strip()
+        titulaire_nom = f"{(t.get('nom_naissance') or '')} {(t.get('prenom') or '')}".strip()
 
         out_path = output_path or str(Path(__file__).parent / "cerfa_vn_generated.png")
 
         annotate_cerfa_vn(
             image_path=blank_path,
             vendeur_nom=vendeur_nom,
+            constructeur_nom=v.get("soussigne", ""),
             date_vente=v.get("date_achat", ""),
             cachet_nom=v.get("cachet_nom", vendeur_nom.split(" - ")[0] if " - " in vendeur_nom else vendeur_nom),
             cachet_adresse=v.get("cachet_adresse", ""),
@@ -151,15 +142,18 @@ class CerfaFiller:
             usage="oui",
             couleur=v.get("couleur", ""),
             couleur_nuance=v.get("couleur_nuance", ""),
-            personne_type=personne_type,
-            sexe=sexe,
+            # Champs titulaire : remplis SEULEMENT si on a au moins un nom.
+            # Sinon on laisse tout vide pour ne pas pré-cocher de cases par défaut.
+            personne_type=personne_type if titulaire_nom else "",
+            sexe=sexe if titulaire_nom else "",
             titulaire_nom=titulaire_nom,
-            titulaire_nom_usage=t.get("nom_usage", ""),
-            titulaire_date_naissance=t.get("date_naissance", ""),
-            titulaire_lieu_naissance=t.get("commune_naissance", ""),
-            titulaire_dpt_naissance=t.get("departement_naissance", ""),
-            titulaire_pays_naissance=t.get("pays_naissance", "FRANCE"),
-            multi_propriete=str(metadata.get("nombre_titulaires", 1)),
+            titulaire_nom_usage=t.get("nom_usage", "") if titulaire_nom else "",
+            titulaire_date_naissance=t.get("date_naissance", "") if titulaire_nom else "",
+            titulaire_lieu_naissance=t.get("commune_naissance", "") if titulaire_nom else "",
+            titulaire_dpt_naissance=t.get("departement_naissance", "") if titulaire_nom else "",
+            titulaire_pays_naissance=(t.get("pays_naissance") or "") if titulaire_nom else "",
+            multi_propriete=(str(metadata.get("nombre_titulaires"))
+                             if metadata.get("nombre_titulaires") and titulaire_nom else ""),
             cotitulaire_nom=cotitulaire_nom,
             adresse_num_voie=a.get("numero_voie", ""),
             adresse_extension=a.get("extension", ""),
@@ -204,7 +198,7 @@ class CerfaFiller:
 
         # Type personne
         personne_type = "morale" if t.get("type") == "morale" else "physique"
-        titulaire_nom = f"{t.get('nom_naissance', '')} {t.get('prenom', '')}".strip()
+        titulaire_nom = f"{(t.get('nom_naissance') or '')} {(t.get('prenom') or '')}".strip()
         if personne_type == "morale":
             titulaire_nom = t.get("raison_sociale", "")
 
@@ -222,7 +216,7 @@ class CerfaFiller:
                 cotitulaire_nom = cot.get("raison_sociale", "")
                 cotitulaire_siret = cot.get("siren", "")
             else:
-                cotitulaire_nom = f"{cot.get('nom', '')} {cot.get('prenom', '')}".strip()
+                cotitulaire_nom = f"{(cot.get('nom') or '')} {(cot.get('prenom') or '')}".strip()
                 cotitulaire_nom_usage = cot.get("nom_usage", "")
 
         out_path = output_path or str(Path(__file__).parent / "cerfa_vo_generated.png")
@@ -243,21 +237,23 @@ class CerfaFiller:
             num_exploitation_agricole=v.get("num_exploitation_agricole", ""),
             couleur=v.get("couleur", ""),
             couleur_nuance=v.get("couleur_nuance", ""),
-            personne_type=personne_type,
-            sexe=sexe,
+            # Champs titulaire : remplis SEULEMENT si on a au moins un nom.
+            personne_type=personne_type if titulaire_nom else "",
+            sexe=sexe if titulaire_nom else "",
             titulaire_nom=titulaire_nom,
-            titulaire_nom_usage=t.get("nom_usage", ""),
-            titulaire_date_naissance=t.get("date_naissance", ""),
-            titulaire_lieu_naissance=t.get("commune_naissance", ""),
-            titulaire_dpt_naissance=t.get("departement_naissance", ""),
-            titulaire_pays_naissance=t.get("pays_naissance", "FRANCE"),
+            titulaire_nom_usage=t.get("nom_usage", "") if titulaire_nom else "",
+            titulaire_date_naissance=t.get("date_naissance", "") if titulaire_nom else "",
+            titulaire_lieu_naissance=t.get("commune_naissance", "") if titulaire_nom else "",
+            titulaire_dpt_naissance=t.get("departement_naissance", "") if titulaire_nom else "",
+            titulaire_pays_naissance=(t.get("pays_naissance") or "") if titulaire_nom else "",
             adresse_num_voie=a.get("numero_voie", ""),
             adresse_extension=a.get("extension", ""),
             adresse_type_voie=a.get("type_voie", ""),
             adresse_nom_voie=a.get("libelle_voie", ""),
             adresse_code_postal=a.get("code_postal", ""),
             adresse_commune=a.get("commune", ""),
-            multi_propriete=str(metadata.get("nombre_titulaires", 1)),
+            multi_propriete=(str(metadata.get("nombre_titulaires"))
+                             if metadata.get("nombre_titulaires") and titulaire_nom else ""),
             cotitulaire_nom=cotitulaire_nom,
             cotitulaire_nom_usage=cotitulaire_nom_usage,
             cotitulaire_siret=cotitulaire_siret,
@@ -295,7 +291,8 @@ class CerfaFiller:
         # Vehicule
         d["demarche"] = "Certificat"
         d["vehicule"]["immatriculation"] = dossier.get("immatriculation") or ""
-        d["vehicule"]["genre_national"] = "VP"
+        # Genre national : déduit ci-dessous depuis la catégorie L/M/N du COC.
+        # Pas de défaut "VP" — laissé vide si la catégorie est inconnue.
 
         # Depuis les documents extraits
         for doc in docs:
@@ -303,33 +300,64 @@ class CerfaFiller:
             dtype = doc.get("type", "")
 
             if dtype == "COC":
-                d["vehicule"]["marque"] = ext.get("marque", "")
-                d["vehicule"]["denomination_commerciale"] = ext.get("denomination") or ext.get("modele", "")
-                d["vehicule"]["numero_identification"] = ext.get("vin") or dossier.get("vin", "")
-                d["vehicule"]["type_variante_version"] = ext.get("type_variante_version", "")
-                d["vehicule"]["cnit"] = ext.get("cnit", "")
-                d["vehicule"]["genre_national"] = ext.get("genre_national", "VP")
-                d["vehicule"]["soussigne"] = ext.get("soussigne", "")
-                d["vehicule"]["date_reception"] = ext.get("date_reception", "")
-                d["vehicule"]["numero_k"] = ext.get("numero_k", "")
-                d["vehicule"]["energie"] = ext.get("energie", "")
-                d["vehicule"]["puissance_cv"] = str(ext.get("puissance_cv") or "")
-                d["vehicule"]["co2_wltp"] = str(ext.get("co2_wltp") or "")
-                d["vehicule"]["places"] = str(ext.get("places_assises") or ext.get("places") or "")
-                d["vehicule"]["ptac_kg"] = str(ext.get("ptac_kg") or ext.get("masse_f2") or "")
-                d["vehicule"]["classe_env"] = ext.get("classe_env", "")
-                d["vehicule"]["masse_f1"] = str(ext.get("masse_f1") or ext.get("masse_kg") or "")
-                d["vehicule"]["masse_g"] = str(ext.get("masse_g") or "")
-                d["vehicule"]["masse_f3"] = str(ext.get("masse_f3") or "")
-                d["vehicule"]["poids_vide_g1"] = str(ext.get("poids_vide_g1") or "")
-                d["vehicule"]["cylindree_p1"] = str(ext.get("cylindree_p1") or ext.get("cylindree_cc") or "")
-                d["vehicule"]["puissance_nette_p2"] = str(ext.get("puissance_nette_p2") or ext.get("puissance_kw") or "")
-                d["vehicule"]["categorie_j"] = ext.get("categorie_j", "")
-                d["vehicule"]["carrosserie_j2"] = ext.get("carrosserie_j2", "")
-                d["vehicule"]["carrosserie_j3"] = ext.get("carrosserie_j3", "")
-                d["vehicule"]["niveau_sonore_u1"] = str(ext.get("niveau_sonore_u1") or "")
-                d["vehicule"]["vitesse_moteur_u2"] = str(ext.get("vitesse_moteur_u2") or "")
-                d["vehicule"]["places_debout_s2"] = str(ext.get("places_debout_s2") or "")
+                # Helper local : ne remplit que si la valeur n'existe pas déjà.
+                # Évite que le COC écrase les données déjà extraites de la CG.
+                def _set(key, value):
+                    if value and not d["vehicule"].get(key):
+                        d["vehicule"][key] = value
+
+                _set("marque", ext.get("marque"))
+                _set("denomination_commerciale", ext.get("denomination") or ext.get("modele"))
+                _set("numero_identification", ext.get("vin") or dossier.get("vin"))
+                _set("type_variante_version", ext.get("type_variante_version"))
+                _set("cnit", ext.get("cnit"))
+                # Genre national : si l'extracteur n'a pas trouvé J.1, on le
+                # déduit de la catégorie européenne L/M/N (champ 0.3 du COC).
+                _genre = ext.get("genre_national")
+                if not _genre:
+                    cat = (ext.get("categorie_j") or "").upper()
+                    if cat.startswith("L1"): _genre = "CYCL"
+                    elif cat.startswith("L2"): _genre = "TRIL"
+                    elif cat.startswith("L3"): _genre = "MTL"
+                    elif cat.startswith("L4"): _genre = "MTLS"
+                    elif cat.startswith("L5"): _genre = "TM"
+                    elif cat.startswith("L6"): _genre = "QM"
+                    elif cat.startswith("L7"): _genre = "QLEM"
+                    elif cat.startswith("M1"): _genre = "VP"
+                    elif cat.startswith("M2") or cat.startswith("M3"): _genre = "TCP"
+                    elif cat.startswith("N1"): _genre = "CTTE"
+                    elif cat.startswith("N2") or cat.startswith("N3"): _genre = "CAM"
+                _set("genre_national", _genre)
+                _set("soussigne", ext.get("soussigne"))
+                _set("date_reception", ext.get("date_reception"))
+                _set("numero_k", ext.get("numero_k"))
+                _set("energie", ext.get("energie"))
+                _set("puissance_cv", str(ext.get("puissance_cv")) if ext.get("puissance_cv") else None)
+                _set("co2_wltp", str(ext.get("co2_wltp")) if ext.get("co2_wltp") else None)
+                _set("places", str(ext.get("places_assises") or ext.get("places")) if (ext.get("places_assises") or ext.get("places")) else None)
+                _set("ptac_kg", str(ext.get("ptac_kg") or ext.get("masse_f2")) if (ext.get("ptac_kg") or ext.get("masse_f2")) else None)
+                _set("classe_env", ext.get("classe_env"))
+                _set("rapport_puiss_masse", ext.get("rapport_puiss_masse"))
+                # CO2 = 0 pour véhicule électrique (information factuelle)
+                if (ext.get("energie") or "").lower() in ("electrique", "electric"):
+                    _set("co2_wltp", "0")
+                # Puissance administrative (P.6) : non calculée automatiquement.
+                # Pour les voitures : formule (CO2/45) + (kW/40)^1.6, mais
+                # pour les motos électriques la valeur dépend de l'arrêté de
+                # réception et n'est pas standardisée. Laissée vide → l'agent
+                # saisit la valeur officielle qui figurera sur la CG.
+                _set("masse_f1", str(ext.get("masse_f1") or ext.get("masse_kg")) if (ext.get("masse_f1") or ext.get("masse_kg")) else None)
+                _set("masse_g", str(ext.get("masse_g")) if ext.get("masse_g") else None)
+                _set("masse_f3", str(ext.get("masse_f3")) if ext.get("masse_f3") else None)
+                _set("poids_vide_g1", str(ext.get("poids_vide_g1")) if ext.get("poids_vide_g1") else None)
+                _set("cylindree_p1", str(ext.get("cylindree_p1") or ext.get("cylindree_cc")) if (ext.get("cylindree_p1") or ext.get("cylindree_cc")) else None)
+                _set("puissance_nette_p2", str(ext.get("puissance_nette_p2") or ext.get("puissance_kw")) if (ext.get("puissance_nette_p2") or ext.get("puissance_kw")) else None)
+                _set("categorie_j", ext.get("categorie_j"))
+                _set("carrosserie_j2", ext.get("carrosserie_j2"))
+                _set("carrosserie_j3", ext.get("carrosserie_j3"))
+                _set("niveau_sonore_u1", str(ext.get("niveau_sonore_u1")) if ext.get("niveau_sonore_u1") else None)
+                _set("vitesse_moteur_u2", str(ext.get("vitesse_moteur_u2")) if ext.get("vitesse_moteur_u2") else None)
+                _set("places_debout_s2", str(ext.get("places_debout_s2")) if ext.get("places_debout_s2") else None)
 
             elif dtype == "FACTURE":
                 d["vehicule"]["numero_identification"] = ext.get("vin") or d["vehicule"].get("numero_identification", "")
@@ -360,16 +388,32 @@ class CerfaFiller:
                 d["vehicule"]["numero_formule"] = ext.get("numero_formule", "")
                 d["vehicule"]["genre_national"] = ext.get("genre_national") or d["vehicule"].get("genre_national", "VP")
                 d["vehicule"]["date_achat"] = ext.get("date_vente", "")
+                # Couleur (case R de la CG française) — même mapping que pour la facture
+                couleur_raw = ext.get("couleur", "")
+                if couleur_raw and not d["vehicule"].get("couleur"):
+                    couleur_map = {"noir":"noir","marron":"marron","rouge":"rouge","orange":"orange",
+                                   "jaune":"jaune","vert":"vert","bleu":"bleu","beige":"beige",
+                                   "gris":"gris","blanc":"blanc"}
+                    for p in couleur_raw.lower().split():
+                        if p in couleur_map:
+                            d["vehicule"]["couleur"] = couleur_map[p]
+                            break
+                    if "fonce" in couleur_raw.lower():
+                        d["vehicule"]["couleur_nuance"] = "fonce"
+                    elif "clair" in couleur_raw.lower():
+                        d["vehicule"]["couleur_nuance"] = "clair"
 
             elif dtype in ("CNI", "PASSEPORT"):
-                d["titulaire"]["nom_naissance"] = ext.get("nom", "")
-                d["titulaire"]["prenom"] = ext.get("prenoms", "")
+                # Le bon champ est nom_naissance (pas nom)
+                d["titulaire"]["nom_naissance"] = ext.get("nom_naissance") or ext.get("nom", "")
+                d["titulaire"]["prenom"] = ext.get("prenoms") or ext.get("prenom", "")
                 d["titulaire"]["date_naissance"] = ext.get("date_naissance", "")
                 d["titulaire"]["commune_naissance"] = ext.get("lieu_naissance", "")
-                nat = ext.get("nationalite", "")
-                if nat.lower() in ("francaise", "francais"):
+                # Normalisation pays : "Française"/"Français" → FRANCE
+                nat = (ext.get("nationalite") or "").strip().lower().rstrip("e")
+                if nat in ("francais", "français"):
                     d["titulaire"]["pays_naissance"] = "FRANCE"
-                else:
+                elif nat:
                     d["titulaire"]["pays_naissance"] = nat.upper()
 
             elif dtype == "PERMIS":
@@ -413,16 +457,18 @@ class CerfaFiller:
                     "NICE": "06", "NANTES": "44", "BORDEAUX": "33", "LILLE": "59"}
         d["titulaire"]["departement_naissance"] = dept_map.get(lieu, cp[:2] if cp else "")
 
-        # Sexe et type (Kbis override si detecte)
-        d["titulaire"]["sexe"] = dossier.get("client_sexe") or "M"
-        if not has_kbis:
-            d["titulaire"]["type"] = "morale" if dossier.get("is_personne_morale") else "physique"
+        # Sexe et type — UNIQUEMENT si on a un nom de titulaire, sinon laissé
+        # vide pour ne rien cocher par défaut sur le Cerfa.
+        if d["titulaire"].get("nom_naissance"):
+            d["titulaire"]["sexe"] = dossier.get("client_sexe") or ""
+            if not has_kbis:
+                d["titulaire"]["type"] = "morale" if dossier.get("is_personne_morale") else "physique"
 
-        # Fallback nom/prenom depuis le dossier
-        if not d["titulaire"].get("nom_naissance"):
-            d["titulaire"]["nom_naissance"] = dossier.get("client_nom", "")
-        if not d["titulaire"].get("prenom"):
-            d["titulaire"]["prenom"] = dossier.get("client_prenom", "")
+        # Fallback nom/prenom depuis le dossier (uniquement valeurs réelles)
+        if not d["titulaire"].get("nom_naissance") and dossier.get("client_nom"):
+            d["titulaire"]["nom_naissance"] = dossier["client_nom"]
+        if not d["titulaire"].get("prenom") and dossier.get("client_prenom"):
+            d["titulaire"]["prenom"] = dossier["client_prenom"]
 
         # VIN fallback
         if not d["vehicule"].get("numero_identification"):

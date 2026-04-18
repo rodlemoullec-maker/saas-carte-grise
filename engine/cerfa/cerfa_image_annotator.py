@@ -1,11 +1,9 @@
 """
-Annotateur d'images Cerfa — ajoute les champs manquants sur le PDF généré par Playwright.
+Annotateur d'images Cerfa — génération 100% PIL en local.
 
-Playwright remplit la majorité des champs via le formulaire service-public.gouv.fr,
-mais certains champs (certificat de vente, cachet, signature) ne sont pas remplis
-car le formulaire web a des bugs sur ces sections.
-
-Ce script ajoute les données manquantes directement sur l'image PNG du Cerfa.
+Annote les images vierges des Cerfa 13749 (VN) et 13750 (VO) avec les
+données extraites du dossier. Aucune dépendance externe (ni Playwright,
+ni service-public.gouv.fr, ni connexion internet).
 
 Usage :
     from engine.cerfa.cerfa_image_annotator import annotate_cerfa_vn, annotate_cerfa_vo
@@ -42,6 +40,7 @@ def _get_fonts():
 def annotate_cerfa_vn(
     image_path: str,
     vendeur_nom: str = "",
+    constructeur_nom: str = "",  # ex : "PEUGEOT SA" — soussigné du certificat de conformité
     date_vente: str = "",  # JJ/MM/AAAA
     cachet_nom: str = "",
     cachet_adresse: str = "",
@@ -119,21 +118,20 @@ def annotate_cerfa_vn(
 
     nom_court = vendeur_nom.split(" - ")[0] if " - " in vendeur_nom else vendeur_nom
 
-    # Case constructeur / représentant accrédité
-    if certificat_source:
-        source_positions = {
-            "constructeur": (1015, 394),
-            "representant": (1253, 394),
-        }
-        pos = source_positions.get(certificat_source.lower())
-        if pos:
-            _draw_check(draw, pos[0], pos[1])
+    # ─── BLOC CERTIFICAT DE CONFORMITÉ (haut du Cerfa) ───
+    # Volontairement LAISSÉ VIDE par l'agent SIV : c'est un acte juridique
+    # réservé au constructeur (ou son représentant accrédité dans l'UE), qui
+    # le matérialise via le COC européen joint séparément au dossier SIV.
+    # Sont donc NON DESSINÉS ici :
+    #   - case "constructeur / représentant accrédité"
+    #   - "Je soussigné… certifie que…"
+    #   - date de réception par type
+    #   - n° (K)
+    # En revanche, tous les champs techniques (D.1, D.2, D.3, E, F.x, G, J,
+    # P.x, S.x, U.x, V.x) sont remplis plus bas : ce sont de simples
+    # transcriptions du COC, pas une certification.
 
-    # Certificat de conformité — Je soussigné (y=487, x=112)
-    if vendeur_nom:
-        draw.text((95, 493), nom_court, fill=black, font=font_big)
-
-    # Certificat de vente — Je soussigné : (y=1047, x=95)
+    # Certificat de vente — Je soussigné = vendeur (garage / concession)
     if vendeur_nom:
         draw.text((95, 1047), nom_court, fill=black, font=font_big)
 
@@ -314,18 +312,23 @@ def annotate_cerfa_vn(
         draw.line([(sig_dx+10, sig_dy+14), (sig_dx+110, sig_dy+12)], fill=black, width=1)
 
     # ─── Champs techniques du tableau véhicule (200 DPI) ───
-    # Ligne Marque (D.1) — à droite du label, y≈380
+    # Décalage de 10px à droite pour ne pas toucher le séparateur de cellule.
+    # Ligne Marque (D.1)
     if marque_d1:
-        draw.text((519, 490), marque_d1, fill=black, font=font_xl)
-    # Type Variante Version (D.2) — y≈418
+        draw.text((535, 490), marque_d1, fill=black, font=font_xl)
+    # Type Variante Version (D.2)
     if type_variante_d2:
-        draw.text((519, 548), type_variante_d2, fill=black, font=font_xl)
+        draw.text((535, 548), type_variante_d2, fill=black, font=font_xl)
+    # Dénomination commerciale (D.3) — case dédiée en haut à droite
+    # (au-dessus de USAGE / COULEUR DOMINANTE), PAS dans le tableau technique.
+    if denomination_d3:
+        draw.text((1170, 975), denomination_d3, fill=black, font=font_xl)
     # CNIT D.2.1
     if cnit_d21:
-        draw.text((519, 600), cnit_d21, fill=black, font=font_xl)
+        draw.text((535, 600), cnit_d21, fill=black, font=font_xl)
     # VIN E
     if vin_e:
-        draw.text((1058, 600), vin_e, fill=black, font=font_xl)
+        draw.text((1075, 600), vin_e, fill=black, font=font_xl)
     # Masse F.1 (masse en charge max tech)
     if masse_f1:
         draw.text((518, 660), masse_f1, fill=black, font=font_xl)

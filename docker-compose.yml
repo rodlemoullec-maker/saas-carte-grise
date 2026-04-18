@@ -1,100 +1,74 @@
-version: "3.9"
+# Imatra — Logiciel local pour agents habilités SIV
+#
+# Lance le logiciel sur la machine de l'agent. Tout est local :
+#   - SQLite pour la base de données
+#   - PaddleOCR pour la lecture des documents
+#   - Stockage chiffré Fernet pour les fichiers
+#   - Aucune connexion cloud (sauf vérification optionnelle de licence
+#     et téléchargement des règles V-XX/C-XX à jour)
+#
+# Démarrage :
+#     docker compose up -d
+#     → ouvrir http://localhost:8001 dans le navigateur
+#
+# Arrêt :
+#     docker compose down
+#
+# Mise à jour :
+#     docker compose pull && docker compose up -d
+#
+# Sauvegarde des données :
+#     Le dossier ./data contient toutes les données locales (BDD SQLite,
+#     documents chiffrés, licence). Sauvegardez-le régulièrement.
 
 services:
-
-  # ─── API ──────────────────────────────────────────────────────────────────
-  api:
+  imatra:
     build:
       context: .
       dockerfile: Dockerfile
-      target: api
+    image: imatra:local-2.0
+    container_name: imatra
+
+    # Port exposé sur l'hôte (modifiable si conflit avec un autre service)
     ports:
-      - "8000:8000"
+      - "8001:8001"
+
+    # Volume persistant pour toutes les données locales
+    # ./data contient :
+    #   - imatra.db        (SQLite)
+    #   - documents/            (documents chiffrés Fernet)
+    #   - .license/             (license.key + trial_started.json)
+    #   - .encryption_key       (clé Fernet du store)
+    #   - rules/current.json    (bundle de règles signé)
+    #   - logs/
+    volumes:
+      - ./data:/app/data
+
+    # Variables d'environnement (toutes optionnelles, valeurs par défaut OK)
     environment:
-      - APP_ENV=development
-    env_file:
-      - .env
-    volumes:
-      - ./data/documents:/app/data/documents
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+      APP_HOST: 0.0.0.0
+      APP_PORT: 8001
+      DATABASE_URL: sqlite+aiosqlite:////app/data/imatra.db
+      STORAGE_PATH: /app/data/documents
+      OCR_PROVIDER: paddle
+      OCR_LANGUAGE: fr
+      LOG_LEVEL: INFO
+
+    # Redémarrage automatique sauf arrêt explicite
     restart: unless-stopped
 
-  # ─── DASHBOARD ────────────────────────────────────────────────────────────
-  dashboard:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: dashboard
-    ports:
-      - "8501:8501"
-    env_file:
-      - .env
-    depends_on:
-      - api
-    restart: unless-stopped
+    # Ressources : PaddleOCR aime avoir au moins 2 Go de RAM
+    # (commenté par défaut, à décommenter si nécessaire selon la machine)
+    # deploy:
+    #   resources:
+    #     limits:
+    #       memory: 4G
+    #     reservations:
+    #       memory: 2G
 
-  # ─── WORKER ───────────────────────────────────────────────────────────────
-  worker:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: worker
-    env_file:
-      - .env
-    volumes:
-      - ./data/documents:/app/data/documents
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    restart: unless-stopped
-    command: celery -A workers.pipeline worker --loglevel=info --concurrency=4
-
-  # ─── BASE DE DONNÉES ──────────────────────────────────────────────────────
-  db:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: carte_grise
-      POSTGRES_PASSWORD: carte_grise_dev
-      POSTGRES_DB: carte_grise
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U carte_grise"]
-      interval: 5s
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/health', timeout=3)"]
+      interval: 30s
       timeout: 5s
-      retries: 5
-
-  # ─── REDIS ────────────────────────────────────────────────────────────────
-  redis:
-    image: redis:7-alpine
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
-
-  # ─── ADMINER (dev seulement) ───────────────────────────────────────────────
-  adminer:
-    image: adminer
-    ports:
-      - "8080:8080"
-    depends_on:
-      - db
-    profiles:
-      - dev
-
-volumes:
-  postgres_data:
-  redis_data:
+      retries: 3
+      start_period: 60s

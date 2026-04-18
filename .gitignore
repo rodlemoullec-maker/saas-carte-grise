@@ -53,3 +53,17 @@ htmlcov/
 .mypy_cache/
 .ruff_cache/
 data/demo_uploads/
+
+# Credentials Google (ne jamais commiter)
+gen-lang-client-*.json
+
+data/.encryption_key
+data/.license/
+data/imatra.db
+data/imatra.db-*
+data/documents/
+
+*.pdf
+!BETA_GUIDE.pdf
+Document numérisé*
+Capture d*

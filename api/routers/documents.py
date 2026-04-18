@@ -1,13 +1,19 @@
 """
-Router documents — upload avec OCR temps reel.
+Router documents — version locale d'Imatra.
 
-POST   /documents/{dossier_id}/upload     Uploader un document (vendeur ou client)
-GET    /documents/{document_id}           Detail + resultat extraction
+POST   /documents/{dossier_id}/upload     Uploader un document (depuis fichier local)
+GET    /documents/{document_id}           Détail + résultat d'extraction
+
+L'upload appelle le pipeline OCR local (PaddleOCR via la factory)
+puis classifie et extrait les données du document.
+
+Le drag & drop d'emails (Phase 4) sera ajouté dans un router séparé
+qui appellera ce même endpoint en boucle pour chaque pièce jointe.
 """
 from __future__ import annotations
 
 import logging
-from uuid import UUID, uuid4
+import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile
 from sqlalchemy import select
@@ -18,9 +24,8 @@ from api.models.document import DocumentDB
 from api.models.dossier import DossierDB
 from storage.document_store import get_document_store
 
-# Import du moteur metier (extrait du demo_server)
+# Pipeline métier
 from engine.pipeline.realtime import (
-    _ocr_google_docai,
     classify_document,
     extract_data,
     _auto_detect_dossier_type,
@@ -28,213 +33,15 @@ from engine.pipeline.realtime import (
     _auto_extract_client_fields,
     _check_pro_docs,
     _check_client_docs,
-    _build_recap_validation,
     set_profil_pro,
 )
-from integrations.llm.claude_extractor import claude_classify, claude_extract
-from notifications.messages import DOC_ILLISIBLE, QUALITE_OCR
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
 
-# ─── Detection de completude recto/verso ────────────────────────────────────
-# Pour chaque type recto/verso, on definit les champs typiques de chaque face.
-# Apres extraction, on regarde quels champs sont remplis pour determiner
-# quelles faces ont ete deposees et si le document est complet.
-
-FACE_FIELDS: dict[str, dict] = {
-    "CNI": {
-        "recto": ["nom_naissance", "prenoms", "date_naissance", "lieu_naissance", "sexe"],
-        "verso": ["date_expiration", "n_document", "numero_document"],
-        # Champs minimum pour considerer le document exploitable
-        "required": ["nom_naissance", "date_naissance", "date_expiration"],
-    },
-    "PASSEPORT": {
-        "recto": ["nom_naissance", "prenoms", "date_naissance", "lieu_naissance", "sexe",
-                   "date_expiration", "n_document", "numero_document", "mrz_nom"],
-        "verso": [],  # Passeport = page unique (photo + MRZ sur meme page)
-        "required": ["nom_naissance", "date_naissance", "date_expiration"],
-    },
-    "PERMIS": {
-        "recto": ["nom", "prenom", "date_naissance", "categories", "numero_permis"],
-        "verso": ["categories_dates"],
-        # Le recto suffit pour le Cerfa (categories)
-        "required": ["date_naissance", "categories"],
-    },
-}
-
-
-def _analyze_document_faces(doc_type: str, extracted: dict) -> dict | None:
-    """
-    Analyse les champs extraits pour determiner quelles faces sont presentes.
-
-    Retourne None pour les documents qui ne sont pas recto/verso.
-    Pour les recto/verso, retourne :
-    {
-        "recto_verso": True,
-        "recto_present": True/False,
-        "verso_present": True/False,
-        "complet": True/False,
-        "champs_presents": [...],
-        "champs_manquants": [...],
-        "message": "..."
-    }
-    """
-    fields = FACE_FIELDS.get(doc_type)
-    if not fields:
-        return None
-
-    # Pas de verso pour le passeport → un seul upload suffit
-    if not fields["verso"]:
-        required_ok = all(
-            _has_field(extracted, f) for f in fields["required"]
-        )
-        return {
-            "recto_verso": False,
-            "complet": required_ok,
-            "champs_presents": [f for f in fields["recto"] if _has_field(extracted, f)],
-            "champs_manquants": [f for f in fields["required"] if not _has_field(extracted, f)],
-            "message": None if required_ok else "Des informations essentielles n'ont pas pu etre lues. Re-deposez le document.",
-        }
-
-    # Compter les champs de chaque face
-    recto_found = sum(1 for f in fields["recto"] if _has_field(extracted, f))
-    verso_found = sum(1 for f in fields["verso"] if _has_field(extracted, f))
-
-    recto_present = recto_found >= 2  # Au moins 2 champs recto
-    verso_present = verso_found >= 1  # Au moins 1 champ verso
-
-    # Verifier les champs requis
-    required_ok = all(_has_field(extracted, f) for f in fields["required"])
-    complet = required_ok
-
-    # Message adapte
-    if complet:
-        message = "Document complet — toutes les informations ont ete extraites."
-    elif recto_present and not verso_present:
-        message = "Une seule face detectee. Deposez l'autre face du document pour completer."
-    elif verso_present and not recto_present:
-        message = "Une seule face detectee. Deposez l'autre face du document pour completer."
-    else:
-        missing = [f for f in fields["required"] if not _has_field(extracted, f)]
-        message = f"Informations manquantes : {', '.join(missing)}. Deposez l'autre face ou re-deposez le document."
-
-    return {
-        "recto_verso": True,
-        "recto_present": recto_present,
-        "verso_present": verso_present,
-        "complet": complet,
-        "champs_presents": (
-            [f for f in fields["recto"] if _has_field(extracted, f)]
-            + [f for f in fields["verso"] if _has_field(extracted, f)]
-        ),
-        "champs_manquants": [f for f in fields["required"] if not _has_field(extracted, f)],
-        "message": message,
-    }
-
-
-def _has_field(data: dict, field_name: str) -> bool:
-    """Verifie si un champ est present et non vide dans les donnees extraites."""
-    val = data.get(field_name)
-    if val is None:
-        return False
-    if isinstance(val, str) and not val.strip():
-        return False
-    if isinstance(val, list) and len(val) == 0:
-        return False
-    return True
-
-
-import re as _re
-
-# Puissance max continue par categorie L (reglementation EU 168/2013)
-_CATEGORY_MAX_POWER_KW: dict[str, float] = {
-    "L1e": 4, "L1e-A": 0.25, "L1e-B": 4,
-    "L2e": 4,
-    "L3e-A1": 11, "L3e-A1E": 11,
-    "L3e-A2": 35, "L3e-A2E": 35,
-    "L3e-A3": 999, "L3e-A3E": 999,
-    "L4e-A1": 11, "L4e-A2": 35, "L4e-A3": 999,
-    "L5e": 15,
-    "L6e": 6, "L7e": 15,
-}
-
-
-def _postprocess_coc(extracted: dict, ocr_text: str) -> None:
-    """
-    Post-validation du COC : corrige les erreurs d'extraction courantes.
-
-    Probleme typique : l'OCR melange les colonnes du COC, et Claude confond
-    la vitesse max (champ 1.8) avec la puissance (champ 3.3.3.4).
-    On valide la puissance extraite vs la categorie du vehicule et on
-    tente une correction par regex si incoherent.
-    """
-    cat = (extracted.get("categorie_j") or "").upper()
-    puissance = extracted.get("puissance_kw")
-    energie = (extracted.get("energie") or "").lower()
-
-    # Trouver la puissance max reglementaire pour cette categorie
-    max_kw = None
-    for cat_prefix, limit in _CATEGORY_MAX_POWER_KW.items():
-        if cat.startswith(cat_prefix.upper()):
-            max_kw = limit
-            break
-
-    # Si puissance extraite depasse la limite reglementaire de la categorie → fausse
-    # Tenter de corriger en cherchant le bon nombre dans le texte OCR
-    if puissance and max_kw and puissance > max_kw:
-        logger.warning(
-            f"[COC PostProcess] puissance_kw={puissance} depasse la limite "
-            f"categorie {cat} (max {max_kw} kW) — tentative de correction"
-        )
-
-        # Strategie 1 : chercher un nombre apres "Maximum 30 minutes power" ou "Maximum net power"
-        m = _re.search(
-            r"[Mm]aximum\s*(?:30\s*minutes\s*|net\s*)?power[^:]*:[^\d]*(\d+(?:\.\d+)?)",
-            ocr_text, _re.DOTALL
-        )
-        if m:
-            val = float(m.group(1))
-            after = ocr_text[m.end(1):m.end(1)+5]
-            if not _re.match(r"\.\d", after) and val <= max_kw and val > 0:
-                extracted["puissance_kw"] = val
-                logger.info(f"[COC PostProcess] puissance corrigee → {val} kW (regex apres label)")
-                return
-
-        # Strategie 2 : chercher un nombre entier isole sur sa propre ligne,
-        # le plus proche du mot "electric" ou "kW" dans le texte OCR
-        # (le layout colonne melange souvent la valeur loin du label)
-        best = None
-        best_dist = float("inf")
-        for m in _re.finditer(r"\n(\d{1,3})\n", ocr_text):
-            val = int(m.group(1))
-            if val <= 0 or val > max_kw:
-                continue
-            for em in _re.finditer(r"electric|kW|power", ocr_text, _re.IGNORECASE):
-                dist = abs(m.start() - em.start())
-                if dist < best_dist:
-                    best_dist = dist
-                    best = val
-        if best:
-            extracted["puissance_kw"] = best
-            logger.info(f"[COC PostProcess] puissance corrigee → {best} kW (nombre isole proche de 'electric/kW')")
-            return
-
-        # Aucune correction trouvee — garder null plutot qu'une valeur fausse
-        extracted["puissance_kw"] = None
-        logger.warning(f"[COC PostProcess] puissance mise a null — valeur non trouvable dans le texte")
-
-    # Corriger modele : "VARG 1" est le "Type" (0.2), pas le nom commercial
-    # Le nom commercial est dans le champ 0.2.3 mais l'OCR le separe de son label
-    # Chercher le nom commercial dans le texte : ligne isolee en majuscules entre les champs
-    modele = extracted.get("modele", "")
-    if modele and _re.match(r"^[A-Z]+ \d+$", modele):
-        # Chercher "VARG" (ou similaire) comme ligne isolee dans le texte
-        m = _re.search(r"Commercial\s*name.*?\n.*?\n([A-Z][A-Za-z0-9]{2,20})\n", ocr_text, _re.DOTALL)
-        if m:
-            extracted["modele"] = m.group(1).strip()
+# ─── Configuration ──────────────────────────────────────────────────────────
 
 ALLOWED_MIME_TYPES = {
     "application/pdf",
@@ -243,58 +50,44 @@ ALLOWED_MIME_TYPES = {
     "image/tiff",
     "image/webp",
 }
-MAX_FILE_SIZE = 10 * 1024 * 1024
+MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
+
+OCR_SEUIL_ILLISIBLE = 0.40
+OCR_SEUIL_AVERTISSEMENT = 0.70
+
+
+# ─── Endpoint upload ────────────────────────────────────────────────────────
 
 
 @router.post("/{dossier_id}/upload", status_code=201)
 async def upload_document(
-    dossier_id: UUID,
+    dossier_id: str,
     file: UploadFile,
-    source: str = "vendeur",
-    captured_by_camera: bool = False,
     doc_type: str | None = None,
+    source_email_subject: str | None = None,
+    source_email_from: str | None = None,
     db: AsyncSession = Depends(get_db),
 ):
     """
-    Upload un document — OCR + classification + extraction en temps reel.
+    Upload un document — OCR + classification + extraction en local.
 
-    Le moteur complet du demo_server est utilise :
-    - OCR Tesseract → fallback Google DocAI si non classifiable
-    - Classification automatique du type de document
-    - Extraction des donnees
-    - Detection auto VN/VO (si vendeur)
-    - Mise a jour checklist
+    L'agent uploade un fichier (depuis son disque ou extrait d'un email).
+    Le pipeline tourne intégralement en local via PaddleOCR.
     """
     dossier = await db.get(DossierDB, dossier_id)
     if not dossier:
-        raise HTTPException(status_code=404, detail="Dossier non trouve")
+        raise HTTPException(status_code=404, detail="Dossier non trouvé")
 
-    # Filtrer les fichiers systeme (#12)
+    # Filtrer les fichiers système
     fname = file.filename or ""
     if fname.startswith(".") or fname in (".DS_Store", "Thumbs.db", "desktop.ini"):
-        raise HTTPException(status_code=422, detail=f"Fichier systeme ignore : {fname}")
-
-    # Verifications client (#9-11)
-    metadata = dossier.metadata_ or {}
-    if source == "client":
-        if not metadata.get("client_rgpd_consent"):
-            raise HTTPException(403, detail={
-                "error": "consentement_requis",
-                "message": "Vous devez accepter les conditions de traitement de vos donnees avant de deposer vos documents.",
-            })
-        if not metadata.get("cpi_mode"):
-            raise HTTPException(403, detail={
-                "error": "choix_cpi_requis",
-                "message": "Choisissez d'abord comment vous souhaitez recevoir votre CPI.",
-            })
-        if metadata.get("cession_signee_client") and not metadata.get("cession_client_telechargee"):
-            raise HTTPException(403, detail={
-                "error": "telechargement_cession_requis",
-                "message": "Vous devez telecharger votre exemplaire du certificat de cession avant de pouvoir continuer.",
-            })
+        raise HTTPException(status_code=422, detail=f"Fichier système ignoré : {fname}")
 
     if file.content_type not in ALLOWED_MIME_TYPES:
-        raise HTTPException(status_code=422, detail=f"Type de fichier non supporte : {file.content_type}")
+        raise HTTPException(
+            status_code=422,
+            detail=f"Type de fichier non supporté : {file.content_type}",
+        )
 
     file_bytes = await file.read()
     if len(file_bytes) > MAX_FILE_SIZE:
@@ -302,385 +95,264 @@ async def upload_document(
     if len(file_bytes) == 0:
         raise HTTPException(status_code=422, detail="Fichier vide")
 
-    # Stocker le fichier
+    # Stocker le fichier UNE SEULE FOIS (chiffré local). Si le fichier contient
+    # plusieurs documents (PDF multi-pages), on créera N rows en BDD pointant
+    # toutes vers ce même storage_path.
     store = get_document_store()
     sha256 = store.compute_sha256(file_bytes)
-    doc_id = uuid4()
-    storage_path = f"{dossier_id}/{doc_id}/{file.filename}"
+    upload_id = str(uuid.uuid4())
+    storage_path = f"{dossier_id}/{upload_id}/{file.filename}"
     await store.save(file_bytes, storage_path, file.content_type)
 
-    # Creer en BDD
-    document = DocumentDB(
-        id=doc_id,
-        dossier_id=dossier_id,
-        source=source,
-        type="PENDING",
-        status="PENDING",
-        captured_by_camera=captured_by_camera,
-        storage_path=storage_path,
-        original_filename=file.filename or "unknown",
-        mime_type=file.content_type,
-        file_size_bytes=len(file_bytes),
-        sha256=sha256,
-    )
-    db.add(document)
-    await db.flush()
-
-    # ═══════════════════════════════════════════════════════════════════
-    # PIPELINE : Google DocAI (OCR) → Claude Opus (extraction)
-    #
-    # Google DocAI : lit le texte brut des images/PDF
-    # Claude Opus : comprend le texte, extrait les champs en JSON
-    # Python : valide le JSON, verifie la coherence
-    # ═══════════════════════════════════════════════════════════════════
-
-    mime = file.content_type or ""
-    raw_text = ""
-    ocr_confidence = 0.0
+    # ════════════════════════════════════════════════════════════════════
+    # PIPELINE LOCAL : PaddleOCR (par page) → classification (par page) →
+    # groupement → N documents logiques
+    # ════════════════════════════════════════════════════════════════════
+    ocr_result = None
     ocr_provider_used = "none"
-
-    OCR_SEUIL_ILLISIBLE = 0.40
-    OCR_SEUIL_AVERTISSEMENT = 0.70
-
-    # Etape 1 : Google DocAI (OCR — lecture du texte brut)
-    if mime in ALLOWED_MIME_TYPES:
-        try:
-            goo = _ocr_google_docai(file_bytes, mime)
-            raw_text = goo["text"]
-            ocr_confidence = goo["confidence"]
-            ocr_provider_used = "google_docai"
-            logger.info(f"[OCR] Google DocAI: {ocr_confidence:.0%}, {len(raw_text)} chars")
-        except Exception as e:
-            logger.error(f"[OCR] Google DocAI echoue: {e}")
-
-    # ─── Qualite (basee sur la confidence Google DocAI) ───
-    via_fichier = not captured_by_camera
-    if ocr_confidence < OCR_SEUIL_ILLISIBLE:
-        quality_status = "illisible"
-        if via_fichier:
-            quality_message = DOC_ILLISIBLE["fichier_1ere_tentative"]
-        else:
-            quality_message = DOC_ILLISIBLE["photo_1ere_tentative"]
-    elif ocr_confidence < OCR_SEUIL_AVERTISSEMENT:
-        quality_status = "avertissement"
-        quality_message = QUALITE_OCR["avertissement"]
-    else:
-        quality_status = "ok"
-        quality_message = "Document bien recu et lisible."
-
-    # ─── Etape 2 : Claude Opus (classification + extraction) ───
-    detected_type = "PENDING"
-    cls_confidence = 0.0
-    keywords: list[str] = []
-    extracted: dict = {}
-
-    if quality_status != "illisible" and raw_text.strip():
-        # Si doc_type est fourni (ex: client qui depose dans un emplacement specifique), on le force
-        if doc_type and doc_type not in ("PENDING", "AUTRE"):
-            detected_type = doc_type
-            cls_confidence = 1.0
-            logger.info(f"[Upload] Type force par le client: {detected_type}")
-        else:
-            # Classification via Claude Opus
-            try:
-                claude_cls = await claude_classify(raw_text)
-                detected_type = claude_cls.get("type", "AUTRE")
-                cls_confidence = claude_cls.get("confidence", 0.0)
-                logger.info(f"[Claude] Classification: {detected_type} ({cls_confidence:.0%})")
-            except Exception as e:
-                logger.warning(f"[Claude] Classification echouee, fallback regex: {e}")
-                detected_type, cls_confidence, keywords = classify_document(raw_text)
-
-        # Extraction via Claude Opus
-        if detected_type and detected_type not in ("AUTRE", "PENDING"):
-            try:
-                extracted = await claude_extract(detected_type, raw_text)
-                logger.info(f"[Claude] Extraction {detected_type}: {len(extracted)} champs")
-            except Exception as e:
-                logger.warning(f"[Claude] Extraction echouee, fallback regex: {e}")
-                extracted = extract_data(detected_type, raw_text)
-        else:
-            # Fallback regex pour les types non reconnus
-            extracted = extract_data(detected_type, raw_text)
-
-    # ─── Post-validation COC : corriger puissance electrique ───
-    if detected_type == "COC" and extracted:
-        _postprocess_coc(extracted, raw_text)
-
-    # ─── Post-validation CG : verifier si barree ───
-    cg_non_barree = False
-    if detected_type == "CG_BARREE" and extracted:
-        barre = extracted.get("barre_diagonale")
-        if barre is False or (barre is None and not extracted.get("date_vente")):
-            cg_non_barree = True
-            # On garde le document pour que le vendeur voie le message,
-            # mais on le marque comme problematique
-            extracted["_cg_non_barree"] = True
-
-    doc_status = "REJECTED" if quality_status == "illisible" else "EXTRACTED"
-
-    # ─── Anti-doublon / fusion recto-verso (#14) ───
-    # Types qui ont un recto/verso
-    RECTO_VERSO_TYPES = {"CNI", "PASSEPORT", "PERMIS"}
-
-    # Cas 1 : meme type deja present → fusion recto/verso
-    if detected_type != "AUTRE" and detected_type != "PENDING":
-        existing = await db.execute(
-            select(DocumentDB).where(
-                DocumentDB.dossier_id == dossier_id,
-                DocumentDB.source == source,
-                DocumentDB.type == detected_type,
-                DocumentDB.id != doc_id,
-            )
+    try:
+        from integrations.ocr_providers import get_ocr_provider
+        from config.settings import get_settings
+        provider = get_ocr_provider(get_settings().ocr_provider)
+        ocr_result = await provider.process_document(file_bytes, file.content_type or "")
+        ocr_provider_used = ocr_result.provider
+        logger.info(
+            f"[OCR] {ocr_provider_used}: {ocr_result.average_confidence:.0%}, "
+            f"{len(ocr_result.pages)} page(s), {len(ocr_result.full_text)} chars"
         )
-        existing_doc = existing.scalar_one_or_none()
-        if existing_doc:
-            merged_text = (existing_doc.ocr_raw_text or "") + "\n" + raw_text
-            # Re-extraire avec Claude Opus sur le texte fusionne
+    except Exception as e:
+        logger.error(f"[OCR] échec : {e}")
+
+    # Découpage en documents logiques. Une page non reconnue est silencieusement
+    # ignorée (juste loggée). Cf. décision produit : pas de pop-up "page non reconnue".
+    SCORE_MIN_CLASSIF = 0.20
+    logical_docs: list[dict] = []  # [{type, text, confidence, page_range, score}]
+    if ocr_result and ocr_result.pages:
+        # Étape 1 : classifier chaque page
+        page_classifs = []
+        for page in ocr_result.pages:
             try:
-                merged_extracted = await claude_extract(detected_type, merged_text)
+                ptype, pscore, _ = classify_document(page.text)
             except Exception:
-                merged_extracted = extract_data(detected_type, merged_text)
-            for k, v in merged_extracted.items():
-                if v and not extracted.get(k):
-                    extracted[k] = v
-            raw_text = merged_text
-            await db.delete(existing_doc)
-            logger.info(f"[Fusion recto/verso] {detected_type} : {existing_doc.original_filename} + {file.filename}")
+                ptype, pscore = "AUTRE", 0.0
+            if pscore < SCORE_MIN_CLASSIF:
+                logger.info(f"[Classify] page {page.page_number} non reconnue (score {pscore:.2f}) — ignorée")
+                ptype = "INCONNU"
+            page_classifs.append({"page": page, "type": ptype, "score": pscore})
 
-    # Cas 2 : verso non reconnu (AUTRE/PENDING) mais un recto existe → forcer la fusion
-    elif detected_type in ("AUTRE", "PENDING"):
-        for rv_type in RECTO_VERSO_TYPES:
-            existing = await db.execute(
-                select(DocumentDB).where(
-                    DocumentDB.dossier_id == dossier_id,
-                    DocumentDB.source == source,
-                    DocumentDB.type == rv_type,
-                    DocumentDB.id != doc_id,
-                )
-            )
-            existing_doc = existing.scalar_one_or_none()
-            if existing_doc:
-                # On a un recto de ce type → ce fichier est probablement le verso
-                detected_type = rv_type
-                merged_text = (existing_doc.ocr_raw_text or "") + "\n" + raw_text
-                try:
-                    merged_extracted = await claude_extract(detected_type, merged_text)
-                except Exception:
-                    merged_extracted = extract_data(detected_type, merged_text)
-                for k, v in merged_extracted.items():
-                    if v and not extracted.get(k):
-                        extracted[k] = v
-                raw_text = merged_text
-                await db.delete(existing_doc)
-                logger.info(f"[Fusion verso auto] {detected_type} : {existing_doc.original_filename} + {file.filename}")
-                break
+        # Étape 2 : grouper les pages consécutives de même type (sauf INCONNU)
+        i = 0
+        while i < len(page_classifs):
+            cur = page_classifs[i]
+            if cur["type"] == "INCONNU":
+                i += 1
+                continue
+            j = i
+            while j + 1 < len(page_classifs) and page_classifs[j + 1]["type"] == cur["type"]:
+                j += 1
+            group_pages = [page_classifs[k]["page"] for k in range(i, j + 1)]
+            text = "\n\n".join(p.text for p in group_pages)
+            avg_conf = sum(p.confidence for p in group_pages) / len(group_pages)
+            logical_docs.append({
+                "type": cur["type"],
+                "text": text,
+                "confidence": avg_conf,
+                "score": cur["score"],
+                "page_range": f"{group_pages[0].page_number}-{group_pages[-1].page_number}"
+                              if len(group_pages) > 1 else str(group_pages[0].page_number),
+                "page_count": len(group_pages),
+            })
+            i = j + 1
 
-    # MAJ document BDD
-    document.type = detected_type
-    document.status = doc_status
-    document.ocr_provider = ocr_provider_used
-    document.ocr_confidence = ocr_confidence
-    document.ocr_raw_text = raw_text[:5000] if raw_text else None
-    document.extracted_data = extracted
-    document.auto_classified = cls_confidence >= 0.60
-    document.classification_confidence = cls_confidence
+    # Si rien n'a été reconnu, on crée quand même UN document marqué "AUTRE"
+    # pour que l'agent puisse le retrouver dans la liste et le classer manuellement.
+    if not logical_docs:
+        logical_docs = [{
+            "type": "AUTRE",
+            "text": ocr_result.full_text if ocr_result else "",
+            "confidence": ocr_result.average_confidence if ocr_result else 0.0,
+            "score": 0.0,
+            "page_range": "1",
+            "page_count": 1,
+        }]
+
+    logger.info(f"[Upload] {len(logical_docs)} document(s) logique(s) détecté(s) dans {file.filename}")
+
+    # Variables compatibilité réponse (premier doc créé)
+    raw_text = logical_docs[0]["text"]
+    ocr_confidence = logical_docs[0]["confidence"]
+    document = None  # sera assigné au premier DocumentDB créé ci-dessous
+
+    created_docs = []
+    detected_type = "AUTRE"
+    cls_confidence = 0.0
+    extracted: dict = {}
+    quality_status = "ok"
+    quality_message = "Document bien reçu et lisible."
+
+    for idx, ldoc in enumerate(logical_docs):
+        ld_text = ldoc["text"]
+        ld_conf = ldoc["confidence"]
+        ld_type = ldoc["type"]
+
+        # Qualité par doc logique
+        if ld_conf < OCR_SEUIL_ILLISIBLE:
+            ld_quality = "illisible"
+        elif ld_conf < OCR_SEUIL_AVERTISSEMENT:
+            ld_quality = "avertissement"
+        else:
+            ld_quality = "ok"
+
+        # Si l'agent a forcé doc_type au upload, on l'applique uniquement au 1er doc logique
+        if idx == 0 and doc_type and doc_type not in ("PENDING", "AUTRE"):
+            ld_type = doc_type
+            cls_score = 1.0
+        else:
+            cls_score = ldoc["score"]
+
+        # Extraction si type reconnu
+        ld_extracted: dict = {}
+        if ld_quality != "illisible" and ld_type not in ("AUTRE", "PENDING") and ld_text.strip():
+            try:
+                ld_extracted = extract_data(ld_type, ld_text)
+            except Exception as e:
+                logger.warning(f"[Extract] échec sur {ld_type} : {e}")
+        # Métadonnée page_range stockée dans extracted_data
+        ld_extracted["__page_range"] = ldoc["page_range"]
+        ld_extracted["__page_count"] = ldoc["page_count"]
+
+        ld_doc_id = str(uuid.uuid4())
+        new_doc = DocumentDB(
+            id=ld_doc_id,
+            dossier_id=dossier_id,
+            type=ld_type,
+            status="REJECTED" if ld_quality == "illisible" else "EXTRACTED",
+            storage_path=storage_path,  # Tous les docs logiques partagent le même fichier source
+            original_filename=file.filename or "unknown",
+            mime_type=file.content_type,
+            file_size_bytes=len(file_bytes),
+            sha256=sha256,
+            source_email_subject=source_email_subject,
+            source_email_from=source_email_from,
+            ocr_provider=ocr_provider_used,
+            ocr_confidence=ld_conf,
+            ocr_raw_text=ld_text,
+            extracted_data=ld_extracted,
+            classification_confidence=cls_score,
+            auto_classified=doc_type is None,
+        )
+        db.add(new_doc)
+        created_docs.append(new_doc)
+        if document is None:
+            document = new_doc
+            detected_type = ld_type
+            cls_confidence = cls_score
+            extracted = ld_extracted
+            quality_status = ld_quality
+
+    # Auto-détection VN/VO et extraction des champs du dossier
+    # Examen sur l'ensemble des documents logiques créés (et plus seulement le premier)
+    all_types = {d.type for d in created_docs}
+    if all_types & {"COC", "FACTURE", "CG_BARREE"}:
+        dossier_dict = await _build_dossier_dict(db, dossier)
+        try:
+            # _auto_detect_dossier_type modifie dossier_dict["type"] in place.
+            _auto_detect_dossier_type(dossier_dict)
+            new_type = dossier_dict.get("type")
+            # Toujours réévaluer : si un COC arrive après une CG, le dossier
+            # doit basculer de VO → VN.
+            if new_type:
+                dossier.type = new_type
+        except Exception as e:
+            logger.warning(f"[AutoDetect] échec : {e}")
+
+        try:
+            # Modifie dossier_dict in place ; on lit les champs ensuite.
+            _auto_extract_dossier_fields(dossier_dict)
+            for k in ("vin", "immatriculation", "client_nom", "client_prenom"):
+                v = dossier_dict.get(k)
+                if v and hasattr(dossier, k) and not getattr(dossier, k):
+                    setattr(dossier, k, v)
+        except Exception as e:
+            logger.warning(f"[AutoExtract dossier] échec : {e}")
+
+    if all_types & {"CNI", "PASSEPORT", "PERMIS", "DOMICILE"}:
+        dossier_dict = await _build_dossier_dict(db, dossier)
+        try:
+            _auto_extract_client_fields(dossier_dict)
+            for k in ("client_nom", "client_prenom", "client_sexe",
+                      "is_personne_morale", "siren", "raison_sociale"):
+                v = dossier_dict.get(k)
+                if v is not None and hasattr(dossier, k) and not getattr(dossier, k):
+                    setattr(dossier, k, v)
+        except Exception as e:
+            logger.warning(f"[AutoExtract client] échec : {e}")
 
     await db.flush()
-
-    # ─── Si upload vendeur : detection auto VN/VO + extraction infos dossier ───
-    dossier_dict = None
-    checklist = None
-
-    if source == "vendeur":
-        # Construire un dossier dict compatible avec le moteur
-        dossier_dict = await _build_dossier_dict(db, dossier)
-
-        _auto_detect_dossier_type(dossier_dict)
-        _auto_extract_dossier_fields(dossier_dict)
-
-        # Mettre a jour le dossier BDD
-        if dossier_dict.get("type") and not dossier.type:
-            dossier.type = dossier_dict["type"]
-        if dossier_dict.get("vin") and not dossier.vin:
-            dossier.vin = dossier_dict["vin"]
-        if dossier_dict.get("immatriculation") and not dossier.immatriculation:
-            dossier.immatriculation = dossier_dict["immatriculation"]
-        if dossier_dict.get("client_nom") and not dossier.client_nom:
-            dossier.client_nom = dossier_dict["client_nom"]
-        if dossier_dict.get("client_prenom") and not dossier.client_prenom:
-            dossier.client_prenom = dossier_dict["client_prenom"]
-
-        await db.flush()
-
-        # Checklist vendeur
-        checklist = _check_pro_docs(dossier_dict)
-
-        # Recapitulatif si tout est pret
-        recap = None
-        if checklist.get("client_link_ready"):
-            recap = _build_recap_validation(dossier_dict)
-
-    elif source == "client":
-        # Post-traitement client (#16-17)
-        dossier_dict = await _build_dossier_dict(db, dossier)
-        _auto_extract_client_fields(dossier_dict)
-
-        # Mettre a jour dossier BDD depuis extraction client
-        if dossier_dict.get("client_sexe") and not (metadata.get("client_sexe")):
-            metadata["client_sexe"] = dossier_dict["client_sexe"]
-            dossier.metadata_ = metadata
-            from sqlalchemy.orm.attributes import flag_modified
-            flag_modified(dossier, 'metadata_')
-        if dossier_dict.get("client_nom"):
-            dossier.client_nom = dossier_dict["client_nom"]
-        if dossier_dict.get("client_prenom"):
-            dossier.client_prenom = dossier_dict["client_prenom"]
-        if dossier_dict.get("is_personne_morale"):
-            dossier.is_personne_morale = True
-
-        await db.flush()
-        checklist = _check_client_docs(dossier_dict)
-
-    # ─── Detection de completude du dossier ───
-    dossier_complet = False
-    completude_message = None
-    docs_manquants = []
-
-    if checklist:
-        if source == "vendeur":
-            dossier_complet = checklist.get("all_ok", False)
-            docs_manquants = [
-                m.get("label", m.get("id", "?"))
-                for m in checklist.get("blocages", [])
-                if m.get("status") == "manquant"
-            ]
-            if dossier_complet:
-                completude_message = (
-                    "Nickel, tous les documents vehicule sont la ! "
-                    "Vous pouvez deposer les documents client ou envoyer un lien SMS a votre client."
-                )
-            elif docs_manquants:
-                completude_message = (
-                    f"Bien recu ! Il manque encore : {', '.join(docs_manquants)}. "
-                    f"Un petit ajustement et on est bons !"
-                )
-        elif source == "client":
-            dossier_complet = checklist.get("ready_for_diagnostic", False)
-            docs_manquants = [
-                m.get("label", m.get("type", "?"))
-                for m in checklist.get("missing", [])
-                if m.get("required")
-            ]
-            if dossier_complet:
-                completude_message = (
-                    "Parfait, tous vos documents sont bien recus ! "
-                    "Plus qu'a confirmer l'envoi et c'est termine."
-                )
-            elif docs_manquants:
-                completude_message = (
-                    f"Bien recu ! Il manque encore : {', '.join(docs_manquants)}. "
-                    f"Ca prend 2 minutes."
-                )
-
-    # ─── Analyse faces recto/verso ───
-    faces_info = _analyze_document_faces(detected_type, extracted)
-
-    # ─── Info CNIT manquant (COC europeen) ───
-    cnit_info = None
-    if detected_type == "COC" and source == "vendeur" and not extracted.get("cnit"):
-        cnit_info = {
-            "cnit_absent": True,
-            "message": (
-                "Le CNIT (type mines, champ D.2.1) n'a pas ete trouve sur ce COC — "
-                "c'est normal pour un COC europeen. "
-                "Vous pourrez saisir le CNIT manuellement avant de generer le Cerfa. "
-                "Le Cerfa sera mis a jour numeriquement, sans impression ni ajout manuscrit."
-            ),
-        }
-
-    # ─── Alerte CG non barree ───
-    cg_alerte = None
-    if cg_non_barree:
-        cg_alerte = {
-            "cg_non_barree": True,
-            "message": (
-                "Cette carte grise n'est pas barree. "
-                "Pour une vente de vehicule d'occasion, la carte grise doit comporter : "
-                "une barre diagonale, la mention \"vendu le\" ou \"cede le\" suivie "
-                "de la date et de l'heure de la vente, ainsi que le nom et prenom "
-                "de l'acheteur ecrits a la main sur ou pres de la barre. "
-                "Veuillez deposer la carte grise correctement barree."
-            ),
-        }
 
     return {
-        "document_id": str(doc_id),
-        "dossier_id": str(dossier_id),
-        "type": detected_type,
-        "status": doc_status,
-        "filename": file.filename,
-        "size_bytes": len(file_bytes),
-        "quality": {
-            "status": quality_status,
-            "ocr_confidence": ocr_confidence,
-            "ocr_provider": ocr_provider_used,
+        "document_id": document.id,
+        "dossier_id": dossier_id,
+        "type": document.type,
+        "status": document.status,
+        "ocr": {
+            "provider": ocr_provider_used,
+            "confidence": ocr_confidence,
+            "quality": quality_status,
             "message": quality_message,
-            "problems": [{"message": quality_message}] if quality_message else [],
         },
-        "extracted_fields": extracted,
         "classification": {
-            "type": detected_type,
+            "detected": detected_type,
             "confidence": cls_confidence,
-            "keywords": keywords,
         },
-        "faces": faces_info,
-        "cnit_info": cnit_info,
-        "cg_alerte": cg_alerte,
-        "dossier_complet": dossier_complet,
-        "completude": {
-            "complet": dossier_complet,
-            "message": completude_message,
-            "docs_manquants": docs_manquants,
-        },
-        "pro_docs_checklist": checklist if source == "vendeur" else None,
-        "client_docs_checklist": checklist if source == "client" else None,
-        "recapitulatif_validation": recap if source == "vendeur" and checklist and checklist.get("client_link_ready") else None,
+        "extracted": extracted,
+        # Si plusieurs documents logiques détectés dans le même fichier
+        "logical_documents": [
+            {
+                "id": d.id,
+                "type": d.type,
+                "page_range": (d.extracted_data or {}).get("__page_range", "1"),
+                "confidence": d.ocr_confidence,
+            }
+            for d in created_docs
+        ],
     }
 
 
 @router.get("/{document_id}")
-async def get_document(
-    document_id: UUID,
-    db: AsyncSession = Depends(get_db),
-):
+async def get_document(document_id: str, db: AsyncSession = Depends(get_db)):
+    """Récupère le détail d'un document (métadonnées + extraction)."""
     doc = await db.get(DocumentDB, document_id)
     if not doc:
-        raise HTTPException(status_code=404, detail="Document non trouve")
-
-    faces_info = _analyze_document_faces(doc.type, doc.extracted_data or {})
-
+        raise HTTPException(404, "Document non trouvé")
     return {
-        "id": str(doc.id),
-        "dossier_id": str(doc.dossier_id),
+        "id": doc.id,
+        "dossier_id": doc.dossier_id,
         "type": doc.type,
         "status": doc.status,
-        "source": doc.source,
         "filename": doc.original_filename,
-        "ocr_confidence": doc.ocr_confidence,
-        "ocr_provider": doc.ocr_provider,
+        "mime_type": doc.mime_type,
+        "file_size_bytes": doc.file_size_bytes,
+        "ocr": {
+            "provider": doc.ocr_provider,
+            "confidence": doc.ocr_confidence,
+        },
         "extracted_data": doc.extracted_data,
-        "faces": faces_info,
-        "auto_classified": doc.auto_classified,
-        "classification_confidence": doc.classification_confidence,
+        "validation_result": doc.validation_result,
+        "source_email_subject": doc.source_email_subject,
+        "source_email_from": doc.source_email_from,
         "created_at": doc.created_at.isoformat() if doc.created_at else None,
     }
 
 
-# ─── Helpers ─────────────────────────────────────────────────────────────────
+# ─── Helpers internes ───────────────────────────────────────────────────────
 
-async def _sync_profil_pro(db: AsyncSession, professionnel_id) -> None:
-    """Peuple PROFIL_PRO dans realtime.py depuis la BDD."""
+
+async def _sync_profil_pro(db: AsyncSession, professionnel_id: str) -> None:
+    """
+    Peuple la variable PROFIL_PRO du moteur realtime depuis la BDD locale.
+    Le moteur travaille avec des dicts — c'est le pont avec SQLAlchemy.
+    """
     from api.models.professionnel import Professionnel
     pro = await db.get(Professionnel, professionnel_id)
     if pro:
@@ -694,70 +366,60 @@ async def _sync_profil_pro(db: AsyncSession, professionnel_id) -> None:
             "kbis_path": pro.kbis_path,
             "siret": pro.siret,
             "raison_sociale": pro.raison_sociale,
-            "assurance_flotte_vn": pro.assurance_flotte_vn,
-            "assurance_flotte_vo": pro.assurance_flotte_vo,
-            "demander_assurance_client_vn": pro.demander_assurance_client_vn,
-            "demander_assurance_client_vo": pro.demander_assurance_client_vo,
         })
 
 
 async def _build_dossier_dict(db: AsyncSession, dossier: DossierDB) -> dict:
     """
     Construit un dict compatible avec le moteur realtime depuis le dossier BDD.
-    Le moteur du demo_server travaille sur des dicts — c'est le pont.
-    Peuple aussi PROFIL_PRO automatiquement.
+
+    Le moteur de vérification travaille sur des dicts plats — cette fonction
+    fait le pont entre SQLAlchemy et le pipeline.
     """
-    # Peupler PROFIL_PRO depuis la BDD
     await _sync_profil_pro(db, dossier.professionnel_id)
 
-    # Charger les documents
     result = await db.execute(
         select(DocumentDB).where(DocumentDB.dossier_id == dossier.id)
     )
     docs = result.scalars().all()
 
-    docs_vendeur = []
-    docs_client = []
-
+    docs_list = []
     for doc in docs:
         d = {
-            "id": str(doc.id),
+            "id": doc.id,
             "type": doc.type or "PENDING",
             "filename": doc.original_filename,
             "storage_path": doc.storage_path,
-            "source": doc.source,
             "status": doc.status,
             "extracted_data": doc.extracted_data or {},
             "ocr_confidence": doc.ocr_confidence,
-            "captured_by_camera": doc.captured_by_camera,
             "quality": {
-                "status": "ok" if doc.status == "EXTRACTED" else "illisible" if doc.status == "REJECTED" else "en_cours",
+                "status": (
+                    "ok" if doc.status == "EXTRACTED"
+                    else "illisible" if doc.status == "REJECTED"
+                    else "en_cours"
+                ),
                 "confidence": doc.ocr_confidence,
             },
         }
-        if doc.source == "client":
-            docs_client.append(d)
-        else:
-            docs_vendeur.append(d)
+        docs_list.append(d)
 
+    # En version locale, il n'y a plus de distinction vendeur/client.
+    # Tous les documents arrivent par l'agent. On garde la structure attendue
+    # par le pipeline existant en mettant tout dans documents_vendeur pour
+    # rester compatible (le pipeline sera nettoyé en Phase 3.7).
     return {
-        "id": str(dossier.id),
+        "id": dossier.id,
         "type": dossier.type,
         "client_telephone": dossier.client_telephone,
         "client_email": dossier.client_email,
         "client_nom": dossier.client_nom,
         "client_prenom": dossier.client_prenom,
-        "client_sexe": None,
         "vin": dossier.vin,
         "immatriculation": dossier.immatriculation,
         "is_personne_morale": dossier.is_personne_morale,
-        "documents_vendeur": docs_vendeur,
-        "documents_client": docs_client,
-        "documents": docs_vendeur + docs_client,
+        "documents_vendeur": docs_list,
+        "documents_client": [],
+        "documents": docs_list,
         "status": dossier.status,
-        # Metadata
-        "pas_de_certificat_cession": (dossier.metadata_ or {}).get("pas_de_certificat_cession", False),
-        "demander_assurance_client": (dossier.metadata_ or {}).get("demander_assurance_client", False),
-        "assurance_flotte_couvre": (dossier.metadata_ or {}).get("assurance_flotte_couvre", False),
-        "choix_assurance_pro": (dossier.metadata_ or {}).get("choix_assurance_pro"),
     }

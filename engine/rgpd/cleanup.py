@@ -1,31 +1,29 @@
 """
-Nettoyage RGPD — suppression des donnees client apres finalisation du dossier.
+Nettoyage RGPD — version locale d'Imatra.
 
 Quand un dossier passe en CERFA_GENERE :
-1. Les fichiers documents client sont supprimes du stockage (S3/local)
-2. Le texte OCR brut est supprime de la BDD
-3. Les donnees extraites detaillees sont supprimees
-4. Seul un resume anonymise est conserve pour l'archivage pro (5 ans)
+1. Tous les fichiers documents sont supprimés du stockage local chiffré
+2. Le texte OCR brut est supprimé de la BDD SQLite
+3. Les données extraites détaillées sont anonymisées
+4. Seul un résumé minimal est conservé pour l'archivage légal (5 ans)
 
-Ce qui est CONSERVE (archivage pro 5 ans) :
-- Reference dossier, type VN/VO, dates
+Ce qui est CONSERVÉ (archivage légal 5 ans) :
+- Référence dossier, type VN/VO, dates
 - VIN, immatriculation
-- Nom du titulaire (necessaire pour l'archivage)
+- Nom du titulaire (obligation Code de la route)
 - Diagnostic, estimation taxes
-- Montant facture
 
-Ce qui est SUPPRIME :
-- Fichiers documents client (CNI, permis, domicile) du stockage
-- Texte OCR brut des documents client
-- Donnees extraites detaillees (date naissance, lieu naissance, MRZ, etc.)
-- Metadata client (consentement, choix CPI)
+Ce qui est SUPPRIMÉ :
+- Fichiers documents (CNI, permis, domicile, COC, facture, etc.)
+- Texte OCR brut
+- Données extraites détaillées (date naissance, lieu naissance, MRZ, etc.)
+- Prénom, téléphone et email du client
 """
 from __future__ import annotations
 
 import logging
-from uuid import UUID
 
-from sqlalchemy import select, update
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)
@@ -33,13 +31,13 @@ logger = logging.getLogger(__name__)
 
 async def cleanup_client_data_after_cerfa(
     db: AsyncSession,
-    dossier_id: UUID,
+    dossier_id: str,
 ) -> dict:
     """
-    Supprime les donnees personnelles client apres generation du Cerfa.
-    Appele automatiquement quand le dossier passe en CERFA_GENERE.
+    Supprime les données personnelles client après génération du Cerfa.
+    Appelé automatiquement quand le dossier passe en CERFA_GENERE.
 
-    Retourne un resume de ce qui a ete supprime.
+    Retourne un résumé de ce qui a été supprimé.
     """
     from api.models.document import DocumentDB
     from api.models.dossier import DossierDB
@@ -48,52 +46,52 @@ async def cleanup_client_data_after_cerfa(
     store = get_document_store()
     supprime = {"fichiers": 0, "documents_db": 0}
 
-    # 1. Trouver les documents client
+    # 1. Récupérer tous les documents du dossier
     result = await db.execute(
-        select(DocumentDB).where(
-            DocumentDB.dossier_id == dossier_id,
-            DocumentDB.source == "client",
-        )
+        select(DocumentDB).where(DocumentDB.dossier_id == dossier_id)
     )
-    client_docs = result.scalars().all()
+    docs = result.scalars().all()
 
-    for doc in client_docs:
-        # Supprimer le fichier du stockage
+    for doc in docs:
+        # Supprimer le fichier chiffré du stockage local
         try:
             await store.delete(doc.storage_path)
             supprime["fichiers"] += 1
         except Exception as e:
             logger.warning(f"[RGPD] Impossible de supprimer {doc.storage_path}: {e}")
 
-        # Supprimer les donnees sensibles de la BDD
+        # Anonymiser les données sensibles en BDD
         # On garde le type et le statut pour l'archivage, mais on efface le contenu
         doc.ocr_raw_text = None
         doc.extracted_data = {"supprime_rgpd": True, "type_original": doc.type}
         doc.storage_path = "supprime_rgpd"
         doc.sha256 = "supprime_rgpd"
+        doc.source_email_subject = None
+        doc.source_email_from = None
         supprime["documents_db"] += 1
 
-    # 2. Nettoyer les metadata client du dossier
+    # 2. Anonymiser les données personnelles du client sur le dossier
+    # Conservé pour archivage légal : client_nom + reference + vin + immatriculation
+    # Supprimé : prénom, téléphone, email, métadonnées sensibles
     dossier = await db.get(DossierDB, dossier_id)
-    if dossier and dossier.metadata_:
-        metadata = dict(dossier.metadata_)
-        # Garder uniquement les infos non sensibles
-        keys_to_keep = {"cpi_mode", "choix_assurance_pro", "assurance_flotte_couvre"}
-        keys_to_remove = [k for k in metadata if k not in keys_to_keep]
-        for k in keys_to_remove:
-            metadata.pop(k, None)
-        metadata["rgpd_cleanup_done"] = True
-        dossier.metadata_ = metadata
+    if dossier:
+        dossier.client_telephone = None
+        dossier.client_email = None
+        dossier.client_prenom = None
 
-        from sqlalchemy.orm.attributes import flag_modified
-        flag_modified(dossier, 'metadata_')
+        if dossier.metadata_:
+            metadata = dict(dossier.metadata_)
+            metadata = {"rgpd_cleanup_done": True}
+            dossier.metadata_ = metadata
+            from sqlalchemy.orm.attributes import flag_modified
+            flag_modified(dossier, 'metadata_')
 
     await db.flush()
 
     logger.info(
-        f"[RGPD] Dossier {dossier_id} nettoye : "
-        f"{supprime['fichiers']} fichiers supprimes, "
-        f"{supprime['documents_db']} docs client anonymises"
+        f"[RGPD] Dossier {dossier_id} nettoyé : "
+        f"{supprime['fichiers']} fichiers supprimés, "
+        f"{supprime['documents_db']} documents anonymisés"
     )
 
     return supprime
@@ -101,10 +99,10 @@ async def cleanup_client_data_after_cerfa(
 
 async def cleanup_expired_dossiers(db: AsyncSession, retention_days: int = 1825) -> int:
     """
-    Supprime les dossiers archives depuis plus de 5 ans (1825 jours).
-    A executer periodiquement (cron).
+    Supprime les dossiers archivés depuis plus de 5 ans (1825 jours).
+    À exécuter périodiquement par l'agent (manuellement ou via une tâche planifiée).
 
-    Retourne le nombre de dossiers supprimes.
+    Retourne le nombre de dossiers supprimés.
     """
     from datetime import datetime, timedelta
     from api.models.dossier import DossierDB
@@ -122,19 +120,17 @@ async def cleanup_expired_dossiers(db: AsyncSession, retention_days: int = 1825)
     old_dossiers = result.scalars().all()
 
     for dossier in old_dossiers:
-        # Supprimer tous les documents
         docs = await db.execute(
             select(DocumentDB).where(DocumentDB.dossier_id == dossier.id)
         )
         for doc in docs.scalars().all():
             await db.delete(doc)
 
-        # Supprimer le dossier
         await db.delete(dossier)
         count += 1
 
     if count > 0:
         await db.flush()
-        logger.info(f"[RGPD] {count} dossiers expires supprimes (> {retention_days} jours)")
+        logger.info(f"[RGPD] {count} dossiers expirés supprimés (> {retention_days} jours)")
 
     return count

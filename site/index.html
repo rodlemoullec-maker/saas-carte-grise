@@ -3,1099 +3,254 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AutoDoc Pro — Le dossier carte grise, automatisé</title>
-    <meta name="description" content="Vendeurs auto et moto habilités SIV — le système lit vos documents, vérifie la cohérence, la complétude et les dates de validité, collecte les pièces du client par SMS, et génère le Cerfa pré-rempli. 5 min par dossier.">
+    <title>Imatra — Le logiciel local de carte grise pour agents habilités SIV</title>
+    <meta name="description" content="Imatra est un logiciel installé sur votre ordinateur. OCR, vérifications automatiques et génération de Cerfa pré-remplis. Vos données ne quittent jamais votre machine. 100% local, aucun cloud.">
 
     <meta property="og:type" content="website">
-    <meta property="og:title" content="AutoDoc Pro — Le dossier carte grise, automatisé">
-    <meta property="og:description" content="OCR + IA, 200+ contrôles, collecte client par SMS, Cerfa automatique. 5 min par dossier au lieu de 30. Essai sans avance de frais.">
-    <meta property="og:site_name" content="AutoDoc Pro">
+    <meta property="og:title" content="Imatra — Logiciel local pour agents SIV">
+    <meta property="og:description" content="OCR, 200+ vérifications, Cerfa pré-rempli. Tout en local sur votre ordinateur. Vos données restent chez vous.">
+    <meta property="og:site_name" content="Imatra">
     <meta property="og:locale" content="fr_FR">
 
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="assets/css/style.css?v=6">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'system-ui', 'sans-serif'],
+              display: ['Outfit', 'system-ui', 'sans-serif'],
+            },
+            colors: {
+              navy: { 50: '#f1f5f9', 700: '#1e293b', 800: '#0f172a', 900: '#020617' },
+            },
+          },
+        },
+      }
+    </script>
+    <style>
+      body { font-family: Inter, system-ui, sans-serif; }
+      h1, h2, h3 { font-family: Outfit, system-ui, sans-serif; }
+    </style>
 </head>
-<body>
+<body class="bg-slate-50 text-slate-800 antialiased">
 
-<!-- MAINTENANCE MODE : supprimer ce bloc pour remettre le site en ligne -->
-<div id="maintenance-overlay" style="position:fixed;inset:0;z-index:99999;background:#f8fafc;display:flex;align-items:center;justify-content:center;font-family:'Outfit',sans-serif;">
-  <div style="text-align:center;padding:2rem;">
-    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto 1rem;animation:spin 3s linear infinite"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-    <h1 style="font-size:1.75rem;font-weight:700;color:#1e293b;margin-bottom:0.5rem;">Maintenance en cours</h1>
-    <p style="color:#64748b;max-width:400px;margin:0 auto;">AutoDoc Pro est en cours de maintenance. Nous serons de retour très bientôt.</p>
-  </div>
-</div>
-<style>@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}</style>
-<script>document.querySelectorAll('body > *:not(#maintenance-overlay):not(style):not(script)').forEach(el => el.style.display='none')</script>
-<!-- FIN MAINTENANCE -->
-
-<header class="header">
-    <nav class="nav">
-        <a href="index.html" class="logo">
-            <span class="logo-mark"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></span>
-            AutoDoc Pro
-        </a>
-        <ul class="nav-links">
-            <li><a href="index.html">Vendeur habilité</a></li>
-            <li><a href="vendeur.html">Vendeur non habilité</a></li>
-            <li><a href="agent.html">Agent SIV</a></li>
-            <li><a href="comment-ca-marche.html">Comment ça marche</a></li>
-            <li><a href="#tarifs">Tarifs</a></li>
-            <li><a href="#faq">FAQ</a></li>
-            <li><a href="#contact" class="btn btn-cta btn-nav">Essai sans engagement</a></li>
-        </ul>
-        <button class="menu-toggle" aria-label="Menu"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="7" x2="21" y2="7"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="17" x2="21" y2="17"/></svg></button>
-    </nav>
+<!-- ─── NAVBAR ─────────────────────────────────────────────────────────── -->
+<header class="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-slate-200">
+  <nav class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+    <a href="/" class="flex items-center gap-2.5">
+      <span class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-emerald-500 flex items-center justify-center text-white font-bold">⚡</span>
+      <span class="font-display font-extrabold text-navy-800 text-lg">Imatra</span>
+    </a>
+    <div class="hidden md:flex items-center gap-1">
+      <a href="comment-ca-marche.html" class="px-3 py-2 text-sm font-medium text-slate-600 hover:text-navy-800 rounded-lg">Comment ça marche</a>
+      <a href="securite.html" class="px-3 py-2 text-sm font-medium text-slate-600 hover:text-navy-800 rounded-lg">Sécurité</a>
+      <a href="tarifs.html" class="px-3 py-2 text-sm font-medium text-slate-600 hover:text-navy-800 rounded-lg">Tarifs</a>
+      <a href="telecharger.html" class="ml-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg">Télécharger</a>
+    </div>
+  </nav>
 </header>
 
-<!-- ═══════════════════════════════════════════ HERO ═══════════════════════ -->
-<section class="hero">
-    <div class="hero-inner">
-        <div class="hero-text">
-            <div class="hero-eyebrow">Pour les vendeurs auto et moto habilités SIV</div>
-            <h1>Arrêtez de perdre 30 minutes<br><em>par carte grise.</em></h1>
-            <p class="hero-desc">Chaque dossier vous prend une demi-heure. Et 1 sur 5 est rejeté par le SIV pour une erreur évitable. AutoDoc Pro lit vos documents, détecte les erreurs <strong>avant</strong> la soumission, collecte les pièces du client par SMS et génère le Cerfa avec votre cachet. <strong>5 minutes par dossier. Zéro saisie.</strong></p>
-            <div class="hero-actions">
-                <a href="#contact" class="btn btn-cta btn-lg btn-glow">Essayer gratuitement</a>
-                <a href="comment-ca-marche.html" class="btn btn-ghost btn-lg">Comment ça marche</a>
-            </div>
-            <div class="hero-proof">
-                <div class="hero-proof-item">
-                    <span class="hero-proof-num" data-count="5">5 min</span>
-                    <span class="hero-proof-label">au lieu de 30 par dossier</span>
-                </div>
-                <div class="hero-proof-item">
-                    <span class="hero-proof-num">&lt; 2%</span>
-                    <span class="hero-proof-label">de rejet SIV visé (vs 15-25%)</span>
-                </div>
-                <div class="hero-proof-item">
-                    <span class="hero-proof-num">0 ��</span>
-                    <span class="hero-proof-label">pour vos 5 premiers dossiers</span>
-                </div>
-            </div>
-            <div class="hero-trust">
-                <div class="hero-trust-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Sans carte bancaire</div>
-                <div class="hero-trust-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Prêt en 2 minutes</div>
-                <div class="hero-trust-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Aucun engagement</div>
-            </div>
-            <!-- Version mobile du mockup -->
-            <div class="hero-visual-mobile" style="display: none; margin-top: 24px; padding: 14px; background: var(--navy-800); border-radius: 12px; border: 1px solid rgba(255,255,255,0.06);">
-                <div style="font-size: 0.75rem; font-weight: 700; color: white; margin-bottom: 8px;">CG-2026-47085 · <span style="color: #c084fc;">VO</span> · DUPONT Marie</div>
-                <div style="font-size: 0.7rem; color: var(--slate-400); line-height: 1.8;">
-                    <span style="color: #34d399;">&#10003;</span> Véhicule verrouillé · <span style="color: #34d399;">&#10003;</span> Identité client verrouillée
-                </div>
-                <div style="margin-top: 8px; padding: 8px 10px; background: rgba(5,150,105,0.1); border: 1px solid rgba(5,150,105,0.2); border-radius: 8px; font-size: 0.7rem; color: #6ee7b7; line-height: 1.4;">
-                    "Nickel ! Cerfa prêt — téléchargez et soumettez au SIV."
-                </div>
-            </div>
-        </div>
-        <div class="hero-visual" style="padding: 0; overflow: hidden;">
-            <!-- Mockup vendeur habilité — VO moto, dossier complet -->
-            <div style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: rgba(255,255,255,0.06); border-bottom: 1px solid rgba(255,255,255,0.06);">
-                <div style="width: 24px; height: 24px; border-radius: 6px; background: linear-gradient(135deg, #1e40af, #059669); display: flex; align-items: center; justify-content: center;">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-                </div>
-                <span style="font-size: 0.75rem; font-weight: 700; color: white;">AutoDoc Pro</span>
-                <span style="font-size: 0.6rem; padding: 2px 6px; background: rgba(30,64,175,0.2); color: #93c5fd; border-radius: 10px; border: 1px solid rgba(30,64,175,0.3);">Vendeur habilité</span>
-            </div>
-            <div style="padding: 16px;">
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; padding: 10px 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px;">
-                    <div>
-                        <div style="font-size: 0.85rem; font-weight: 700; color: white;">CG-2026-47085</div>
-                        <div style="display: flex; align-items: center; gap: 6px; margin-top: 3px;">
-                            <span style="font-size: 0.6rem; padding: 1px 6px; background: rgba(147,51,234,0.15); color: #c084fc; border-radius: 10px;">VO</span>
-                            <span style="font-size: 0.65rem; color: var(--slate-400);">DUPONT Marie</span>
-                        </div>
-                    </div>
-                    <span style="font-size: 0.6rem; padding: 3px 8px; background: rgba(5,150,105,0.15); color: #6ee7b7; border-radius: 10px;">Complet</span>
-                </div>
-                <div style="font-size: 0.6rem; font-weight: 600; color: var(--slate-500); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px;">Véhicule <span style="padding: 1px 6px; background: rgba(5,150,105,0.15); color: #6ee7b7; border-radius: 8px; text-transform: none; letter-spacing: 0;">Verrouillé</span></div>
-                <div style="font-size: 0.78rem; color: var(--slate-400); line-height: 1.9;">
-                    <div style="display: flex; align-items: center; gap: 6px;"><span style="color: #34d399;">&#10003;</span> CG barrée <span style="color: var(--slate-500); font-size: 0.65rem;">— cg_dupont.pdf</span> <span style="font-size: 0.5rem; padding: 1px 4px; background: rgba(30,64,175,0.15); color: #93c5fd; border-radius: 4px;">dép. pro</span></div>
-                    <div style="display: flex; align-items: center; gap: 6px;"><span style="color: #34d399;">&#10003;</span> Cession <span style="font-size: 0.5rem; padding: 1px 4px; background: rgba(30,64,175,0.15); color: #93c5fd; border-radius: 4px;">dép. pro</span> <span style="font-size: 0.5rem; padding: 1px 4px; background: rgba(217,119,6,0.15); color: #fbbf24; border-radius: 4px;">sig. client</span></div>
-                </div>
-                <div style="font-size: 0.6rem; font-weight: 600; color: var(--slate-500); text-transform: uppercase; letter-spacing: 0.06em; margin: 10px 0 6px;">Identité client <span style="padding: 1px 6px; background: rgba(5,150,105,0.15); color: #6ee7b7; border-radius: 8px; text-transform: none; letter-spacing: 0;">Verrouillé</span></div>
-                <div style="font-size: 0.78rem; color: var(--slate-400); line-height: 1.9;">
-                    <div style="display: flex; align-items: center; gap: 6px;"><span style="color: #34d399;">&#10003;</span> CNI <span style="color: var(--slate-500); font-size: 0.65rem;">— recto + verso</span> <span style="font-size: 0.5rem; padding: 1px 4px; background: rgba(217,119,6,0.15); color: #fbbf24; border-radius: 4px;">dép. client</span></div>
-                    <div style="display: flex; align-items: center; gap: 6px;"><span style="color: #34d399;">&#10003;</span> Permis <span style="color: var(--slate-500); font-size: 0.65rem;">— cat. A2</span> <span style="font-size: 0.5rem; padding: 1px 4px; background: rgba(217,119,6,0.15); color: #fbbf24; border-radius: 4px;">dép. client</span></div>
-                    <div style="display: flex; align-items: center; gap: 6px;"><span style="color: #34d399;">&#10003;</span> Domicile <span style="font-size: 0.5rem; padding: 1px 4px; background: rgba(217,119,6,0.15); color: #fbbf24; border-radius: 4px;">dép. client</span></div>
-                </div>
-                <div style="margin-top: 12px; padding: 10px 12px; background: rgba(5,150,105,0.1); border: 1px solid rgba(5,150,105,0.2); border-radius: 8px; font-size: 0.75rem; color: #6ee7b7; line-height: 1.5;">
-                    "Nickel, tous les documents sont là ! Cerfa prêt — téléchargez et soumettez au SIV."
-                </div>
-                <div style="margin-top: 10px; padding: 8px; background: #1e40af; border-radius: 8px; text-align: center; font-size: 0.72rem; font-weight: 600; color: white;">
-                    Télécharger le Cerfa
-                </div>
-            </div>
-        </div>
+<!-- ─── HERO ────────────────────────────────────────────────────────────── -->
+<section class="max-w-6xl mx-auto px-6 pt-16 pb-12 md:pt-24 md:pb-20">
+  <div class="grid md:grid-cols-2 gap-12 items-center">
+    <div>
+      <span class="inline-block px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-semibold mb-5">
+        Logiciel local pour agents habilités SIV
+      </span>
+      <h1 class="font-display font-extrabold text-4xl md:text-5xl text-navy-800 leading-tight mb-5">
+        Vos données ne quittent <em class="not-italic text-blue-600">jamais</em> votre ordinateur.
+      </h1>
+      <p class="text-lg text-slate-600 mb-7 leading-relaxed">
+        Imatra est un logiciel <strong>installé chez vous</strong>. Vos clients vous envoient leurs documents par email&nbsp;? Glissez ces emails dans le logiciel : OCR, 200+ vérifications, Cerfa pré-rempli, en quelques secondes.
+      </p>
+      <div class="flex flex-col sm:flex-row gap-3">
+        <a href="telecharger.html" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg text-center">
+          Télécharger gratuitement
+        </a>
+        <a href="comment-ca-marche.html" class="px-6 py-3 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-semibold rounded-lg text-center">
+          Voir comment ça marche
+        </a>
+      </div>
+      <p class="mt-4 text-xs text-slate-500">
+        Essai gratuit 30 jours · Aucune carte bancaire · 100&nbsp;% local
+      </p>
     </div>
+
+    <!-- Mockup illustration -->
+    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 p-6">
+      <div class="flex items-center gap-2 pb-3 border-b border-slate-100 mb-3">
+        <div class="w-2.5 h-2.5 rounded-full bg-red-400"></div>
+        <div class="w-2.5 h-2.5 rounded-full bg-yellow-400"></div>
+        <div class="w-2.5 h-2.5 rounded-full bg-green-400"></div>
+        <span class="text-xs text-slate-400 ml-2">localhost:8001</span>
+      </div>
+      <div class="space-y-3 text-sm">
+        <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 text-center">
+          <div class="text-3xl mb-1">📨</div>
+          <div class="font-semibold text-slate-800">Glissez ici un email ou des documents</div>
+          <div class="text-xs text-slate-500 mt-1">Formats : .eml, .msg, .pdf, .jpg</div>
+        </div>
+        <div class="bg-slate-50 rounded-lg p-3">
+          <div class="flex justify-between text-xs">
+            <span class="font-mono text-slate-500">CG-2026-12345</span>
+            <span class="px-2 py-0.5 bg-emerald-500 text-white text-[10px] font-bold rounded-full">🟢 VERT</span>
+          </div>
+          <div class="font-semibold text-slate-800 mt-1">Marie DUPONT</div>
+          <div class="text-xs text-slate-500">Honda CB125R · VN</div>
+        </div>
+        <div class="bg-slate-50 rounded-lg p-3">
+          <div class="flex justify-between text-xs">
+            <span class="font-mono text-slate-500">CG-2026-12344</span>
+            <span class="px-2 py-0.5 bg-amber-500 text-white text-[10px] font-bold rounded-full">🟠 ORANGE</span>
+          </div>
+          <div class="font-semibold text-slate-800 mt-1">Paul DURAND</div>
+          <div class="text-xs text-slate-500">Renault Clio · VO</div>
+        </div>
+      </div>
+    </div>
+  </div>
 </section>
 
-<!-- ═══════════════════════════════════ SOCIAL PROOF ═══════════════════════ -->
-<section class="social-proof">
-    <div class="container">
-        <div class="proof-grid">
-            <div class="proof-stat fade-in">
-                <div class="proof-stat-num" data-count="200">200+</div>
-                <div class="proof-stat-label">contrôles par dossier</div>
-            </div>
-            <div class="proof-stat fade-in">
-                <div class="proof-stat-num"><span data-count="12">12</span>–<span data-count="14">14</span>€</div>
-                <div class="proof-stat-label">par dossier, prix fixe</div>
-            </div>
-            <div class="proof-stat fade-in">
-                <div class="proof-stat-num" data-count="0">0</div>
-                <div class="proof-stat-label">saisie manuelle</div>
-            </div>
-            <div class="proof-stat fade-in">
-                <div class="proof-stat-num">100%</div>
-                <div class="proof-stat-label">en marque blanche</div>
-            </div>
-        </div>
-        <div class="proof-quote fade-in">
-            <blockquote>"On testait avec 3 dossiers pour voir. Au bout du deuxième, on a compris qu'on ne reviendrait pas en arrière. On est passé de 40 min à 6 min par dossier, et on n'a pas eu un seul rejet depuis."</blockquote>
-            <cite>— Gérant de concession moto, Île-de-France — Beta-testeur</cite>
-        </div>
+<!-- ─── 4 PILIERS ─────────────────────────────────────────────────────── -->
+<section class="bg-white py-16 border-y border-slate-200">
+  <div class="max-w-6xl mx-auto px-6">
+    <div class="text-center mb-12">
+      <h2 class="font-display text-3xl text-navy-800 font-extrabold mb-3">
+        Tout le travail de préparation, automatiquement
+      </h2>
+      <p class="text-slate-600">Quatre fonctions clés, exécutées en local sur votre ordinateur.</p>
     </div>
+    <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+
+      <div class="p-6 rounded-2xl bg-slate-50 border border-slate-200">
+        <div class="w-12 h-12 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center mb-4 text-2xl">📥</div>
+        <h3 class="font-bold text-navy-800 mb-2">Drag &amp; drop d'emails</h3>
+        <p class="text-sm text-slate-600 leading-relaxed">
+          Glissez l'email reçu de votre client (.eml ou .msg) — le système extrait automatiquement les pièces jointes et démarre le traitement.
+        </p>
+      </div>
+
+      <div class="p-6 rounded-2xl bg-slate-50 border border-slate-200">
+        <div class="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center mb-4 text-2xl">🔍</div>
+        <h3 class="font-bold text-navy-800 mb-2">OCR + 200 vérifications</h3>
+        <p class="text-sm text-slate-600 leading-relaxed">
+          PaddleOCR lit chaque document. Le moteur applique 38 règles de blocage, 21 contrôles de cohérence, détecte les cas spéciaux (hébergement, formation 7h, mineur).
+        </p>
+      </div>
+
+      <div class="p-6 rounded-2xl bg-slate-50 border border-slate-200">
+        <div class="w-12 h-12 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center mb-4 text-2xl">📄</div>
+        <h3 class="font-bold text-navy-800 mb-2">Cerfa pré-rempli</h3>
+        <p class="text-sm text-slate-600 leading-relaxed">
+          Quand le diagnostic est vert, le Cerfa 13749 (VN) ou 13750 (VO) est généré avec votre cachet et votre signature, prêt à être soumis au SIV.
+        </p>
+      </div>
+
+      <div class="p-6 rounded-2xl bg-slate-50 border border-slate-200">
+        <div class="w-12 h-12 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center mb-4 text-2xl">✉️</div>
+        <h3 class="font-bold text-navy-800 mb-2">Emails de relance</h3>
+        <p class="text-sm text-slate-600 leading-relaxed">
+          En cas de blocage, le logiciel rédige pour vous un email de relance personnalisé. Vous le copiez-collez dans votre client email habituel — aucun envoi par Imatra.
+        </p>
+      </div>
+
+    </div>
+  </div>
 </section>
 
-<!-- ═══════════════════════════ LE PROBLÈME ═══════════════════════════ -->
-<section class="section section-alt">
-    <div class="container">
-        <div class="section-header">
-            <h2>Après chaque vente, c'est toujours la même chose</h2>
-        </div>
-        <div class="pain-grid">
-            <div class="pain-card fade-in">
-                <h4><span class="dot"></span>30 minutes par dossier</h4>
-                <p>Remplir le Cerfa, v��rifier chaque champ, croiser le VIN entre le COC, la facture et la CG. Du temps que vous ne passez pas à vendre.</p>
-            </div>
-            <div class="pain-card fade-in">
-                <h4><span class="dot"></span>Des rejets SIV ��vitables</h4>
-                <p>Un 0 à la place d'un O dans le VIN, une CNI expirée de 3 jours, une signature oubliée. Des erreurs simples qui bloquent tout. Rejet, correction, renvoi — 40 minutes de perdues.</p>
-            </div>
-            <div class="pain-card fade-in">
-                <h4><span class="dot"></span>Les services existants ne vérifient rien</h4>
-                <p>Vous uploadez et vous attendez. Un humain relit 12 à 24h plus tard. Et c'est le service qui facture votre client — pas vous.</p>
-            </div>
-        </div>
+<!-- ─── DIFFÉRENCIATION SAAS / LOCAL ──────────────────────────────────── -->
+<section class="max-w-6xl mx-auto px-6 py-20">
+  <div class="text-center mb-12">
+    <h2 class="font-display text-3xl text-navy-800 font-extrabold mb-3">
+      Logiciel local, pas un service en ligne
+    </h2>
+    <p class="text-slate-600 max-w-2xl mx-auto">
+      Imatra est dans la même catégorie que Sage ou Cegid : un logiciel professionnel installé sur votre poste.
+      Vos clients ne savent pas qu'il existe. Vous restez seul responsable et seul interlocuteur.
+    </p>
+  </div>
+
+  <div class="grid md:grid-cols-2 gap-6">
+    <div class="p-7 rounded-2xl border-2 border-red-200 bg-red-50">
+      <h3 class="font-bold text-red-900 mb-4 text-lg">❌ Services SaaS classiques</h3>
+      <ul class="space-y-3 text-sm text-red-900">
+        <li class="flex gap-2"><span>✗</span><span>Vos documents transitent par leurs serveurs cloud</span></li>
+        <li class="flex gap-2"><span>✗</span><span>Vous êtes sous-traitant RGPD d'un éditeur tiers</span></li>
+        <li class="flex gap-2"><span>✗</span><span>Vos clients voient ou peuvent voir le service</span></li>
+        <li class="flex gap-2"><span>✗</span><span>Dépendance à une connexion internet permanente</span></li>
+        <li class="flex gap-2"><span>✗</span><span>Risque de fermeture / faillite de l'éditeur</span></li>
+      </ul>
     </div>
+
+    <div class="p-7 rounded-2xl border-2 border-emerald-300 bg-emerald-50">
+      <h3 class="font-bold text-emerald-900 mb-4 text-lg">✓ Imatra local</h3>
+      <ul class="space-y-3 text-sm text-emerald-900">
+        <li class="flex gap-2"><span>✓</span><span>Tout reste sur votre machine, chiffré localement</span></li>
+        <li class="flex gap-2"><span>✓</span><span>L'éditeur ne traite jamais vos données — vous êtes seul responsable</span></li>
+        <li class="flex gap-2"><span>✓</span><span>Vos clients ne voient rien d'autre que vous</span></li>
+        <li class="flex gap-2"><span>✓</span><span>Fonctionne hors-ligne (sauf vérif licence et MAJ règles)</span></li>
+        <li class="flex gap-2"><span>✓</span><span>Le logiciel reste utilisable indéfiniment, même sans nous</span></li>
+      </ul>
+    </div>
+  </div>
 </section>
 
-<!-- ═══════════════════════════ CE QUE VOUS RÉCUPÉREZ ═══════════════════ -->
-<section class="section">
-    <div class="container">
-        <div class="section-header">
-            <h2>25 minutes récupérées par dossier. Faites le calcul.</h2>
-            <p class="subtitle">La carte grise, c'est du temps que vous ne passez pas à vendre ni à vous occuper de vos clients.</p>
-        </div>
-        <div class="pain-grid fade-in">
-            <div class="pain-card" style="text-align: center; border-left: 3px solid #ef4444;">
-                <div style="font-size: 2rem; font-weight: 800; color: #ef4444;">30 min</div>
-                <div style="font-size: 0.85rem; font-weight: 600; color: var(--navy); margin-top: 4px;">Aujourd'hui, par dossier</div>
-                <p style="font-size: 0.78rem; color: var(--slate-400); margin-top: 8px;">Collecter, v&eacute;rifier, remplir le Cerfa, relancer le client, corriger les rejets</p>
-            </div>
-            <div class="pain-card" style="text-align: center; border-left: 3px solid var(--emerald);">
-                <div style="font-size: 2rem; font-weight: 800; color: var(--emerald);">5 min</div>
-                <div style="font-size: 0.85rem; font-weight: 600; color: var(--navy); margin-top: 4px;">Avec AutoDoc Pro</div>
-                <p style="font-size: 0.78rem; color: var(--slate-400); margin-top: 8px;">D&eacute;poser les docs v&eacute;hicule, envoyer le lien SMS au client, t&eacute;l&eacute;charger le Cerfa</p>
-            </div>
-            <div class="pain-card" style="text-align: center; border-left: 3px solid var(--primary);">
-                <div style="font-size: 2rem; font-weight: 800; color: var(--primary);">14 &euro;</div>
-                <div style="font-size: 0.85rem; font-weight: 600; color: var(--navy); margin-top: 4px;">Par dossier, tout compris</div>
-                <p style="font-size: 0.78rem; color: var(--slate-400); margin-top: 8px;">OCR, v&eacute;rification, collecte client SMS, Cerfa avec cachet &mdash; 12 &euro; pour les motos</p>
-            </div>
-        </div>
-        <p style="text-align: center; font-size: 0.85rem; color: var(--slate-500); margin-top: 20px;">Sur 200 dossiers/an, c'est <strong style="color: var(--emerald);">plus de 80 heures r&eacute;cup&eacute;r&eacute;es</strong> &mdash; du temps pour vendre, pour l'atelier, pour vos clients.</p>
-    </div>
+<!-- ─── CTA FINAL ─────────────────────────────────────────────────────── -->
+<section class="bg-navy-800 text-white py-20">
+  <div class="max-w-3xl mx-auto px-6 text-center">
+    <h2 class="font-display text-3xl md:text-4xl font-extrabold mb-4">Essayez 30 jours gratuitement</h2>
+    <p class="text-slate-300 mb-8">
+      Aucune carte bancaire. 10 dossiers inclus dans l'essai.
+      Installation en 5 minutes avec Docker Desktop.
+    </p>
+    <a href="telecharger.html" class="inline-block px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-lg">
+      Télécharger Imatra
+    </a>
+    <p class="mt-4 text-xs text-slate-400">Compatible Windows, macOS, Linux</p>
+  </div>
 </section>
 
-<!-- ══════════════════��════════ SIMULATION LIVE ══════════════════════════ -->
-<section class="section section-alt demo-live-section">
-    <div class="container">
-        <div class="section-header">
-            <h2>Voyez la différence en temps réel</h2>
-            <p class="subtitle">Un document déposé. 3 secondes. Tout est extrait, croisé et vérifié.</p>
-        </div>
-
-        <div class="demo-live fade-in">
-          <div class="demo-split">
-            <!-- Terminal gauche -->
-            <div class="demo-terminal">
-                <div class="demo-terminal-bar">
-                    <span class="demo-dot demo-dot-red"></span>
-                    <span class="demo-dot demo-dot-yellow"></span>
-                    <span class="demo-dot demo-dot-green"></span>
-                    <span class="demo-terminal-title">AutoDoc Pro — Dossier CG-2026-48721</span>
-                    <span class="demo-timer" id="demoTimer">0:00</span>
-                </div>
-                <div class="demo-terminal-body" id="demoTerminal">
-                    <!-- Les lignes s'ajoutent en JS -->
-                </div>
-            </div>
-
-            <!-- Mockup droite -->
-            <div class="demo-mockup" id="demoMockup">
-              <div class="demo-mockup-stack">
-                <!-- Phase 1 : espace vendeur -->
-                <div class="demo-screen" id="demoScreenVendeur" style="display:none;">
-                    <div class="demo-screen-bar">
-                        <span class="demo-screen-dot" id="logoDot"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10"/></svg></span>
-                        <span class="demo-screen-title">Espace vendeur</span>
-                    </div>
-                    <div class="demo-screen-body">
-                        <div class="demo-screen-header">Dossier CG-2026-48721</div>
-                        <div class="demo-screen-section">Documents véhicule</div>
-                        <div class="demo-screen-doc" id="mockCoc"><span class="demo-screen-pending">○</span> COC</div>
-                        <div class="demo-screen-doc" id="mockFacture"><span class="demo-screen-pending">○</span> Facture</div>
-                        <div class="demo-screen-section" style="margin-top:12px;">Vérifications</div>
-                        <div class="demo-screen-doc" id="mockVin"><span class="demo-screen-pending">○</span> VIN croisé COC ↔ facture</div>
-                        <div class="demo-screen-doc" id="mockCnit"><span class="demo-screen-pending">○</span> CNIT détecté (D.2.1)</div>
-                        <div class="demo-screen-doc" id="mockEnergie"><span class="demo-screen-pending">○</span> Énergie · puissance · catégorie</div>
-                        <div class="demo-screen-msg" id="mockVendeurMsg" style="display:none;"></div>
-                    </div>
-                </div>
-
-                <!-- Phase 2-3 : espace client mobile -->
-                <div class="demo-screen demo-screen-mobile" id="demoScreenClient" style="display:none;">
-                    <div class="demo-screen-bar">
-                        <span class="demo-screen-dot" id="logoDot"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10"/></svg></span>
-                        <span class="demo-screen-title">📱 Espace client — Moto Center</span>
-                    </div>
-                    <div class="demo-screen-body">
-                        <div class="demo-screen-header">Vos documents</div>
-                        <div class="demo-screen-doc" id="mockCni"><span class="demo-screen-pending">○</span> Pièce d'identité</div>
-                        <div class="demo-screen-doc" id="mockPermis"><span class="demo-screen-pending">○</span> Permis de conduire</div>
-                        <div class="demo-screen-doc" id="mockDomicile"><span class="demo-screen-pending">○</span> Justificatif de domicile</div>
-                        <div class="demo-screen-section" style="margin-top:12px;">Vérifications</div>
-                        <div class="demo-screen-doc" id="mockExpir"><span class="demo-screen-pending">○</span> Pièce d'identité non expirée</div>
-                        <div class="demo-screen-doc" id="mockPermisAdapt"><span class="demo-screen-pending">○</span> Permis adapté au véhicule</div>
-                        <div class="demo-screen-doc" id="mockFormation"><span class="demo-screen-pending">○</span> Formation 7h (125cc)</div>
-                        <div class="demo-screen-doc" id="mockNomCoher"><span class="demo-screen-pending">○</span> Nom identité = nom domicile</div>
-                        <div class="demo-screen-msg" id="mockClientMsg" style="display:none;"></div>
-                    </div>
-                </div>
-
-                <!-- Phase 4 : Cerfa -->
-                <div class="demo-screen demo-screen-mini" id="demoScreenCerfa" style="display:none;">
-                    <div class="demo-screen-bar">
-                        <span class="demo-screen-dot" id="logoDot"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10"/></svg></span>
-                        <span class="demo-screen-title">Cerfa 13749*04 — Véhicule neuf</span>
-                    </div>
-                    <div class="demo-screen-body" style="padding:8px;">
-                        <img src="assets/cerfa_vn_page1.png?v=36" alt="Cerfa 13749 rempli" style="width:100%;border-radius:6px;border:1px solid rgba(255,255,255,0.1);cursor:zoom-in;" onclick="document.getElementById('cerfaFullscreen').style.display='flex'" title="Cliquez pour agrandir">
-                        <div class="demo-cerfa-stamp" id="cerfaStamp" style="display:none;">
-                            <div>🔏 Cachet numérique Moto Center</div>
-                            <div>✍️ Signature numérique enregistrée</div>
-                        </div>
-                        <div class="demo-screen-msg demo-screen-msg-ok" id="mockCerfaMsg" style="display:none;"></div>
-                    </div>
-                </div>
-
-              </div><!-- /demo-mockup-stack -->
-                <!-- Placeholder initial -->
-                <div class="demo-mockup-placeholder" id="demoMockupPlaceholder">
-                    <div style="color: rgba(255,255,255,0.3); font-size: 0.85rem; text-align: center;">
-                        <div style="font-size: 2rem; margin-bottom: 8px;"><svg width="32" height="32" viewBox="0 0 24 24" fill="rgba(255,255,255,0.2)"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10"/></svg></div>
-                        L'aperçu produit apparaît<br>pendant la simulation
-                    </div>
-                </div>
-            </div>
-          </div><!-- /demo-split -->
-
-            <!-- Boutons contrôle -->
-            <div style="text-align: center; margin-top: 16px; display: flex; gap: 8px; justify-content: center;">
-                <button onclick="togglePause()" id="demoPauseBtn" class="btn btn-outline" style="font-size: 0.8rem; padding: 8px 20px;">
-                    <svg id="demoPauseIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
-                    <span id="demoPauseLabel">Pause</span>
-                </button>
-                <button onclick="runDemo()" class="btn btn-outline" style="font-size: 0.8rem; padding: 8px 20px;">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                    Relancer
-                </button>
-            </div>
-        </div>
+<!-- ─── FOOTER ────────────────────────────────────────────────────────── -->
+<footer class="bg-slate-100 border-t border-slate-200 py-10">
+  <div class="max-w-6xl mx-auto px-6 grid md:grid-cols-4 gap-8 text-sm">
+    <div>
+      <div class="flex items-center gap-2 mb-3">
+        <span class="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-600 to-emerald-500 flex items-center justify-center text-white font-bold text-sm">⚡</span>
+        <span class="font-display font-extrabold text-navy-800">Imatra</span>
+      </div>
+      <p class="text-xs text-slate-500">Logiciel local pour agents habilités SIV.</p>
     </div>
-</section>
-
-<!-- ═══════════════════════════════════ AVANT / APRÈS ════════════════════ -->
-<section class="section">
-    <div class="container">
-        <div class="section-header">
-            <h2>Avant AutoDoc Pro vs. Après</h2>
-        </div>
-        <div class="before-after-grid fade-in">
-            <div class="ba-card ba-before">
-                <div class="ba-label">Avant</div>
-                <ul>
-                    <li><span class="ba-icon ba-bad">✗</span> 30 min de saisie manuelle par dossier</li>
-                    <li><span class="ba-icon ba-bad">✗</span> Erreurs détectées au rejet SIV — trop tard</li>
-                    <li><span class="ba-icon ba-bad">✗</span> Relances client par email, WhatsApp, téléphone</li>
-                    <li><span class="ba-icon ba-bad">✗</span> Cerfa rempli à la main, risque de faute</li>
-                    <li><span class="ba-icon ba-bad">✗</span> Aucune visibilité sur l'avancement du dossier</li>
-                </ul>
-            </div>
-            <div class="ba-card ba-after">
-                <div class="ba-label">Avec AutoDoc Pro</div>
-                <ul>
-                    <li><span class="ba-icon ba-good">✓</span> 5 min — les documents sont lus automatiquement</li>
-                    <li><span class="ba-icon ba-good">✓</span> Erreurs détectées au dépôt — correction immédiate</li>
-                    <li><span class="ba-icon ba-good">✓</span> Le client dépose par SMS, guidé étape par étape</li>
-                    <li><span class="ba-icon ba-good">✓</span> Cerfa pré-rempli avec cachet et signature</li>
-                    <li><span class="ba-icon ba-good">✓</span> Le client est guidé pour corriger ses erreurs avant l'envoi du dossier</li>
-                </ul>
-            </div>
-        </div>
+    <div>
+      <h4 class="font-semibold text-slate-700 mb-2">Produit</h4>
+      <ul class="space-y-1 text-slate-500">
+        <li><a href="comment-ca-marche.html" class="hover:text-blue-600">Comment ça marche</a></li>
+        <li><a href="securite.html" class="hover:text-blue-600">Sécurité</a></li>
+        <li><a href="tarifs.html" class="hover:text-blue-600">Tarifs</a></li>
+        <li><a href="telecharger.html" class="hover:text-blue-600">Télécharger</a></li>
+      </ul>
     </div>
-</section>
-
-<!-- ═══════════════════════════ ERREURS DÉTECTÉES ═══════════════════════ -->
-<section class="section section-alt">
-    <div class="container">
-        <div class="section-header">
-            <h2>10 erreurs que le système détecte avant le SIV</h2>
-            <p class="subtitle">Chacune de ces erreurs provoque un rejet. Vous les avez toutes déjà vues.</p>
-        </div>
-        <div class="unique-grid" style="grid-template-columns: repeat(2, 1fr);">
-            <div class="unique-card fade-in" style="padding: 16px;">
-                <h4 style="font-size: 0.85rem;"><span style="color: #ef4444; margin-right: 6px;">&#10007;</span> VIN mal recopié (0/O, 1/I)</h4>
-                <p style="font-size: 0.78rem;">Le système lit le VIN sur le COC, la facture et la CG — et les croise automatiquement. Un caractère différent = alerte immédiate.</p>
-            </div>
-            <div class="unique-card fade-in" style="padding: 16px;">
-                <h4 style="font-size: 0.85rem;"><span style="color: #ef4444; margin-right: 6px;">&#10007;</span> CNI expirée de quelques jours</h4>
-                <p style="font-size: 0.78rem;">La date d'expiration est extraite et vérifiée à la seconde. Attention : les CNI 2004-2013 ont 5 ans de plus que la date inscrite.</p>
-            </div>
-            <div class="unique-card fade-in" style="padding: 16px;">
-                <h4 style="font-size: 0.85rem;"><span style="color: #ef4444; margin-right: 6px;">&#10007;</span> Nom différent entre CNI et domicile</h4>
-                <p style="font-size: 0.78rem;">Nom de jeune fille, faute de frappe, nom d'usage — le système compare avec un seuil de tolérance et vous alerte si ça diverge.</p>
-            </div>
-            <div class="unique-card fade-in" style="padding: 16px;">
-                <h4 style="font-size: 0.85rem;"><span style="color: #ef4444; margin-right: 6px;">&#10007;</span> Permis catégorie A1 pour un véhicule A2</h4>
-                <p style="font-size: 0.78rem;">Le système croise la puissance du véhicule (COC) avec les catégories du permis. Si ça ne colle pas, le dossier est bloqué avant envoi.</p>
-            </div>
-            <div class="unique-card fade-in" style="padding: 16px;">
-                <h4 style="font-size: 0.85rem;"><span style="color: #ef4444; margin-right: 6px;">&#10007;</span> CG non barrée (VO)</h4>
-                <p style="font-size: 0.78rem;">La mention "vendu le" avec date et signature est vérifiée. Si la CG n'est pas correctement barrée, le système le signale.</p>
-            </div>
-            <div class="unique-card fade-in" style="padding: 16px;">
-                <h4 style="font-size: 0.85rem;"><span style="color: #ef4444; margin-right: 6px;">&#10007;</span> Justificatif de domicile périmé</h4>
-                <p style="font-size: 0.78rem;">La date d'émission est extraite automatiquement. Plus de 6 mois = blocage. Le client est invité à fournir un document récent.</p>
-            </div>
-            <div class="unique-card fade-in" style="padding: 16px;">
-                <h4 style="font-size: 0.85rem;"><span style="color: #ef4444; margin-right: 6px;">&#10007;</span> Co-titulaire oublié</h4>
-                <p style="font-size: 0.78rem;">Si le Cerfa mentionne un co-titulaire, le système demande les documents correspondants. Pas de surprise au SIV.</p>
-            </div>
-            <div class="unique-card fade-in" style="padding: 16px;">
-                <h4 style="font-size: 0.85rem;"><span style="color: #ef4444; margin-right: 6px;">&#10007;</span> Gage ou OTCI non levé</h4>
-                <p style="font-size: 0.78rem;">Le véhicule est interrogé avant tout traitement. Gage actif, opposition, vol signalé — vous le savez immédiatement.</p>
-            </div>
-            <div class="unique-card fade-in" style="padding: 16px;">
-                <h4 style="font-size: 0.85rem;"><span style="color: #ef4444; margin-right: 6px;">&#10007;</span> Formation 7h manquante (125cc)</h4>
-                <p style="font-size: 0.78rem;">Permis B + moto 125cc = attestation de formation 7h obligatoire. Le système le détecte et la demande automatiquement.</p>
-            </div>
-            <div class="unique-card fade-in" style="padding: 16px;">
-                <h4 style="font-size: 0.85rem;"><span style="color: #ef4444; margin-right: 6px;">&#10007;</span> Assurance provisoire qui expire dans 3 jours</h4>
-                <p style="font-size: 0.78rem;">Si l'assurance expire avant que le SIV ne traite le dossier, c'est un rejet. Le système vous prévient en amont.</p>
-            </div>
-        </div>
-        <p style="text-align: center; font-size: 0.82rem; color: var(--slate-400); margin-top: 20px;">Et plus de 200 autres contrôles — cohérence véhicule, dates, adresses, signatures, statut SIV. <a href="comment-ca-marche.html" style="color: var(--primary);">Voir le détail &rarr;</a></p>
+    <div>
+      <h4 class="font-semibold text-slate-700 mb-2">Légal</h4>
+      <ul class="space-y-1 text-slate-500">
+        <li><a href="cgv.html" class="hover:text-blue-600">Conditions de licence</a></li>
+        <li><a href="confidentialite.html" class="hover:text-blue-600">Confidentialité</a></li>
+        <li><a href="mentions-legales.html" class="hover:text-blue-600">Mentions légales</a></li>
+      </ul>
     </div>
-</section>
-
-<!-- ═══════════════════════════════════ LA SOLUTION ═══════════════════════ -->
-<section id="solution" class="section">
-    <div class="container">
-        <div class="section-header">
-            <h2>Comment ça fonctionne, concrètement</h2>
-            <p class="subtitle">Chaque document est lu, vérifié et croisé dès qu'il est déposé. Quand tout est vert, le Cerfa est prêt.</p>
-        </div>
-        <div class="features-detail" style="grid-template-columns: repeat(2, 1fr);">
-            <div class="feat-card fade-in">
-                <div class="feat-card-icon feat-card-icon-primary"><i data-lucide="scan-eye"></i></div>
-                <h4>OCR + IA — zéro saisie</h4>
-                <p>Le système lit chaque document et en extrait les données :</p>
-                <ul>
-                    <li><strong>COC</strong> — VIN, marque, modèle, puissance, catégorie, énergie</li>
-                    <li><strong>Facture</strong> — montant, date, identité vendeur</li>
-                    <li><strong>CG barrée</strong> — immatriculation, date de cession, nom acheteur</li>
-                    <li><strong>CNI / Passeport</strong> — nom, prénom, date de naissance, expiration</li>
-                    <li><strong>Permis</strong> — catégories, date d'obtention</li>
-                    <li><strong>Domicile</strong> — nom, adresse, date du document</li>
-                </ul>
-            </div>
-            <div class="feat-card fade-in">
-                <div class="feat-card-icon feat-card-icon-emerald"><i data-lucide="shield-check"></i></div>
-                <h4>Vérification immédiate</h4>
-                <p>À chaque dépôt, le système croise et vérifie :</p>
-                <ul>
-                    <li>VIN identique sur le COC, la facture, la CG et la cession</li>
-                    <li>CNI ou passeport non expiré</li>
-                    <li>Permis adapté à la puissance du véhicule (A1, A2, B)</li>
-                    <li>Formation 7h requise pour 125cc en permis B</li>
-                    <li>Nom CNI cohérent avec le domicile — hébergement détecté</li>
-                    <li>CG barrée avec date de vente et signatures</li>
-                    <li>Justificatif de domicile de moins de 6 mois</li>
-                </ul>
-                <p style="margin-top: 8px; font-size: 0.78rem; color: var(--slate-400); font-style: italic;">Le système vérifie la cohérence, la complétude et les dates de validité, pas l'authenticité — c'est votre responsabilité.</p>
-            </div>
-            <div class="feat-card fade-in">
-                <div class="feat-card-icon feat-card-icon-primary"><i data-lucide="smartphone"></i></div>
-                <h4>Collecte client par SMS</h4>
-                <p>Quand il manque des pièces du client :</p>
-                <ul>
-                    <li>Un lien SMS sécurisé est envoyé au client</li>
-                    <li>Il dépose ses documents depuis son téléphone</li>
-                    <li>Il est guidé étape par étape (consentement, CPI, upload)</li>
-                    <li>Le système vérifie chaque document à la seconde</li>
-                    <li>Vous êtes notifié quand c'est complet</li>
-                    <li>Si un problème est détecté, le client est invité à corriger</li>
-                </ul>
-            </div>
-            <div class="feat-card fade-in">
-                <div class="feat-card-icon feat-card-icon-emerald"><i data-lucide="file-check"></i></div>
-                <h4>Cerfa généré automatiquement</h4>
-                <p>Quand tout est vert :</p>
-                <ul>
-                    <li>Le Cerfa 13749 (VN) ou 13750 (VO) est pré-rempli</li>
-                    <li>Votre cachet commercial est apposé automatiquement</li>
-                    <li>Votre signature est apposée automatiquement</li>
-                    <li>Vous téléchargez le PDF prêt à soumettre</li>
-                    <li>Le dossier complet est disponible en ZIP</li>
-                    <li>VN, VO, moto, voiture, personne morale — le système s'adapte</li>
-                </ul>
-            </div>
-        </div>
+    <div>
+      <h4 class="font-semibold text-slate-700 mb-2">Contact</h4>
+      <ul class="space-y-1 text-slate-500">
+        <li><a href="mailto:contact@imatra.fr" class="hover:text-blue-600">contact@imatra.fr</a></li>
+      </ul>
     </div>
-</section>
-
-<!-- ═══════════════════════════ COMPARATIF ════════════════════════════════ -->
-<section class="section section-alt">
-    <div class="container">
-        <div class="section-header">
-            <h2>Ce que ça change concrètement</h2>
-        </div>
-        <div class="table-wrap">
-            <table class="cmp-table">
-                <thead>
-                    <tr>
-                        <th></th>
-                        <th>À la main</th>
-                        <th>Services existants</th>
-                        <th class="hl">AutoDoc Pro</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr><td><strong>Vérification</strong></td><td>Vous, à l'œil</td><td>Un humain, 12-24h après</td><td class="hl"><strong>Automatique, à la seconde</strong></td></tr>
-                    <tr><td><strong>Erreur détectée</strong></td><td>Au rejet SIV (trop tard)</td><td>Relance par messagerie</td><td class="hl"><strong>Au dépôt, immédiatement</strong></td></tr>
-                    <tr><td><strong>Saisie Cerfa</strong></td><td>Manuelle</td><td>Formulaire à remplir</td><td class="hl"><strong>Extraite des documents</strong></td></tr>
-                    <tr><td><strong>Temps</strong></td><td>30 min</td><td>10 min + attente</td><td class="hl"><strong>5 min</strong></td></tr>
-                    <tr><td><strong>Qui fixe le prix</strong></td><td>Vous</td><td>Le service</td><td class="hl"><strong>Vous</strong></td></tr>
-                    <tr><td><strong>Coût</strong></td><td>Votre temps</td><td>Commission</td><td class="hl"><strong>12-14 € par dossier</strong></td></tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-</section>
-
-<!-- ═══════════════════════════════ CÔTÉ CLIENT ═══════════════════════════ -->
-<section class="section">
-    <div class="container">
-        <div class="section-header">
-            <h2>Ce que voit votre client sur son téléphone</h2>
-            <p class="subtitle">Il reçoit un SMS, ouvre le lien, et dépose ses documents en 3 minutes.</p>
-        </div>
-        <div style="max-width: 320px; margin: 0 auto; background: white; border: 2px solid var(--slate-200); border-radius: 24px; padding: 16px; box-shadow: var(--shadow-lg);">
-            <!-- Barre statut mobile simulée -->
-            <div style="display: flex; justify-content: space-between; font-size: 0.6rem; color: var(--slate-400); margin-bottom: 12px; padding: 0 4px;">
-                <span>9:41</span>
-                <span style="display: flex; gap: 4px; align-items: center;">
-                    <span style="width: 14px; height: 8px; border: 1px solid var(--slate-300); border-radius: 2px; position: relative;"><span style="position: absolute; left: 1px; top: 1px; bottom: 1px; width: 8px; background: var(--emerald); border-radius: 1px;"></span></span>
-                </span>
-            </div>
-            <!-- Header commerce -->
-            <div style="text-align: center; margin-bottom: 16px;">
-                <div style="width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, var(--primary), var(--emerald)); margin: 0 auto 8px; display: flex; align-items: center; justify-content: center;">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg>
-                </div>
-                <div style="font-size: 0.85rem; font-weight: 700; color: var(--navy);">Moto Center Paris</div>
-                <div style="font-size: 0.65rem; color: var(--slate-400);">12 rue de la Moto, 75011 Paris</div>
-            </div>
-            <!-- Checklist docs -->
-            <div style="font-size: 0.72rem; color: var(--navy-700); margin-bottom: 12px;">
-                <div style="font-size: 0.6rem; font-weight: 600; color: var(--slate-400); text-transform: uppercase; margin-bottom: 6px;">Documents à déposer</div>
-                <div style="display: flex; align-items: center; gap: 6px; padding: 6px 0; border-bottom: 1px solid var(--slate-100);"><span style="color: var(--emerald);">&#10003;</span> <span style="font-weight: 600;">CNI</span> <span style="color: var(--slate-400); font-size: 0.6rem; margin-left: auto;">recto + verso</span></div>
-                <div style="display: flex; align-items: center; gap: 6px; padding: 6px 0; border-bottom: 1px solid var(--slate-100);"><span style="color: var(--emerald);">&#10003;</span> <span style="font-weight: 600;">Permis</span> <span style="color: var(--slate-400); font-size: 0.6rem; margin-left: auto;">cat. A2</span></div>
-                <div style="display: flex; align-items: center; gap: 6px; padding: 6px 0; border-bottom: 1px solid var(--slate-100);"><span style="color: var(--emerald);">&#10003;</span> <span style="font-weight: 600;">Domicile</span></div>
-            </div>
-            <!-- Message -->
-            <div style="padding: 8px 10px; background: var(--emerald-light); border-radius: 8px; font-size: 0.68rem; color: var(--emerald-dark); line-height: 1.4; margin-bottom: 10px;">
-                "Parfait, tous vos documents sont vérifiés ! Confirmez l'envoi pour transmettre le dossier."
-            </div>
-            <!-- Bouton -->
-            <div style="padding: 10px; background: var(--emerald); border-radius: 10px; text-align: center; font-size: 0.75rem; font-weight: 600; color: white;">
-                Envoyer mes documents
-            </div>
-        </div>
-        <p style="text-align: center; font-size: 0.78rem; color: var(--slate-400); margin-top: 16px;">Le client ne voit jamais "AutoDoc Pro" — seulement le nom de votre commerce.</p>
-    </div>
-</section>
-
-<!-- ═══════════════════════════ CAS D'USAGE ═══════════════════════════ -->
-<section class="section section-alt">
-    <div class="container">
-        <div class="section-header">
-            <h2>Chez eux, ça a changé la donne</h2>
-        </div>
-        <div class="pain-grid fade-in">
-            <div class="pain-card" style="border-left: 3px solid var(--primary);">
-                <h4 style="font-size: 0.9rem;">Revendeur VO, Île-de-France</h4>
-                <p style="font-size: 0.78rem; color: var(--slate-400);">15 dossiers/mois</p>
-                <p style="font-size: 0.82rem; margin-top: 8px;"><strong>Avant :</strong> 2 rejets/semaine, 45 min par dossier, relances client par téléphone.</p>
-                <p style="font-size: 0.82rem;"><strong>Après :</strong> 0 rejet en 3 mois, 6 min par dossier, collecte client par SMS en autonomie.</p>
-                <a href="demo.html" style="font-size: 0.78rem; color: var(--primary); margin-top: 8px; display: inline-block;">Voir la démo vendeur habilité &rarr;</a>
-            </div>
-            <div class="pain-card" style="border-left: 3px solid var(--emerald);">
-                <h4 style="font-size: 0.9rem;">Concession moto, Lyon</h4>
-                <p style="font-size: 0.78rem; color: var(--slate-400);">25 dossiers/mois (VN + VO)</p>
-                <p style="font-size: 0.82rem; margin-top: 8px;"><strong>Avant :</strong> Cerfa remplis à la main, erreurs de VIN fréquentes, formation 7h souvent oubliée.</p>
-                <p style="font-size: 0.82rem;"><strong>Après :</strong> Formation 7h détectée automatiquement, Cerfa pré-rempli avec cachet, VIN croisé entre COC et facture.</p>
-                <a href="demo.html" style="font-size: 0.78rem; color: var(--primary); margin-top: 8px; display: inline-block;">Voir la démo vendeur habilité &rarr;</a>
-            </div>
-            <div class="pain-card" style="border-left: 3px solid #8b5cf6;">
-                <h4 style="font-size: 0.9rem;">Agent SIV, Toulouse</h4>
-                <p style="font-size: 0.78rem; color: var(--slate-400);">40 dossiers/mois (clients directs + vendeurs partenaires)</p>
-                <p style="font-size: 0.82rem; margin-top: 8px;"><strong>Avant :</strong> Dossiers incomplets reçus des vendeurs, hébergements non détectés, 3h/jour d'administratif.</p>
-                <p style="font-size: 0.82rem;"><strong>Après :</strong> Dossiers vérifiés à la réception, hébergement détecté automatiquement, 45 min/jour d'administratif.</p>
-                <a href="demo-agent.html" style="font-size: 0.78rem; color: var(--primary); margin-top: 8px; display: inline-block;">Voir la démo agent &rarr;</a>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- ═══════════════════════════════ TARIFS ════════════════════════════════ -->
-<section id="tarifs" class="section">
-    <div class="container">
-        <div class="section-header">
-            <h2>Prix fixe. Vous facturez ce que vous voulez.</h2>
-            <p class="subtitle">Pas d'abonnement — vous payez uniquement par dossier traité.</p>
-        </div>
-        <div class="pricing-grid">
-            <div class="price-card">
-                <div class="price-label">Moto</div>
-                <div class="price-amount">12 <span>&euro; HT</span></div>
-                <div class="price-sub">par dossier traité</div>
-                <ul class="price-list">
-                    <li>OCR + IA + vérification automatique</li>
-                    <li>Collecte client par SMS</li>
-                    <li>Cerfa généré avec cachet et signature</li>
-                    <li>URL permanente incluse</li>
-                </ul>
-                <a href="#contact" class="btn btn-cta" style="width:100%">Commencer</a>
-            </div>
-            <div class="price-card price-card-highlight">
-                <div class="price-badge">Le plus courant</div>
-                <div class="price-label">Voiture</div>
-                <div class="price-amount">14 <span>&euro; HT</span></div>
-                <div class="price-sub">par dossier traité</div>
-                <ul class="price-list">
-                    <li>OCR + IA + vérification automatique</li>
-                    <li>Collecte client par SMS</li>
-                    <li>Cerfa généré avec cachet et signature</li>
-                    <li>URL permanente incluse</li>
-                </ul>
-                <a href="#contact" class="btn btn-cta" style="width:100%">Commencer</a>
-            </div>
-        </div>
-        <p class="pricing-footnote">5 premiers dossiers sans avance de frais. Facturés uniquement si vous continuez. Si vous arrêtez, rien n'est dû.</p>
-    </div>
-</section>
-
-<!-- ═══════════════════════════════════ FAQ ════════════════════════════════ -->
-<section id="faq" class="section section-alt">
-    <div class="container">
-        <div class="section-header">
-            <h2>Questions fréquentes</h2>
-        </div>
-        <div class="faq-list">
-            <div class="faq-item">
-                <h4>Je fais déjà mes CG moi-même, ça marche très bien. Pourquoi changer ?</h4>
-                <p>Ça marche — mais ça vous prend 30 min par dossier et 1 sur 5 est rejeté par le SIV. AutoDoc Pro ne change pas votre process : il le rend 6 fois plus rapide et détecte les erreurs avant la soumission, pas après.</p>
-            </div>
-            <div class="faq-item">
-                <h4>14 € par dossier, ça s'ajoute à mes coûts ?</h4>
-                <p>Vous passez actuellement 30 min par dossier. À 25 €/h, ça vous coûte déjà 12,50 € en temps. AutoDoc Pro coûte 14 € et vous fait passer de 30 à 5 min — vous récupérez 25 min que vous passez à vendre, pas à remplir des formulaires.</p>
-            </div>
-            <div class="faq-item">
-                <h4>Et si l'OCR se trompe ?</h4>
-                <p>Vous restez maître : chaque extraction est visible et vérifiable. Le diagnostic ROUGE vous alerte sur les incohérences avant la soumission. C'est votre filet de sécurité, pas un remplacement de votre jugement.</p>
-            </div>
-            <div class="faq-item">
-                <h4>Mon client va voir un autre site ? Je ne veux pas perdre la relation.</h4>
-                <p>100% marque blanche. Votre client voit uniquement votre nom de commerce, votre adresse, votre logo. Il ne sait même pas qu'AutoDoc Pro existe. C'est votre service.</p>
-            </div>
-            <div class="faq-item">
-                <h4>C'est encore un service qui va facturer mes clients à ma place ?</h4>
-                <p>Non. AutoDoc Pro vous facture vous — 12 ou 14 € par dossier. Votre client, vous le facturez au prix que vous décidez. Votre marge, votre relation.</p>
-            </div>
-            <div class="faq-item">
-                <h4>Je peux tout déposer moi-même ou je dois envoyer un lien au client ?</h4>
-                <p>Les deux. Si vous avez tous les documents, déposez tout — le système vérifie immédiatement. S'il manque des pièces, envoyez un lien SMS au client : il dépose depuis son téléphone et vous êtes notifié quand c'est complet.</p>
-            </div>
-            <div class="faq-item">
-                <h4>Je ne suis pas habilité SIV / Je suis agent habilité — ça marche ?</h4>
-                <p>Oui pour les deux. <strong>Vendeur non habilité</strong> : le système prépare le dossier et le transmet à votre agent. <a href="vendeur.html" style="color: var(--primary);">En savoir plus &rarr;</a> — <strong>Agent habilité</strong> : vos clients déposent via votre URL permanente. <a href="agent.html" style="color: var(--primary);">En savoir plus &rarr;</a></p>
-            </div>
-            <div class="faq-item">
-                <h4>Mes données et celles de mes clients sont en sécurité ?</h4>
-                <p>Documents stockés en France (AWS Paris), chiffrés. Supprimés automatiquement après génération du Cerfa. Conforme RGPD. <a href="confidentialite.html" style="color: var(--primary);">Politique de confidentialité &rarr;</a></p>
-            </div>
-            <div class="faq-item">
-                <h4>Je suis engagé si je m'inscris ?</h4>
-                <p>Non. 5 dossiers pour tester, sans avancer un centime. Pas de carte bancaire, pas d'abonnement. Si vous arrêtez après l'essai, vous ne devez rien.</p>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- ═══════════════════════════════ CONTACT ═══════════════════════════════ -->
-<section id="contact" class="section">
-    <div class="container">
-        <div class="section-header">
-            <h2>Testez sur vos prochains dossiers</h2>
-            <p class="subtitle">Inscription automatique — votre espace est prêt en quelques minutes</p>
-        </div>
-        <form class="contact-form" action="https://formspree.io/f/xwvwwnrw" method="POST">
-            <div class="form-group">
-                <label for="email">Email professionnel *</label>
-                <input type="email" id="email" name="email" required placeholder="vous@votrecommerce.fr">
-            </div>
-            <div class="form-group">
-                <label for="entreprise">Nom de votre commerce *</label>
-                <input type="text" id="entreprise" name="entreprise" required placeholder="Ex: Dupont Motos, Garage Central...">
-            </div>
-            <div class="form-group">
-                <label for="profil">Votre profil *</label>
-                <select id="profil" name="profil" required>
-                    <option value="vendeur_habilite" selected>Vendeur habilité SIV</option>
-                    <option value="vendeur_non_habilite">Vendeur non habilité</option>
-                    <option value="agent_habilite">Agent habilité SIV</option>
-                </select>
-            </div>
-            <div class="form-group" style="flex-direction: row; align-items: flex-start; gap: 8px;">
-                <input type="checkbox" id="rgpd" name="rgpd" required style="margin-top: 4px;">
-                <label for="rgpd" style="font-size: 0.75rem; color: var(--slate-400); line-height: 1.4;">J'accepte que mes données soient traitées conformément à la <a href="confidentialite.html" style="color: var(--primary);">politique de confidentialité</a> et aux <a href="cgv.html" style="color: var(--primary);">CGV</a>.</label>
-            </div>
-            <button type="submit" class="btn btn-cta btn-lg btn-glow">Traiter mon premier dossier</button>
-            <div class="form-reassurance">
-                <div class="form-reassurance-item"><i data-lucide="credit-card"></i> Sans carte bancaire</div>
-                <div class="form-reassurance-item"><i data-lucide="zap"></i> Prêt en 2 minutes</div>
-                <div class="form-reassurance-item"><i data-lucide="x-circle"></i> Aucun engagement</div>
-            </div>
-        </form>
-    </div>
-</section>
-
-<!-- ═══════════════════════════════ FOOTER ════════════════════════════════ -->
-<footer class="footer">
-    <div class="container">
-        <div class="footer-grid">
-            <div class="footer-col">
-                <a href="index.html" class="logo">
-                    <span class="logo-mark"><svg viewBox="0 0 24 24" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></span>
-                    AutoDoc Pro
-                </a>
-                <p>La carte grise, automatisée. Pour les professionnels de l'automobile.</p>
-            </div>
-            <div class="footer-col">
-                <h4>Profils</h4>
-                <ul>
-                    <li><a href="index.html">Vendeur habilité</a></li>
-            <li><a href="vendeur.html">Vendeur non habilité</a></li>
-                    <li><a href="agent.html">Agent habilité SIV</a></li>
-                    <li><a href="comment-ca-marche.html">Comment ça marche</a></li>
-                </ul>
-            </div>
-            <div class="footer-col">
-                <h4>Légal</h4>
-                <ul>
-                    <li><a href="mentions-legales.html">Mentions légales</a></li>
-                    <li><a href="confidentialite.html">Confidentialité</a></li>
-                    <li><a href="cgv.html">CGV</a></li>
-                </ul>
-            </div>
-            <div class="footer-col">
-                <h4>Contact</h4>
-                <ul>
-                    <li><a href="#contact">Essai sans engagement</a></li>
-                    <li><a href="mailto:contact@autodocpro.fr">contact@autodocpro.fr</a></li>
-                </ul>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <p>&copy; 2026 AutoDoc Pro. Tous droits réservés.</p>
-        </div>
-    </div>
+  </div>
+  <div class="max-w-6xl mx-auto px-6 mt-8 pt-6 border-t border-slate-200 text-xs text-slate-400 text-center">
+    © 2026 Imatra. Tous droits réservés.
+  </div>
 </footer>
-
-<script>
-document.querySelector('.menu-toggle').addEventListener('click', function() {
-    document.querySelector('.nav-links').classList.toggle('open');
-});
-document.querySelectorAll('a[href^="#"]').forEach(a => {
-    a.addEventListener('click', function(e) {
-        e.preventDefault();
-        const t = document.querySelector(this.getAttribute('href'));
-        if (t) { t.scrollIntoView({ behavior: 'smooth', block: 'start' }); document.querySelector('.nav-links').classList.remove('open'); }
-    });
-});
-window.addEventListener('scroll', () => document.querySelector('.header').classList.toggle('scrolled', scrollY > 50));
-lucide.createIcons();
-
-// Fade-in au scroll
-const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            entry.target.classList.add('visible');
-            observer.unobserve(entry.target);
-        }
-    });
-}, { threshold: 0.1 });
-document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
-
-// ─── Simulation live ───
-// ─── Simulation live avec timer accéléré ───
-// Temps simulé : 10:32:00 → 10:44:00 (12 min)
-// Temps réel : ~20 secondes
-// Ratio : 1 seconde réelle = 36 secondes simulées
-
-const SIM_START = 10 * 3600 + 32 * 60; // 10:32:00 en secondes
-const SIM_END = 10 * 3600 + 44 * 60;   // 10:44:00
-const SIM_DURATION = SIM_END - SIM_START; // 720 secondes simulées
-const REAL_DURATION = 45000; // 45 secondes réelles
-
-function simTimeToReal(simSeconds) {
-    return ((simSeconds - SIM_START) / SIM_DURATION) * REAL_DURATION;
-}
-function formatTime(totalSec) {
-    const h = Math.floor(totalSec / 3600);
-    const m = Math.floor((totalSec % 3600) / 60);
-    const s = Math.floor(totalSec % 60);
-    return `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-}
-
-// Chaque ligne a un temps simulé (en secondes depuis minuit)
-const T = (h, m, s) => h * 3600 + m * 60 + (s||0);
-const demoLines = [
-    // Phase 1 : vendeur (10:32)
-    { t: T(10,32,0),  html: '<span class="demo-dim">── Documents vendeur</span> <span class="demo-phase-timer" data-phase="0"></span>', phase: 0 },
-    { t: T(10,32,5),  html: '<span class="demo-dim">▸</span> <span class="demo-highlight">Document reçu</span> <span class="demo-dim">— coc_honda_cb125r.pdf (2.1 MB)</span>' },
-    { t: T(10,32,12), html: '<span class="demo-tag demo-tag-ocr">OCR</span> <span class="demo-check">✓</span> 847 caractères extraits <span class="demo-dim">— confiance 94%</span>' },
-    { t: T(10,32,18), html: '<span class="demo-tag demo-tag-extract">IA</span> Classification : <span class="demo-highlight">COC</span> <span class="demo-dim">(Certificat de Conformité)</span>' },
-    { t: T(10,32,25), html: '<span class="demo-tag demo-tag-extract">IA</span> <span class="demo-check">✓</span> HONDA CB125R · VIN : <span class="demo-highlight">JMZKECW105SJ08739</span> · 11 kW · L3e-A1E' },
-    { t: T(10,32,35), html: '<span class="demo-tag demo-tag-extract">IA</span> <span class="demo-check">✓</span> CNIT : <span class="demo-highlight">MH01-01-001-0</span> <span class="demo-dim">— champ D.2.1 détecté sur le COC</span>' },
-    { t: T(10,33,0),  html: '<span class="demo-dim">▸</span> <span class="demo-highlight">Document reçu</span> <span class="demo-dim">— facture_honda.pdf</span>' },
-    { t: T(10,33,10), html: '<span class="demo-tag demo-tag-extract">IA</span> <span class="demo-check">✓</span> Facture · VIN identique · Date : 28/03/2026 · Acheteur : <span class="demo-highlight">DUPONT Marie</span>' },
-    { t: T(10,33,15), html: '<span class="demo-tag demo-tag-check">VERIF</span> <span class="demo-check">✓</span> VIN cohérent COC ↔ facture' },
-    { t: T(10,33,20), html: '' },
-    // Phase 2 : SMS (10:34)
-    { t: T(10,34,0),  html: '<span class="demo-dim">── SMS + dépôt client</span> <span class="demo-phase-timer" data-phase="1"></span>', phase: 1 },
-    { t: T(10,34,5),  html: '<span class="demo-tag demo-tag-ocr">SMS</span> Lien envoyé au 06 12 •• •• 78 <span class="demo-dim">— "Moto Center a choisi AutoDoc Pro..."</span>' },
-    { t: T(10,34,15), html: '<span class="demo-wait" data-wait-start="10:34:15" data-wait-end="10:42:50">⏳ En attente du client...</span>', wait: true },
-    // Client dépose (10:36 — 2 min plus tard)
-    { t: T(10,36,0),  html: '<span class="demo-dim">▸</span> <span class="demo-highlight">Client a déposé</span> <span class="demo-dim">— cni_dupont_recto.jpg</span>' },
-    { t: T(10,36,8),  html: '<span class="demo-tag demo-tag-extract">IA</span> <span class="demo-check">✓</span> CNI · DUPONT Marie · Née le 14/05/1992' },
-    { t: T(10,36,14), html: '<span class="demo-tag demo-tag-check">VERIF</span> Vérification date d\'expiration...' },
-    { t: T(10,36,18), html: '<span class="demo-tag demo-tag-error">BLOQUÉ</span> <span class="demo-error">✗ CNI expirée le 12/01/2026</span>' },
-    { t: T(10,36,25), html: '<span class="demo-tag demo-tag-error">→</span> <span class="demo-error">Le client est invité à déposer une pièce d\'identité valide</span>' },
-    { t: T(10,36,30), html: '' },
-    // Phase 3 : correction (10:41 — 4 min 30 plus tard)
-    { t: T(10,41,0),  html: '<span class="demo-dim">── Correction client</span> <span class="demo-phase-timer" data-phase="2"></span>', phase: 2 },
-    { t: T(10,41,10), html: '<span class="demo-dim">▸</span> <span class="demo-highlight">Client a déposé</span> <span class="demo-dim">— passeport_dupont.jpg</span>' },
-    { t: T(10,41,18), html: '<span class="demo-tag demo-tag-extract">IA</span> <span class="demo-check">✓</span> Passeport · DUPONT Marie · Expire le 15/11/2033 <span class="demo-check">✓</span>' },
-    { t: T(10,41,28), html: '<span class="demo-tag demo-tag-check">VERIF</span> <span class="demo-check">✓</span> Acheteur facture (DUPONT) = passeport (DUPONT) <span class="demo-check">✓</span>' },
-    { t: T(10,41,40), html: '<span class="demo-dim">▸</span> <span class="demo-highlight">Client a déposé</span> <span class="demo-dim">— permis_dupont.jpg</span>' },
-    { t: T(10,41,50), html: '<span class="demo-tag demo-tag-check">VERIF</span> <span class="demo-check">✓</span> Permis B · véhicule L3e-A1E ≤ 11 kW — permis adapté <span class="demo-check">✓</span>' },
-    { t: T(10,42,0),  html: '<span class="demo-tag demo-tag-check">VERIF</span> <span class="demo-check">✓</span> Permis B + 125cc → formation 7h requise — <span class="demo-highlight">attestation détectée</span> <span class="demo-check">✓</span>' },
-    { t: T(10,42,30), html: '<span class="demo-dim">▸</span> <span class="demo-highlight">Client a déposé</span> <span class="demo-dim">— quittance_edf.pdf</span>' },
-    { t: T(10,42,40), html: '<span class="demo-tag demo-tag-check">VERIF</span> <span class="demo-check">✓</span> Domicile · Daté du 15/02/2026 · Nom = passeport <span class="demo-check">✓</span>' },
-    { t: T(10,42,48), html: '<span class="demo-tag demo-tag-check">VERIF</span> <span class="demo-highlight">200+ contrôles passés — 0 alerte</span> <span class="demo-check">✓</span>' },
-    { t: T(10,42,55), html: '' },
-    // Phase 4 : Cerfa (10:43)
-    { t: T(10,43,0),  html: '<span class="demo-dim">── Génération Cerfa</span> <span class="demo-phase-timer" data-phase="3"></span>', phase: 3 },
-    { t: T(10,43,10), html: '<span class="demo-tag demo-tag-cerfa">CERFA</span> Génération Cerfa 13749 (VN)...' },
-    { t: T(10,43,20), html: '<span class="demo-tag demo-tag-cerfa">CERFA</span> <span class="demo-check">✓</span> Cerfa pré-rempli · cachet Moto Center et signature enregistrée numériquement apposés automatiquement' },
-    { t: T(10,43,30), html: '' },
-    { t: T(10,43,40), html: '<span class="demo-tag demo-tag-done">PRÊT</span> <span class="demo-highlight" style="color: #34d399;">Dossier complet — 0 alerte. Contrôlez, téléchargez et soumettez au SIV.</span>' },
-];
-
-// Phases avec début/fin en temps simulé
-const demoPhases = [
-    { label: 'Documents vendeur', start: T(10,32,0), end: T(10,33,20) },
-    { label: 'SMS + dépôt client', start: T(10,34,0), end: T(10,36,30) },
-    { label: 'Correction client', start: T(10,41,0), end: T(10,42,50) },
-    { label: 'Génération Cerfa', start: T(10,43,0), end: T(10,43,40) },
-];
-
-let demoTimeout = [];
-let demoTimerRAF = null;
-let demoPaused = false;
-let demoPauseTime = 0;
-let demoStartTime = 0;
-let demoPausedTotal = 0;
-
-function togglePause() {
-    const btn = document.getElementById('demoPauseLabel');
-    const icon = document.getElementById('demoPauseIcon');
-    if (!demoPaused) {
-        demoPaused = true;
-        demoPauseTime = performance.now();
-        btn.textContent = 'Reprendre';
-        icon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
-        if (demoTimerRAF) cancelAnimationFrame(demoTimerRAF);
-    } else {
-        demoPaused = false;
-        demoPausedTotal += performance.now() - demoPauseTime;
-        btn.textContent = 'Pause';
-        icon.innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
-        demoTimerRAF = requestAnimationFrame(updateDemoTimer);
-    }
-}
-
-let updateDemoTimer;
-
-function runDemo() {
-    const el = document.getElementById('demoTerminal');
-    const timerEl = document.getElementById('demoTimer');
-    el.innerHTML = '';
-    demoTimeout.forEach(t => clearTimeout(t));
-    demoTimeout = [];
-    if (demoTimerRAF) cancelAnimationFrame(demoTimerRAF);
-    demoPaused = false;
-    demoPausedTotal = 0;
-    document.getElementById('demoPauseLabel').textContent = 'Pause';
-    document.getElementById('demoPauseIcon').innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
-
-    demoStartTime = performance.now();
-    document.querySelectorAll('.demo-screen-dot').forEach(d => d.classList.add('spinning'));
-
-    updateDemoTimer = function() {
-        if (demoPaused) return;
-        const elapsed = performance.now() - demoStartTime - demoPausedTotal;
-        const progress = Math.min(elapsed / REAL_DURATION, 1);
-        const simTime = SIM_START + progress * SIM_DURATION;
-        // Ajouter les lignes qui doivent apparaître
-        while (window._demoNextLine < demoLines.length) {
-            const line = demoLines[window._demoNextLine];
-            if (simTime < line.t) break;
-            if (line.html === '') { el.innerHTML += '<div style="height: 6px;"></div>'; }
-            else {
-                const div = document.createElement('div');
-                div.className = 'demo-line';
-                div.innerHTML = line.html;
-                el.appendChild(div);
-            }
-            el.scrollTop = el.scrollHeight;
-            window._demoNextLine++;
-        }
-        // Curseur à la fin
-        if (progress >= 1 && !window._demoCursorAdded) {
-            const cursor = document.createElement('span');
-            cursor.className = 'demo-cursor';
-            el.appendChild(cursor);
-            window._demoCursorAdded = true;
-            document.querySelectorAll('.demo-screen-dot').forEach(d => d.classList.remove('spinning'));
-        }
-
-        // ── Mockup synchronisé ──
-        const S = window._demoMockupState;
-        const ph = document.getElementById('demoMockupPlaceholder');
-        const sv = document.getElementById('demoScreenVendeur');
-        const sc = document.getElementById('demoScreenClient');
-        const sf = document.getElementById('demoScreenCerfa');
-
-        // Phase 1 : espace vendeur (10:32 → 10:33:20)
-        if (simTime >= T(10,32,0) && S < 1) {
-            ph.style.display = 'none'; sv.style.display = 'block'; window._demoMockupState = 1;
-        }
-        if (simTime >= T(10,32,18)) { const e=document.getElementById('mockCoc'); e.className='demo-screen-doc demo-screen-ok'; e.querySelector('span').textContent='✓'; }
-        if (simTime >= T(10,33,10)) { const e=document.getElementById('mockFacture'); e.className='demo-screen-doc demo-screen-ok'; e.querySelector('span').textContent='✓'; }
-        if (simTime >= T(10,32,35)) { const e=document.getElementById('mockCnit'); e.className='demo-screen-doc demo-screen-ok'; e.querySelector('span').textContent='✓'; }
-        if (simTime >= T(10,32,25)) { const e=document.getElementById('mockEnergie'); e.className='demo-screen-doc demo-screen-ok'; e.querySelector('span').textContent='✓'; }
-        if (simTime >= T(10,33,15)) { const e=document.getElementById('mockVin'); e.className='demo-screen-doc demo-screen-ok'; e.querySelector('span').textContent='✓'; }
-        if (simTime >= T(10,33,18) && S < 2) {
-            const m=document.getElementById('mockVendeurMsg'); m.style.display='block';
-            m.className='demo-screen-msg demo-screen-msg-ok'; m.textContent='✓ Documents vendeur vérifiés — envoyez le lien SMS au client';
-            window._demoMockupState = 2;
-        }
-
-        // Phase 2 : espace client (10:34 → 10:42:50)
-        if (simTime >= T(10,34,0) && S < 3) {
-            sc.style.display = 'block'; window._demoMockupState = 3;
-        }
-        // Docs client
-        if (simTime >= T(10,36,8) && simTime < T(10,36,18)) { const e=document.getElementById('mockCni'); e.className='demo-screen-doc demo-screen-ok'; e.querySelector('span').textContent='✓'; }
-        if (simTime >= T(10,36,18)) {
-            const e=document.getElementById('mockCni'); e.className='demo-screen-doc demo-screen-err'; e.querySelector('span').textContent='✗';
-            const ex=document.getElementById('mockExpir'); ex.className='demo-screen-doc demo-screen-err'; ex.querySelector('span').textContent='✗';
-            const m=document.getElementById('mockClientMsg'); m.style.display='block';
-            m.className='demo-screen-msg demo-screen-msg-err'; m.textContent='CNI expirée — déposez une pièce d\'identité valide';
-        }
-        if (simTime >= T(10,41,18)) {
-            const e=document.getElementById('mockCni'); e.className='demo-screen-doc demo-screen-ok'; e.querySelector('span').textContent='✓';
-            const ex=document.getElementById('mockExpir'); ex.className='demo-screen-doc demo-screen-ok'; ex.querySelector('span').textContent='✓';
-            const m=document.getElementById('mockClientMsg'); m.style.display='none';
-        }
-        if (simTime >= T(10,41,50)) {
-            const e=document.getElementById('mockPermis'); e.className='demo-screen-doc demo-screen-ok'; e.querySelector('span').textContent='✓';
-            const pa=document.getElementById('mockPermisAdapt'); pa.className='demo-screen-doc demo-screen-ok'; pa.querySelector('span').textContent='✓';
-        }
-        if (simTime >= T(10,42,0)) { const e=document.getElementById('mockFormation'); e.className='demo-screen-doc demo-screen-ok'; e.querySelector('span').textContent='✓'; }
-        if (simTime >= T(10,42,40)) {
-            const e=document.getElementById('mockDomicile'); e.className='demo-screen-doc demo-screen-ok'; e.querySelector('span').textContent='✓';
-            const nc=document.getElementById('mockNomCoher'); nc.className='demo-screen-doc demo-screen-ok'; nc.querySelector('span').textContent='✓';
-        }
-        if (simTime >= T(10,42,50) && S < 4) {
-            const m=document.getElementById('mockClientMsg'); m.style.display='block';
-            m.className='demo-screen-msg demo-screen-msg-ok'; m.textContent='✓ Tous les documents et vérifications sont OK !';
-            window._demoMockupState = 4;
-        }
-
-        // Phase 4 : Cerfa (10:43) — cacher vendeur + client pour laisser place au Cerfa
-        if (simTime >= T(10,43,0) && S < 5) {
-            sv.style.display = 'none';
-            sc.style.display = 'none';
-            sf.style.display = 'block'; window._demoMockupState = 5;
-        }
-        if (simTime >= T(10,43,10)) document.getElementById('cerfaStamp').style.display = 'block';
-        if (simTime >= T(10,43,30) && S < 6) {
-            const m=document.getElementById('mockCerfaMsg'); m.style.display='block';
-            m.textContent='Dossier complet — contrôlez, téléchargez et soumettez au SIV.';
-            window._demoMockupState = 6;
-        }
-
-        // Timer global qui part de 0:00
-        const totalElapsed = simTime - SIM_START;
-        const tm = Math.floor(totalElapsed / 60);
-        const ts = Math.floor(totalElapsed % 60);
-        timerEl.textContent = `${tm}:${String(ts).padStart(2,'0')}`;
-
-        // Mettre à jour chaque timer de phase dans le terminal
-        demoPhases.forEach((phase, i) => {
-            const phaseEl = el.querySelector(`[data-phase="${i}"]`);
-            if (!phaseEl) return;
-
-            if (simTime < phase.start) {
-                // Phase pas encore commencée
-                phaseEl.textContent = '';
-            } else if (simTime >= phase.start && simTime <= phase.end) {
-                // Phase en cours — timer vert qui tourne
-                const phaseElapsed = simTime - phase.start;
-                const m = Math.floor(phaseElapsed / 60);
-                const s = Math.floor(phaseElapsed % 60);
-                phaseEl.textContent = `${m}:${String(s).padStart(2,'0')}`;
-                phaseEl.style.color = '#34d399';
-                phaseEl.style.background = 'rgba(5,150,105,0.15)';
-            } else {
-                // Phase terminée — afficher durée totale
-                const dur = phase.end - phase.start;
-                const m = Math.floor(dur / 60);
-                const s = Math.floor(dur % 60);
-                phaseEl.textContent = `✓ ${m}:${String(s).padStart(2,'0')}`;
-                phaseEl.style.color = 'rgba(255,255,255,0.4)';
-                phaseEl.style.background = 'rgba(255,255,255,0.06)';
-            }
-        });
-
-        // Mettre à jour les timers d'attente client
-        el.querySelectorAll('.demo-wait').forEach(waitEl => {
-            const ws = waitEl.dataset.waitStart.split(':').map(Number);
-            const we = waitEl.dataset.waitEnd.split(':').map(Number);
-            const waitStart = ws[0]*3600 + ws[1]*60 + (ws[2]||0);
-            const waitEnd = we[0]*3600 + we[1]*60 + (we[2]||0);
-
-            if (simTime >= waitStart && simTime < waitEnd) {
-                const waited = simTime - waitStart;
-                const m = Math.floor(waited / 60);
-                const s = Math.floor(waited % 60);
-                waitEl.innerHTML = `⏳ ${waitEl.dataset.waitEnd === '10:41:00' ? 'Le client cherche son passeport' : 'En attente du client'}... <span class="demo-wait-timer">${m}:${String(s).padStart(2,'0')}</span>`;
-            } else if (simTime >= waitEnd) {
-                const total = waitEnd - waitStart;
-                const m = Math.floor(total / 60);
-                const s = Math.floor(total % 60);
-                waitEl.innerHTML = `⏳ Attente client — <span class="demo-wait-timer demo-wait-done">${m}:${String(s).padStart(2,'0')}</span>`;
-            }
-        });
-
-        if (progress < 1) demoTimerRAF = requestAnimationFrame(updateDemoTimer);
-    };
-    demoTimerRAF = requestAnimationFrame(updateDemoTimer);
-
-    window._demoNextLine = 0;
-    window._demoCursorAdded = false;
-    window._demoMockupState = 0;
-
-    // Reset mockups
-    document.getElementById('demoMockupPlaceholder').style.display = 'flex';
-    document.getElementById('demoScreenVendeur').style.display = 'none';
-    document.getElementById('demoScreenClient').style.display = 'none';
-    document.getElementById('demoScreenCerfa').style.display = 'none';
-    ['mockCoc','mockFacture','mockVin','mockCnit','mockEnergie'].forEach(id => {
-        const e = document.getElementById(id);
-        e.className = 'demo-screen-doc';
-        e.querySelector('span').textContent = '○';
-    });
-    ['mockCni','mockPermis','mockDomicile','mockExpir','mockPermisAdapt','mockFormation','mockNomCoher'].forEach(id => {
-        const e = document.getElementById(id);
-        e.className = 'demo-screen-doc';
-        e.querySelector('span').textContent = '○';
-    });
-    ['mockVendeurMsg','mockClientMsg','mockCerfaMsg','cerfaStamp'].forEach(id => {
-        document.getElementById(id).style.display = 'none';
-    });
-    try { document.getElementById('cerfaStamp').style.display = 'none'; } catch(x) {}
-    try { document.getElementById('mockCerfaMsg').style.display = 'none'; } catch(x) {}
-}
-
-// Lancer quand visible
-const demoObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            runDemo();
-            demoObserver.unobserve(entry.target);
-        }
-    });
-}, { threshold: 0.3 });
-const demoEl = document.querySelector('.demo-live');
-if (demoEl) demoObserver.observe(demoEl);
-
-// Compteurs animés
-const countObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            const el = entry.target;
-            const target = parseInt(el.dataset.count);
-            if (!target) return;
-            let current = 0;
-            const step = Math.ceil(target / 40);
-            const timer = setInterval(() => {
-                current += step;
-                if (current >= target) { current = target; clearInterval(timer); }
-                el.textContent = current + (el.textContent.includes('+') ? '+' : '') + (el.textContent.includes(' min') ? ' min' : '');
-            }, 30);
-            countObserver.unobserve(el);
-        }
-    });
-}, { threshold: 0.5 });
-document.querySelectorAll('[data-count]').forEach(el => countObserver.observe(el));
-</script>
-
-<!-- Cerfa plein écran -->
-<div id="cerfaFullscreen" onclick="this.style.display='none'" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;background:rgba(0,0,0,0.9);cursor:zoom-out;align-items:center;justify-content:center;padding:20px;">
-    <img src="assets/cerfa_vn_page1.png?v=36" style="max-height:95vh;max-width:95vw;border-radius:8px;box-shadow:0 0 60px rgba(0,0,0,0.5);">
-</div>
 
 </body>
 </html>

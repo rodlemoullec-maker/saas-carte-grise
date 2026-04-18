@@ -1,0 +1,74 @@
+# ─── Git et CI ─────────────────────────────────────────────────────────────
+.git
+.github
+.gitignore
+.gitattributes
+
+# ─── Environnements virtuels ───────────────────────────────────────────────
+.venv
+venv
+env
+ENV
+.python-version
+
+# ─── Caches Python ─────────────────────────────────────────────────────────
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+*.egg-info
+.pytest_cache
+.mypy_cache
+.ruff_cache
+htmlcov
+.coverage
+.coverage.*
+
+# ─── Frontend ──────────────────────────────────────────────────────────────
+# Ces dossiers sont rebuild dans le stage 1 du Dockerfile
+frontend/node_modules
+frontend/dist
+frontend/.vite
+
+# ─── Données locales (créées au runtime, pas à embarquer) ─────────────────
+data/
+!data/.gitkeep
+
+# ─── Secrets (ne JAMAIS embarquer dans une image) ─────────────────────────
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.p12
+gen-lang-client-*.json
+
+# ─── OS / Editor ───────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+*~
+.idea
+.vscode
+
+# ─── Documentation et site vitrine (pas dans le runtime) ──────────────────
+docs/
+site/*
+!site/assets
+!site/assets/**
+
+# ─── Mémoire Claude (privée) ──────────────────────────────────────────────
+.claude/
+
+# ─── Audit et migration ───────────────────────────────────────────────────
+MIGRATION_AUDIT.md
+MIGRATION_FILES_*.md
+
+# ─── Tests ─────────────────────────────────────────────────────────────────
+tests/
+
+# ─── Logs ──────────────────────────────────────────────────────────────────
+*.log
+logs/

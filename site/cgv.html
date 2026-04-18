@@ -3,270 +3,226 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Conditions Générales de Vente — AutoDoc Pro</title>
+    <title>Conditions Générales de Licence — Imatra</title>
+    <meta name="description" content="Conditions Générales de Licence d'Imatra — logiciel installé localement chez l'agent habilité SIV.">
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="assets/css/style.css?v=6">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        .legal { max-width: 760px; margin: 0 auto; padding: 120px 24px 80px; }
-        .legal h1 { font-size: 1.8rem; font-weight: 800; color: var(--navy); margin-bottom: 8px; letter-spacing: -0.03em; }
-        .legal .legal-update { font-size: 0.75rem; color: var(--slate-400); margin-bottom: 40px; }
-        .legal h2 { font-size: 1.1rem; font-weight: 700; color: var(--navy); margin: 32px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--slate-200); }
-        .legal h3 { font-size: 0.92rem; font-weight: 700; color: var(--navy-700); margin: 20px 0 8px; }
-        .legal p { font-size: 0.85rem; color: var(--navy-600); line-height: 1.7; margin-bottom: 8px; }
-        .legal ul, .legal ol { margin: 8px 0 12px 20px; }
-        .legal ul li, .legal ol li { font-size: 0.85rem; color: var(--navy-600); line-height: 1.7; margin-bottom: 4px; }
-        .legal ul li { list-style: disc; }
-        .legal ol li { list-style: decimal; }
-        .legal table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 0.82rem; }
-        .legal table th, .legal table td { padding: 10px 14px; text-align: left; border: 1px solid var(--slate-200); }
-        .legal table th { background: var(--slate-50); color: var(--navy); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; }
-        .legal table td { color: var(--navy-600); }
-        .legal a { color: var(--primary); }
-        .legal .highlight { background: var(--slate-50); border: 1px solid var(--slate-200); border-radius: 8px; padding: 14px 16px; margin: 12px 0; }
-        .legal .highlight p { margin-bottom: 0; }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter','sans-serif'], display: ['Outfit','sans-serif'] }, colors: { navy: { 50: '#f1f5f9', 700: '#1e293b', 800: '#0f172a', 900: '#020617' } } } } }
+    </script>
+    <style>body{font-family:Inter,sans-serif}h1,h2,h3{font-family:Outfit,sans-serif}</style>
 </head>
-<body>
+<body class="bg-slate-50 text-slate-800 antialiased">
 
-<header class="header">
-    <nav class="nav">
-        <a href="index.html" class="logo">
-            <span class="logo-mark"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></span>
-            AutoDoc Pro
-        </a>
-        <ul class="nav-links">
-            <li><a href="index.html">Vendeur habilité</a></li>
-            <li><a href="vendeur.html">Vendeur non habilité</a></li>
-            <li><a href="agent.html">Agent SIV</a></li>
-            <li><a href="comment-ca-marche.html">Comment ça marche</a></li>
-            <li><a href="index.html#tarifs">Tarifs</a></li>
-            <li><a href="index.html#faq">FAQ</a></li>
-            <li><a href="index.html#contact" class="btn btn-cta btn-nav">Essai sans engagement</a></li>
-        </ul>
-        <button class="menu-toggle" aria-label="Menu"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="7" x2="21" y2="7"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="17" x2="21" y2="17"/></svg></button>
-    </nav>
+<header class="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-slate-200">
+  <nav class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+    <a href="index.html" class="flex items-center gap-2.5">
+      <span class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-emerald-500 flex items-center justify-center text-white font-bold">⚡</span>
+      <span class="font-display font-extrabold text-navy-800 text-lg">Imatra</span>
+    </a>
+    <div class="hidden md:flex items-center gap-1">
+      <a href="comment-ca-marche.html" class="px-3 py-2 text-sm font-medium text-slate-600 hover:text-navy-800 rounded-lg">Comment ça marche</a>
+      <a href="securite.html" class="px-3 py-2 text-sm font-medium text-slate-600 hover:text-navy-800 rounded-lg">Sécurité</a>
+      <a href="tarifs.html" class="px-3 py-2 text-sm font-medium text-slate-600 hover:text-navy-800 rounded-lg">Tarifs</a>
+      <a href="telecharger.html" class="ml-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg">Télécharger</a>
+    </div>
+  </nav>
 </header>
 
-<div class="legal">
-    <h1>Conditions Générales de Vente</h1>
-    <p class="legal-update">Dernière mise à jour : 3 avril 2026 — Version 1.0</p>
+<main class="max-w-3xl mx-auto px-6 py-16 prose prose-slate">
 
-    <h2>Article 1 — Objet et champ d'application</h2>
-    <p>Les présentes conditions générales de vente (ci-après "CGV") régissent les relations contractuelles entre la société AutoDoc Pro (ci-après "le Prestataire"), dont les coordonnées figurent dans les <a href="mentions-legales.html">mentions légales</a>, et tout professionnel de l'automobile (ci-après "le Client") utilisant le service.</p>
-    <p>Toute utilisation du service emporte acceptation pleine et entière des présentes CGV. Le Client déclare en avoir pris connaissance et les accepter sans réserve.</p>
+  <h1 class="font-display font-extrabold text-3xl text-navy-800 mb-2">Conditions Générales de Licence (CGL)</h1>
+  <p class="text-sm text-slate-500 mb-10">Version 2.0 — applicable à partir du 1<sup>er</sup> avril 2026</p>
 
-    <h2>Article 2 — Description du service</h2>
-    <h3>2.1 Périmètre inclus</h3>
-    <p>Le service AutoDoc Pro comprend :</p>
-    <ol>
-        <li>La lecture automatique des documents par reconnaissance optique de caractères (Google Document AI) et intelligence artificielle (Claude d'Anthropic pour la classification et l'extraction)</li>
-        <li>L'extraction et la structuration des données contenues dans les documents (COC, facture, carte grise, CNI, permis, justificatif de domicile, etc.)</li>
-        <li>La vérification de cohérence inter-documents (contrôles multiples couvrant la validité, la cohérence et la complétude des pièces)</li>
-        <li>La collecte dématérialisée des pièces justificatives du client final par mise à disposition d'un lien sécurisé (l'envoi effectif du SMS est en cours de déploiement — en attendant, le lien est fourni au professionnel qui le transmet au client)</li>
-        <li>La mise à disposition d'une URL permanente personnalisée par professionnel pour la collecte anticipée des documents client</li>
-        <li>La génération du formulaire Cerfa 13749 (VN) ou 13750 (VO) pré-rempli à partir des données extraites, avec apposition automatique du cachet commercial et de la signature du professionnel</li>
-        <li>Le recueil de la signature du client sur le certificat de cession (VO, le cas échéant) via le parcours en ligne</li>
-        <li>L'estimation indicative du montant des taxes d'immatriculation (taxe régionale, malus CO2) lorsque les données du véhicule le permettent</li>
-    </ol>
+  <section class="mb-8">
+    <h2 class="font-display font-bold text-xl text-navy-800 mb-3">Article 1 — Objet</h2>
+    <p class="text-slate-700 leading-relaxed">
+      Les présentes Conditions Générales de Licence (ci-après « CGL ») régissent l'utilisation
+      du logiciel <strong>Imatra</strong> (ci-après « le Logiciel »), édité par Imatra,
+      auto-entreprise enregistrée en France, dont le siège est situé à Les Andelys (27700).
+      Imatra est un logiciel destiné aux professionnels de l'automobile habilités SIV pour
+      la préparation locale de dossiers de carte grise.
+    </p>
+  </section>
 
-    <h3>2.2 Périmètre exclu</h3>
-    <p>Le service ne comprend pas et ne saurait inclure :</p>
-    <ul>
-        <li>La télétransmission de données au Système d'Immatriculation des Véhicules (SIV)</li>
-        <li>L'encaissement ou le reversement de taxes d'immatriculation au Trésor Public</li>
-        <li>La vérification de la validité du contrôle technique du véhicule</li>
-        <li>L'archivage conforme des dossiers d'immatriculation (coffre-fort numérique NF Z 42-020)</li>
-        <li>Le conseil juridique, fiscal ou réglementaire</li>
-        <li>Le contrôle d'identité du client final</li>
-        <li>La génération effective des mandats d'immatriculation Cerfa 13757 (en cours de développement)</li>
+  <section class="mb-8">
+    <h2 class="font-display font-bold text-xl text-navy-800 mb-3">Article 2 — Nature de la licence</h2>
+    <p class="text-slate-700 leading-relaxed mb-2">
+      Le Logiciel est mis à disposition sous forme de <strong>licence d'utilisation</strong> et non
+      de cession de droits. Le Licencié dispose d'un droit d'usage personnel, non exclusif et non
+      transférable du Logiciel pour la durée de la licence souscrite.
+    </p>
+    <p class="text-slate-700 leading-relaxed">
+      Le Licencié reconnaît qu'Imatra reste seul titulaire de tous les droits de propriété
+      intellectuelle attachés au Logiciel, y compris son code source, son interface, sa
+      documentation, sa marque et son architecture.
+    </p>
+  </section>
+
+  <section class="mb-8">
+    <h2 class="font-display font-bold text-xl text-navy-800 mb-3">Article 3 — Architecture locale</h2>
+    <p class="text-slate-700 leading-relaxed mb-2">
+      Imatra est un logiciel <strong>installé sur l'ordinateur du Licencié</strong>. Toutes les
+      données traitées (documents clients, dossiers, base de données, fichiers chiffrés) restent
+      sur la machine du Licencié et ne sont jamais transmises à l'éditeur ni à un quelconque
+      tiers.
+    </p>
+    <p class="text-slate-700 leading-relaxed">
+      L'éditeur n'a, par construction, <strong>aucun accès</strong> aux données traitées par le
+      Licencié. À ce titre, Imatra n'est ni hébergeur, ni sous-traitant au sens du RGPD.
+      Le Licencié est seul responsable de traitement de ses propres données.
+    </p>
+  </section>
+
+  <section class="mb-8">
+    <h2 class="font-display font-bold text-xl text-navy-800 mb-3">Article 4 — Périmètre fonctionnel</h2>
+    <p class="text-slate-700 leading-relaxed mb-2"><strong>Le Logiciel inclut :</strong></p>
+    <ul class="list-disc list-inside text-slate-700 ml-4 mb-3 space-y-1">
+      <li>Lecture automatique de documents (OCR via PaddleOCR en local)</li>
+      <li>Extraction et structuration des données issues des documents</li>
+      <li>Vérification de cohérence inter-documents (38 règles de blocage et 21 contrôles croisés)</li>
+      <li>Drag &amp; drop d'emails (.eml et .msg) avec extraction des pièces jointes</li>
+      <li>Génération en local des Cerfa 13749 (VN) et 13750 (VO) pré-remplis</li>
+      <li>Génération de textes d'emails de relance pour les clients du Licencié</li>
+      <li>Estimation indicative des taxes d'immatriculation</li>
     </ul>
-
-    <h2>Article 3 — Conditions d'accès au service</h2>
-    <h3>3.1 Utilisateurs autorisés</h3>
-    <p>Le service est réservé aux personnes morales ou physiques exerçant, à titre principal ou accessoire, une activité professionnelle relevant du secteur de l'automobile, notamment :</p>
-    <ul>
-        <li>Vendeurs de véhicules neufs ou d'occasion (concessionnaires, garages, marchands)</li>
-        <li>Agents habilités SIV disposant de leur propre convention d'habilitation individuelle</li>
-        <li>Réparateurs automobiles proposant un service carte grise à leurs clients</li>
+    <p class="text-slate-700 leading-relaxed mb-2"><strong>Le Logiciel n'inclut pas :</strong></p>
+    <ul class="list-disc list-inside text-slate-700 ml-4 space-y-1">
+      <li>La télétransmission au SIV (effectuée par le Licencié via son habilitation)</li>
+      <li>L'encaissement des taxes d'immatriculation</li>
+      <li>L'envoi d'emails ou de SMS à des tiers</li>
+      <li>L'archivage légal certifié NF Z42-020 (à la charge du Licencié)</li>
+      <li>Toute forme de conseil juridique ou réglementaire</li>
+      <li>Tout contrôle d'identité du client final du Licencié</li>
     </ul>
+  </section>
 
-    <div class="highlight">
-        <p><strong>Qui peut utiliser AutoDoc Pro :</strong></p>
-        <ul>
-            <li><strong>Vendeur habilité SIV</strong> — professionnel qui vend des véhicules et qui dispose de sa propre convention d'habilitation SIV individuelle. Il prépare le dossier et soumet au SIV lui-même.</li>
-            <li><strong>Vendeur non habilité</strong> — professionnel qui vend des véhicules sans habilitation SIV. Il prépare le dossier et le transmet à son agent habilité, renseigné dans ses paramètres, qui vérifie et soumet au SIV.</li>
-            <li><strong>Agent habilité SIV</strong> — professionnel qui dispose de sa propre convention d'habilitation SIV et qui traite les cartes grises pour le compte de ses clients, sans être le vendeur du véhicule.</li>
-        </ul>
-        <p style="margin-top: 12px;"><strong>Qui ne peut pas utiliser AutoDoc Pro :</strong></p>
-        <ul>
-            <li><strong>Les plateformes d'immatriculation en ligne</strong> — AutoDoc Pro exige de pouvoir identifier, pour chaque dossier, le professionnel habilité qui en assume personnellement la responsabilité lors de la soumission au SIV. Cette exigence repose sur trois raisons : (1) les documents générés (Cerfa, cession) engagent la responsabilité de leur soumetteur — AutoDoc Pro doit s'assurer qu'ils sont utilisés dans un cadre conforme ; (2) le service traite des données personnelles sensibles (documents d'identité, domicile) — AutoDoc Pro doit pouvoir identifier le responsable de traitement au sens du RGPD pour chaque dossier ; (3) le client final confie ses documents en s'appuyant sur la confiance qu'il accorde à un professionnel identifié — AutoDoc Pro doit garantir cette traçabilité. Dans le cas d'une plateforme traitant des dossiers en volume, AutoDoc Pro n'est pas en mesure de vérifier que ces conditions sont réunies pour chaque dossier individuellement.</li>
-            <li><strong>Les éditeurs de logiciels concurrents</strong> d'aide à l'immatriculation</li>
-        </ul>
-        <p style="margin-top: 12px;">Disposer d'un site web n'est pas un motif d'exclusion. Le Prestataire vérifie le code NAF du Client via l'API Recherche Entreprises (data.gouv.fr) à l'upload du Kbis. Les activités non automobiles entraînent la désactivation automatique du compte.</p>
-    </div>
+  <section class="mb-8">
+    <h2 class="font-display font-bold text-xl text-navy-800 mb-3">Article 5 — Tarifs et durée</h2>
+    <p class="text-slate-700 leading-relaxed mb-2">
+      <strong>Essai gratuit :</strong> 30 jours d'utilisation gratuite, limités à 10 dossiers traités.
+      Aucune carte bancaire requise.
+    </p>
+    <p class="text-slate-700 leading-relaxed mb-2">
+      <strong>Licence annuelle :</strong> 800 € HT par an et par poste, donnant droit à un nombre
+      illimité de dossiers, aux mises à jour de règles paramétrables, aux mises à jour mineures du
+      Logiciel et au support email.
+    </p>
+    <p class="text-slate-700 leading-relaxed">
+      Le paiement est unique et n'engendre aucun prélèvement automatique. Le renouvellement est
+      explicite et à l'initiative du Licencié.
+    </p>
+  </section>
 
-    <h3>3.2 Prérequis à l'inscription</h3>
-    <p>Le Client doit fournir lors de l'inscription :</p>
-    <ul>
-        <li>Un extrait Kbis de moins de 3 mois (les informations SIREN, raison sociale et adresse sont extraites automatiquement)</li>
-        <li>Une image de son cachet commercial sur fond blanc</li>
-        <li>Une image de sa signature sur fond blanc</li>
-        <li>L'acceptation des présentes CGV</li>
+  <section class="mb-8">
+    <h2 class="font-display font-bold text-xl text-navy-800 mb-3">Article 6 — Activation et licences</h2>
+    <p class="text-slate-700 leading-relaxed">
+      Après achat, le Licencié reçoit par email un token de licence signé cryptographiquement
+      (Ed25519). Ce token est à coller dans l'interface du Logiciel pour activer son installation.
+      La licence est vérifiée localement et ne nécessite pas de connexion internet permanente —
+      30 jours de tolérance hors-ligne sont accordés.
+    </p>
+  </section>
+
+  <section class="mb-8">
+    <h2 class="font-display font-bold text-xl text-navy-800 mb-3">Article 7 — Droit de rétractation</h2>
+    <p class="text-slate-700 leading-relaxed">
+      Conformément aux dispositions légales applicables, le Licencié dispose d'un délai de
+      <strong>14 jours</strong> à compter de l'activation de sa licence pour exercer son droit de
+      rétractation et obtenir le remboursement intégral du prix de la licence. Toute demande de
+      rétractation doit être adressée à <a href="mailto:contact@imatra.fr" class="text-blue-600">contact@imatra.fr</a>.
+    </p>
+  </section>
+
+  <section class="mb-8">
+    <h2 class="font-display font-bold text-xl text-navy-800 mb-3">Article 8 — Obligations du Licencié</h2>
+    <ul class="list-disc list-inside text-slate-700 ml-4 space-y-2">
+      <li>Disposer d'une habilitation SIV en cours de validité délivrée par la préfecture compétente</li>
+      <li>Vérifier personnellement la conformité de chaque dossier avant soumission au SIV</li>
+      <li>Assurer l'archivage légal de ses dossiers conformément au Code de la route</li>
+      <li>Effectuer les sauvegardes régulières du dossier <code class="bg-slate-100 px-1 rounded text-xs">data/</code> contenant l'ensemble de ses données locales</li>
+      <li>Respecter le RGPD vis-à-vis de ses propres clients (information, consentement, durées de conservation)</li>
+      <li>Ne pas redistribuer, sous-licencier, désassembler, décompiler ou modifier le Logiciel</li>
     </ul>
-    <p>Le Client de type "Vendeur non habilité" doit en outre renseigner les coordonnées de son agent habilité SIV (nom, SIRET, numéro d'habilitation).</p>
+  </section>
 
-    <h3>3.3 Vérification automatique</h3>
-    <p>Le SIRET du Client est vérifié automatiquement via l'API Recherche Entreprises (data.gouv.fr) lors de l'upload du Kbis. Le code NAF est contrôlé pour confirmer que l'activité relève du secteur automobile. Les activités identifiées comme non automobiles entraînent la désactivation du compte. Les activités non répertoriées font l'objet d'une surveillance renforcée.</p>
-
-    <h2>Article 4 — Profils d'utilisation</h2>
-    <p>Le service propose trois profils d'utilisation. Le Client choisit son profil à l'inscription et peut le modifier à tout moment dans ses paramètres.</p>
-    <table>
-        <tr><th>Profil</th><th>Description</th><th>Soumission SIV</th></tr>
-        <tr><td>Vendeur habilité SIV</td><td>Le Client vend des véhicules et dispose de sa propre convention d'habilitation SIV</td><td>Par le Client lui-même</td></tr>
-        <tr><td>Vendeur non habilité</td><td>Le Client vend des véhicules mais ne dispose pas d'habilitation SIV. Il s'appuie sur un agent habilité déclaré dans ses paramètres</td><td>Par l'agent habilité du Client</td></tr>
-        <tr><td>Agent habilité SIV</td><td>Le Client ne vend pas de véhicules. Il réalise les démarches d'immatriculation pour le compte de ses propres clients</td><td>Par le Client lui-même</td></tr>
-    </table>
-
-    <h2>Article 5 — Tarification</h2>
-    <h3>5.1 Tarifs en vigueur</h3>
-    <table>
-        <tr><th>Type de dossier</th><th>Tarif unitaire HT</th></tr>
-        <tr><td>Dossier moto (deux-roues, tricycles, quadricycles)</td><td>12,00 EUR</td></tr>
-        <tr><td>Dossier voiture (véhicules légers, utilitaires)</td><td>14,00 EUR</td></tr>
-    </table>
-    <p>Le tarif est identique quel que soit le profil du Client (vendeur habilité, vendeur non habilité, agent habilité). Le Client fixe librement le prix qu'il facture à son propre client final.</p>
-
-    <h3>5.2 Offre d'essai</h3>
-    <p>Les cinq (5) premiers dossiers sont traités sans avance de frais. En cas de poursuite de l'utilisation du service, ces dossiers sont facturés au tarif en vigueur. En cas d'arrêt, aucune somme n'est due au titre de l'essai.</p>
-
-    <h3>5.3 Modalités de paiement</h3>
-    <p>Le paiement s'effectue par batch de cinq (5) dossiers maximum. Le Client doit régler les dossiers traités avant de pouvoir en créer de nouveaux au-delà du plafond autorisé.</p>
-
-    <h2>Article 6 — Limite de volume</h2>
-    <p>Le nombre de dossiers créés mensuellement par le Client est plafonné. Au-delà du seuil autorisé, la création de nouveaux dossiers est automatiquement suspendue.</p>
-    <p>Cette limitation vise à prévenir les usages incompatibles avec une activité de vente ou d'intermédiation automobile légitime. Le Client dont le volume est élevé et légitime peut contacter le Prestataire pour convenir d'un plafond adapté.</p>
-
-    <h2>Article 7 — Obligations du Client</h2>
-    <p>Le Client s'engage à :</p>
-    <ol>
-        <li><strong>Utiliser le service dans le cadre exclusif de son activité professionnelle automobile.</strong></li>
-        <li><strong>Fournir des documents authentiques et conformes</strong> à la réglementation en vigueur. La fourniture de documents frauduleux ou falsifiés engage la responsabilité pénale du Client (art. 441-1 du Code pénal).</li>
-        <li><strong>Vérifier la conformité du dossier</strong> avant toute soumission au SIV. Le service fournit une aide automatisée susceptible de comporter des erreurs. Le Client ne saurait se prévaloir d'une vérification effectuée par le service pour justifier d'un manquement à ses obligations professionnelles.</li>
-        <li><strong>Disposer des habilitations et agréments nécessaires</strong> pour soumettre les dossiers au SIV, ou s'appuyer sur un agent habilité qui en dispose, conformément à l'article R.322-1 du Code de la route.</li>
-        <li><strong>Assurer l'archivage conforme</strong> des dossiers d'immatriculation dans un coffre-fort numérique certifié NF Z 42-020 pendant cinq (5) ans, conformément à l'arrêté du 1er juillet 2025. Cette obligation incombe au professionnel habilité, pas au Prestataire.</li>
-        <li><strong>Effectuer le contrôle d'identité du client final</strong> conformément aux termes de sa convention d'habilitation SIV.</li>
-        <li><strong>Vérifier la validité du contrôle technique</strong> du véhicule avant soumission au SIV (VO de plus de 4 ans : CT de moins de 6 mois ; motos et catégories L : plus de 5 ans).</li>
-        <li><strong>Respecter le RGPD</strong> dans le traitement des données personnelles de ses clients finaux.</li>
-        <li><strong>Ne pas revendre, sous-licencier ou mettre à disposition</strong> le service à des tiers, ni créer un réseau de franchisés utilisant le service.</li>
-    </ol>
-
-    <h2>Article 8 — Obligations du Prestataire</h2>
-    <p>Le Prestataire s'engage à :</p>
-    <ol>
-        <li>Fournir le service conformément à sa description (article 2).</li>
-        <li>Assurer la disponibilité du service dans des conditions raisonnables, sous réserve des opérations de maintenance et des cas de force majeure.</li>
-        <li>Traiter les données personnelles conformément au RGPD et à la <a href="confidentialite.html">politique de confidentialité</a>.</li>
-        <li>Supprimer les documents d'identité du client final à la finalisation du dossier.</li>
-        <li>Informer le Client de toute modification substantielle des présentes CGV avec un préavis de trente (30) jours.</li>
-        <li>Permettre au client final de modifier ou supprimer ses documents tant que l'envoi n'a pas été confirmé.</li>
-        <li>Mettre à disposition du professionnel un téléchargement complet du dossier (archive ZIP) une fois le dossier finalisé.</li>
-    </ol>
-
-    <h2>Article 9 — Responsabilité</h2>
-    <h3>9.1 Nature de l'obligation</h3>
-    <p>Le Prestataire est tenu d'une obligation de moyens. Il s'engage à mettre en œuvre les moyens techniques raisonnables pour assurer la qualité des extractions et vérifications, sans garantir un résultat exempt d'erreurs.</p>
-
-    <h3>9.2 Exclusions de responsabilité</h3>
-    <p>Le Prestataire ne saurait être tenu responsable :</p>
-    <ul>
-        <li>Des erreurs d'extraction, de classification ou de vérification des documents, l'OCR et l'IA étant des technologies probabilistes</li>
-        <li>Des rejets de dossiers par le SIV, l'ANTS ou toute autorité administrative</li>
-        <li>Des conséquences liées à un dossier soumis par le Client sur la base des informations fournies par le service</li>
-        <li>Des manquements du Client à ses obligations professionnelles (habilitation, archivage, contrôle d'identité, contrôle technique)</li>
-        <li>De l'indisponibilité temporaire du service pour maintenance, mise à jour ou cas de force majeure</li>
-        <li>Des dommages indirects (perte de clientèle, manque à gagner, atteinte à l'image)</li>
+  <section class="mb-8">
+    <h2 class="font-display font-bold text-xl text-navy-800 mb-3">Article 9 — Limitation de responsabilité</h2>
+    <p class="text-slate-700 leading-relaxed mb-2">
+      Imatra est un <strong>outil d'aide à la décision</strong>. Il ne se substitue ni à
+      l'expertise du professionnel habilité, ni à l'administration, ni à un conseil juridique.
+      L'extraction automatique de données par OCR et IA est susceptible d'imprécisions ou d'erreurs
+      qui sont de la responsabilité du Licencié de vérifier avant toute utilisation officielle.
+    </p>
+    <p class="text-slate-700 leading-relaxed mb-2">
+      Imatra agit dans le cadre d'une obligation de moyens et ne saurait être tenu pour responsable :
+    </p>
+    <ul class="list-disc list-inside text-slate-700 ml-4 mb-3 space-y-1">
+      <li>Des erreurs d'extraction OCR ou de classification</li>
+      <li>Des rejets du SIV ou de toute administration</li>
+      <li>De l'incomplétude ou de la fraude éventuelle des documents fournis par les clients du Licencié</li>
+      <li>De la perte de données du Licencié en l'absence de sauvegarde</li>
     </ul>
+    <p class="text-slate-700 leading-relaxed">
+      En tout état de cause, la responsabilité d'Imatra est plafonnée au montant de la dernière
+      licence annuelle réglée par le Licencié.
+    </p>
+  </section>
 
-    <h3>9.3 Plafond d'indemnisation</h3>
-    <p>En tout état de cause, la responsabilité du Prestataire est limitée au montant des sommes effectivement versées par le Client au cours des douze (12) mois précédant le fait générateur.</p>
+  <section class="mb-8">
+    <h2 class="font-display font-bold text-xl text-navy-800 mb-3">Article 10 — Données et confidentialité</h2>
+    <p class="text-slate-700 leading-relaxed">
+      Imatra ne traite aucune donnée à caractère personnel des clients du Licencié. Toutes les
+      données traitées par le Logiciel restent sur la machine du Licencié, chiffrées localement.
+      Voir la <a href="confidentialite.html" class="text-blue-600">politique de confidentialité</a> pour plus de détails.
+    </p>
+  </section>
 
-    <h2>Article 10 — Données personnelles</h2>
-    <p>Le traitement des données personnelles est régi par la <a href="confidentialite.html">politique de confidentialité</a> du service, qui fait partie intégrante des présentes CGV.</p>
+  <section class="mb-8">
+    <h2 class="font-display font-bold text-xl text-navy-800 mb-3">Article 11 — Résiliation</h2>
+    <p class="text-slate-700 leading-relaxed">
+      La licence prend fin automatiquement à son échéance annuelle si elle n'est pas renouvelée.
+      Le Licencié peut désinstaller le Logiciel à tout moment, sans formalité. Ses données locales
+      restent à sa disposition sur sa machine. Imatra n'a aucun moyen de supprimer à distance les
+      données du Licencié.
+    </p>
+  </section>
 
-    <h3>10.1 Données collectées et finalités</h3>
-    <p>Le service collecte et traite les données suivantes :</p>
-    <ul>
-        <li><strong>Données du professionnel</strong> (nom commerce, adresse, SIRET, cachet, signature, Kbis) — finalité : exécution contractuelle</li>
-        <li><strong>Documents d'identité du client final</strong> (CNI, permis, domicile) — finalité : constitution du dossier d'immatriculation (consentement du client recueilli avant traitement, avec horodatage)</li>
-        <li><strong>Choix du mode de réception du CPI</strong> (main propre ou email) — si email, l'adresse est collectée et conservée le temps du traitement</li>
-        <li><strong>Données de surveillance</strong> (volume mensuel par professionnel) — finalité : prévention des abus et respect des conditions d'utilisation (intérêt légitime)</li>
-    </ul>
+  <section class="mb-8">
+    <h2 class="font-display font-bold text-xl text-navy-800 mb-3">Article 12 — Modifications des CGL</h2>
+    <p class="text-slate-700 leading-relaxed">
+      Imatra se réserve le droit de modifier les présentes CGL à tout moment. Les Licenciés sont
+      informés des modifications par email au moins 30 jours avant leur entrée en vigueur. En cas
+      de désaccord, le Licencié peut résilier sa licence sans frais et obtenir le remboursement
+      au prorata de la période non utilisée.
+    </p>
+  </section>
 
-    <h3>10.2 Suppression des données client</h3>
-    <p>À la finalisation du dossier (génération du Cerfa), les données suivantes sont <strong>automatiquement supprimées</strong> :</p>
-    <ul>
-        <li>Fichiers documents client (CNI, permis, domicile) du stockage</li>
-        <li>Texte OCR brut et données extraites détaillées</li>
-        <li>Prénom, téléphone et email du client</li>
-        <li>Metadata client (consentement, choix CPI)</li>
-    </ul>
-    <p>Seul le nom du titulaire est conservé avec la référence du dossier pour l'archivage professionnel (5 ans).</p>
+  <section class="mb-8">
+    <h2 class="font-display font-bold text-xl text-navy-800 mb-3">Article 13 — Loi applicable et juridiction</h2>
+    <p class="text-slate-700 leading-relaxed">
+      Les présentes CGL sont régies par le droit français. Tout litige relatif à leur interprétation
+      ou à leur exécution sera soumis à la compétence exclusive des tribunaux d'Évreux (France),
+      après tentative préalable de résolution amiable.
+    </p>
+  </section>
 
-    <h3>10.3 URL permanente et dossiers client-initiés</h3>
-    <p>Le professionnel dispose d'une URL publique personnalisée permettant aux clients de déposer leurs documents en amont. Lorsqu'un client crée un dossier via cette URL, ses données sont traitées dans les mêmes conditions que les dossiers initiés par le professionnel. Le professionnel est responsable du traitement au sens du RGPD pour les dossiers apparaissant dans son espace.</p>
+  <section class="mb-8">
+    <h2 class="font-display font-bold text-xl text-navy-800 mb-3">Article 14 — Contact</h2>
+    <p class="text-slate-700 leading-relaxed">
+      Pour toute question relative aux présentes CGL :<br>
+      <a href="mailto:contact@imatra.fr" class="text-blue-600">contact@imatra.fr</a>
+    </p>
+  </section>
 
-    <h3>10.4 Relances</h3>
-    <p>Le service peut envoyer des rappels au client final pour les pièces manquantes, selon la configuration du professionnel (relance par le professionnel ou relance automatique). Ces relances ne sont effectuées que dans le cadre du dossier en cours et cessent à la finalisation.</p>
+</main>
 
-    <p>Contact délégué à la protection des données : <a href="mailto:rgpd@cartegrisepro.fr">rgpd@cartegrisepro.fr</a></p>
-
-    <h2>Article 11 — Suspension et résiliation</h2>
-    <h3>11.1 Suspension par le Prestataire</h3>
-    <p>Le Prestataire se réserve le droit de suspendre l'accès au service, sans préavis et sans indemnité, dans les cas suivants :</p>
-    <ul>
-        <li>Utilisation du service par une plateforme d'immatriculation en ligne, un réseau de franchisés opérant sous l'habilitation d'un tiers, ou un éditeur de logiciel concurrent</li>
-        <li>Volume de dossiers manifestement incompatible avec une activité automobile légitime</li>
-        <li>Fourniture de documents frauduleux ou d'informations fausses</li>
-        <li>Violation de l'une quelconque des obligations prévues à l'article 7</li>
-        <li>Non-règlement des dossiers traités malgré le blocage automatique de la création de nouveaux dossiers</li>
-    </ul>
-
-    <h3>11.2 Résiliation par le Client</h3>
-    <p>Le Client peut cesser d'utiliser le service à tout moment, sans préavis ni frais de résiliation. Les dossiers en cours restent accessibles pendant trente (30) jours après la dernière connexion. Les sommes dues au titre des dossiers traités restent exigibles.</p>
-
-    <h3>11.3 Conséquences de la résiliation</h3>
-    <p>En cas de résiliation, quelle qu'en soit la cause, les données du Client sont conservées conformément aux durées légales (article 6.3 des <a href="mentions-legales.html">mentions légales</a>), puis supprimées.</p>
-
-    <h2>Article 12 — Propriété intellectuelle</h2>
-    <p>Le service, ses interfaces, algorithmes, bases de données et contenus sont la propriété exclusive du Prestataire. L'accès au service ne confère au Client aucun droit de propriété intellectuelle. Toute reproduction, décompilation ou ingénierie inverse est interdite.</p>
-
-    <h2>Article 13 — Modification des CGV</h2>
-    <p>Le Prestataire se réserve le droit de modifier les présentes CGV. Toute modification substantielle sera notifiée au Client par email avec un préavis de trente (30) jours. L'utilisation du service après l'entrée en vigueur des nouvelles CGV vaut acceptation. En cas de refus, le Client peut résilier son compte conformément à l'article 11.2.</p>
-
-    <h2>Article 14 — Droit applicable et litiges</h2>
-    <h3>14.1 Droit applicable</h3>
-    <p>Les présentes CGV sont régies par le droit français.</p>
-
-    <h3>14.2 Médiation</h3>
-    <p>En cas de litige, le Client peut recourir gratuitement au service de médiation de la consommation. Le médiateur sera désigné conformément à l'article L.612-1 du Code de la consommation. Ses coordonnées seront communiquées sur simple demande à <a href="mailto:contact@autodocpro.fr">contact@autodocpro.fr</a>.</p>
-
-    <h3>14.3 Juridiction compétente</h3>
-    <p>À défaut de résolution amiable, tout litige relève de la compétence exclusive des tribunaux de commerce d'Évreux.</p>
-</div>
-
-<footer class="footer">
-    <div class="container">
-        <div class="footer-bottom">
-            <p>&copy; 2026 AutoDoc Pro. Tous droits réservés. <a href="index.html" style="color: var(--slate-400);">Retour à l'accueil</a></p>
-        </div>
-    </div>
+<footer class="bg-slate-100 border-t border-slate-200 py-10 mt-16">
+  <div class="max-w-6xl mx-auto px-6 text-center text-sm text-slate-500">
+    <p>© 2026 Imatra · <a href="cgv.html" class="hover:text-blue-600">Conditions de licence</a> · <a href="confidentialite.html" class="hover:text-blue-600">Confidentialité</a> · <a href="mentions-legales.html" class="hover:text-blue-600">Mentions légales</a></p>
+  </div>
 </footer>
 
-<script>
-document.querySelector('.menu-toggle')?.addEventListener('click', function() { document.querySelector('.nav-links').classList.toggle('open'); });
-window.addEventListener('scroll', () => document.querySelector('.header').classList.toggle('scrolled', scrollY > 50));
-</script>
 </body>
 </html>

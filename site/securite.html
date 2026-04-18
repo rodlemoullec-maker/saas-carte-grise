@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sécurité et confidentialité — Imatra</title>
+    <meta name="description" content="Vos données ne quittent jamais votre machine. Chiffrement Fernet AES-128, aucun cloud, conformité RGPD par design. Imatra est éditeur de logiciel, pas prestataire de service.">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter','sans-serif'], display: ['Outfit','sans-serif'] }, colors: { navy: { 50: '#f1f5f9', 700: '#1e293b', 800: '#0f172a', 900: '#020617' } } } } }
+    </script>
+    <style>body{font-family:Inter,sans-serif}h1,h2,h3{font-family:Outfit,sans-serif}</style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased">
+
+<header class="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-slate-200">
+  <nav class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+    <a href="index.html" class="flex items-center gap-2.5">
+      <span class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-emerald-500 flex items-center justify-center text-white font-bold">⚡</span>
+      <span class="font-display font-extrabold text-navy-800 text-lg">Imatra</span>
+    </a>
+    <div class="hidden md:flex items-center gap-1">
+      <a href="comment-ca-marche.html" class="px-3 py-2 text-sm font-medium text-slate-600 hover:text-navy-800 rounded-lg">Comment ça marche</a>
+      <a href="securite.html" class="px-3 py-2 text-sm font-medium text-blue-600 rounded-lg">Sécurité</a>
+      <a href="tarifs.html" class="px-3 py-2 text-sm font-medium text-slate-600 hover:text-navy-800 rounded-lg">Tarifs</a>
+      <a href="telecharger.html" class="ml-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg">Télécharger</a>
+    </div>
+  </nav>
+</header>
+
+<main class="max-w-4xl mx-auto px-6 py-16">
+
+  <span class="inline-block px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full text-xs font-semibold mb-5">
+    🔒 Vos données restent chez vous
+  </span>
+  <h1 class="font-display font-extrabold text-4xl text-navy-800 mb-3">Sécurité et confidentialité</h1>
+  <p class="text-lg text-slate-600 mb-12">
+    Imatra est conçu pour respecter le secret professionnel des agents habilités SIV
+    et la confidentialité des données de leurs clients.
+  </p>
+
+  <!-- Principe 1 -->
+  <section class="mb-10">
+    <h2 class="font-display font-bold text-2xl text-navy-800 mb-4">1. Tout est local — par design</h2>
+    <p class="text-slate-700 leading-relaxed mb-3">
+      Imatra est un <strong>logiciel installé sur votre ordinateur</strong>, pas un service en ligne.
+      Quand vous traitez un dossier, le pipeline complet (OCR, extraction, vérifications, génération
+      du Cerfa) s'exécute en local, sur votre machine.
+    </p>
+    <p class="text-slate-700 leading-relaxed">
+      Concrètement, l'éditeur (Imatra) <strong>n'a aucun accès aux documents que vous traitez</strong>.
+      Aucun email, aucune CNI, aucun RIB, aucun cachet d'agent ne transite par nos serveurs. Vous êtes
+      seul détenteur de vos données et seul responsable de leur confidentialité.
+    </p>
+  </section>
+
+  <!-- Principe 2 -->
+  <section class="mb-10">
+    <h2 class="font-display font-bold text-2xl text-navy-800 mb-4">2. Chiffrement Fernet (AES-128 + HMAC)</h2>
+    <p class="text-slate-700 leading-relaxed mb-3">
+      Tous les documents stockés sur votre disque dur (CNI, permis, COC, factures, Cerfa générés…)
+      sont <strong>chiffrés avec la spécification Fernet</strong> avant écriture. Fernet utilise :
+    </p>
+    <ul class="list-disc list-inside space-y-1 text-slate-700 mb-3 ml-4">
+      <li>AES-128 en mode CBC (chiffrement)</li>
+      <li>HMAC SHA-256 (intégrité)</li>
+      <li>Vecteurs d'initialisation aléatoires uniques par fichier</li>
+    </ul>
+    <p class="text-slate-700 leading-relaxed">
+      La clé de chiffrement est générée automatiquement au premier démarrage et stockée dans
+      <code class="bg-slate-100 px-2 py-0.5 rounded text-xs">data/.encryption_key</code> avec
+      des permissions restreintes (chmod 600). Elle ne quitte jamais votre machine.
+    </p>
+  </section>
+
+  <!-- Principe 3 -->
+  <section class="mb-10">
+    <h2 class="font-display font-bold text-2xl text-navy-800 mb-4">3. Système de licences cryptographique</h2>
+    <p class="text-slate-700 leading-relaxed mb-3">
+      Les licences sont des <strong>tokens signés en Ed25519</strong> (signature à courbe elliptique
+      moderne). La clé publique de l'éditeur est embarquée dans le code source ; la clé privée reste
+      chez l'éditeur dans un coffre-fort de secrets.
+    </p>
+    <p class="text-slate-700 leading-relaxed">
+      Quand vous activez votre licence, le logiciel vérifie la signature Ed25519 <strong>en local</strong>.
+      Aucun appel à un serveur de validation à chaque démarrage : la cryptographie suffit. Vous pouvez
+      utiliser Imatra hors-ligne pendant 30 jours sans aucune interruption.
+    </p>
+  </section>
+
+  <!-- Principe 4 -->
+  <section class="mb-10">
+    <h2 class="font-display font-bold text-2xl text-navy-800 mb-4">4. RGPD : conformité par design</h2>
+    <p class="text-slate-700 leading-relaxed mb-3">
+      Comme l'éditeur ne traite aucune donnée client, Imatra est <strong>conforme RGPD par design</strong>
+      sans aucune intervention de votre part. Vous restez seul responsable de traitement, comme avec n'importe
+      quel logiciel professionnel installé localement (Sage, Cegid, EBP, etc.).
+    </p>
+    <p class="text-slate-700 leading-relaxed mb-3">
+      Imatra ne demande pas de DPA (Data Processing Agreement) parce qu'il n'y a pas de sous-traitance
+      RGPD : nous n'avons aucun rôle dans le traitement de vos données.
+    </p>
+    <p class="text-slate-700 leading-relaxed">
+      Le cleanup RGPD automatique anonymise les données client après la génération du Cerfa
+      (suppression des fichiers chiffrés, anonymisation du dossier en BDD). Seul le nom du titulaire
+      et la référence sont conservés pour l'archivage légal de 5 ans (Code de la route R.350-3).
+    </p>
+  </section>
+
+  <!-- Principe 5 -->
+  <section class="mb-10">
+    <h2 class="font-display font-bold text-2xl text-navy-800 mb-4">5. Aucun envoi externe d'email ou de SMS</h2>
+    <p class="text-slate-700 leading-relaxed mb-3">
+      Imatra ne contient aucune intégration Twilio, SendGrid, ou autre service d'envoi de messages.
+      Quand vous demandez un email de relance pour un client, le logiciel <strong>génère un texte</strong>
+      que vous copiez dans votre client email habituel (Gmail, Outlook, Thunderbird) et envoyez vous-même.
+    </p>
+    <p class="text-slate-700 leading-relaxed">
+      L'éditeur ne stocke jamais l'adresse email de votre client, ni le contenu du message envoyé.
+    </p>
+  </section>
+
+  <!-- Principe 6 -->
+  <section class="mb-10">
+    <h2 class="font-display font-bold text-2xl text-navy-800 mb-4">6. Les seules connexions cloud (toutes optionnelles)</h2>
+    <p class="text-slate-700 leading-relaxed mb-3">
+      Pour être complètement transparent, voici les <strong>seules connexions internet</strong> qu'Imatra
+      effectue (et chacune peut être désactivée) :
+    </p>
+    <div class="bg-white border border-slate-200 rounded-xl p-5 space-y-3 text-sm">
+      <div>
+        <strong class="text-navy-800">🔑 Vérification de licence</strong>
+        <p class="text-slate-600 mt-1">
+          Une fois par jour, le logiciel contacte <code class="bg-slate-100 px-1 rounded">licenses.imatra.fr</code>
+          pour vérifier que votre licence n'a pas été révoquée. Aucune donnée client n'est transmise — seul l'ID
+          de votre licence. Vous pouvez utiliser Imatra 30 jours sans aucune connexion.
+        </p>
+      </div>
+      <div>
+        <strong class="text-navy-800">📋 Mise à jour des règles</strong>
+        <p class="text-slate-600 mt-1">
+          Une fois par jour, le logiciel vérifie si une nouvelle version des règles V-XX/C-XX est disponible
+          (évolutions réglementaires SIV, nouveaux tarifs régionaux, nouveaux barèmes malus CO2).
+          Le bundle est signé en Ed25519 et téléchargé en HTTP GET anonyme.
+        </p>
+      </div>
+    </div>
+    <p class="text-xs text-slate-500 mt-3">
+      Aucune autre connexion externe n'est effectuée. Vous pouvez vérifier en lançant
+      <code class="bg-slate-100 px-1 rounded">tcpdump</code> ou un firewall en mode bloquant.
+    </p>
+  </section>
+
+  <!-- Comparatif -->
+  <section class="mb-10 bg-white rounded-2xl border border-slate-200 p-7">
+    <h3 class="font-display font-bold text-xl text-navy-800 mb-4">Comparatif rapide</h3>
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b border-slate-200">
+          <th class="text-left py-2 font-semibold text-slate-500">Aspect</th>
+          <th class="text-center py-2 font-semibold text-red-600">Service SaaS classique</th>
+          <th class="text-center py-2 font-semibold text-emerald-600">Imatra local</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100">
+        <tr><td class="py-3">Documents traités</td><td class="text-center">Sur leurs serveurs</td><td class="text-center font-semibold">Sur votre machine</td></tr>
+        <tr><td class="py-3">Stockage chiffré</td><td class="text-center">Variable</td><td class="text-center font-semibold">Fernet AES-128</td></tr>
+        <tr><td class="py-3">Sous-traitance RGPD</td><td class="text-center">Oui (DPA requis)</td><td class="text-center font-semibold">Aucune</td></tr>
+        <tr><td class="py-3">Fonctionne hors-ligne</td><td class="text-center">Non</td><td class="text-center font-semibold">Oui (30j)</td></tr>
+        <tr><td class="py-3">Vos clients voient le service</td><td class="text-center">Possible</td><td class="text-center font-semibold">Jamais</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <div class="mt-12 text-center">
+    <a href="telecharger.html" class="inline-block px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg">
+      Télécharger Imatra
+    </a>
+  </div>
+
+</main>
+
+<footer class="bg-slate-100 border-t border-slate-200 py-10 mt-16">
+  <div class="max-w-6xl mx-auto px-6 text-center text-sm text-slate-500">
+    <p>© 2026 Imatra · <a href="cgv.html" class="hover:text-blue-600">Conditions de licence</a> · <a href="confidentialite.html" class="hover:text-blue-600">Confidentialité</a> · <a href="mentions-legales.html" class="hover:text-blue-600">Mentions légales</a></p>
+  </div>
+</footer>
+
+</body>
+</html>

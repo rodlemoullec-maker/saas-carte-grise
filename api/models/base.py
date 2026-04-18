@@ -37,12 +37,23 @@ def get_engine():
     global _engine
     if _engine is None:
         settings = get_settings()
-        _engine = create_async_engine(
-            settings.database_url,
-            pool_size=settings.database_pool_size,
-            echo=settings.app_debug,
-        )
+        # SQLite n'a pas de pool de connexions au sens classique
+        kwargs = {"echo": settings.app_debug}
+        if not settings.database_url.startswith("sqlite"):
+            kwargs["pool_size"] = settings.database_pool_size
+        _engine = create_async_engine(settings.database_url, **kwargs)
     return _engine
+
+
+async def init_db() -> None:
+    """
+    Crée toutes les tables au premier démarrage.
+    En version locale (SQLite), c'est appelé au lancement du logiciel
+    si le fichier de base n'existe pas encore.
+    """
+    engine = get_engine()
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
 
 
 def get_session_factory() -> async_sessionmaker[AsyncSession]:

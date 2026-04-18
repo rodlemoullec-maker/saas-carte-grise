@@ -1,5 +1,5 @@
 """
-Extracteur pour les pièces d'identité (CNI, Passeport, Titre de séjour).
+Extracteur pour les pièces d'identité (CNI, Passeport).
 
 Deux modes d'extraction :
 1. Regex sur texte OCR (rapide, gratuit) — utilisé en premier
@@ -19,6 +19,7 @@ from typing import Any
 
 from engine.extractors.base import BaseExtractor, ExtractionResult
 from engine.models.documents import ExtractedIdentite
+from engine.ocr_patterns import OptimizedExtraction
 
 
 # Table des grandes villes → département (pour déduire le département de naissance)
@@ -121,7 +122,8 @@ class IdentiteExtractor(BaseExtractor[ExtractedIdentite]):
         type_document = "CNI"
 
         # ─── MRZ Passeport (source la plus fiable) ───
-        m_mrz = re.search(r"P<FRA(.+?)(?:\n|$)", text)
+        # Tolérance casse : l'OCR sort parfois 'p<FRALE' au lieu de 'P<FRA'
+        m_mrz = re.search(r"P<FRA(.+?)(?:\n|$)", text, re.IGNORECASE)
         if m_mrz:
             type_document = "PASSEPORT"
             mrz_content = m_mrz.group(1).strip().rstrip("<")
@@ -130,6 +132,27 @@ class IdentiteExtractor(BaseExtractor[ExtractedIdentite]):
                 data["nom_naissance"] = parts[0].replace("<", " ").strip()
             if len(parts) > 1:
                 data["prenoms_str"] = parts[1].replace("<", " ").strip()
+
+        # ─── MRZ Passeport ligne 2 : n° doc, nationalité, date naissance ───
+        # Format: pos 1-9 numéro, 10 check, 11-13 pays, 14-19 YYMMDD naissance
+        # L'OCR peut insérer des espaces dans la séquence de chiffres
+        m_mrz2 = re.search(
+            r"([A-Z0-9<]{4,9})\d\s*([A-Z]{3})\s*([\d\s]{7,})",
+            text,
+            re.IGNORECASE,
+        )
+        if m_mrz2:
+            if not data.get("n_document"):
+                data["n_document"] = re.sub(r"[<\s]", "", m_mrz2.group(1))
+            if not data.get("nationalite"):
+                data["nationalite"] = m_mrz2.group(2).upper()
+            # Reconstitue les chiffres sans espaces OCR
+            raw_digits = re.sub(r"\s", "", m_mrz2.group(3))
+            if len(raw_digits) >= 6 and not data.get("date_naissance_str"):
+                yy, mm, dd = raw_digits[:2], raw_digits[2:4], raw_digits[4:6]
+                if 1 <= int(mm) <= 12 and 1 <= int(dd) <= 31:
+                    century = "19" if int(yy) > 24 else "20"
+                    data["date_naissance_str"] = f"{dd}/{mm}/{century}{yy}"
 
         # ─── MRZ CNI ───
         if not m_mrz:
@@ -142,11 +165,11 @@ class IdentiteExtractor(BaseExtractor[ExtractedIdentite]):
 
         # ─── Nom (texte visuel) ───
         if not data.get("nom_naissance"):
-            m = re.search(r"[Nn]om/[Ss]urname\s*\(\d\)\s*\n\s*([A-Z][A-Z\- ]{1,40})", text)
+            m = re.search(r"[Nn]om/[Ss]urname\s*\(\d\)\s*\n\s*([A-ZÀ-ÿ][A-ZÀ-ÿ\- ]{1,40})", text)
             if m:
                 data["nom_naissance"] = m.group(1).strip()
             else:
-                m = re.search(r"[Nn]om\s*(?:de\s*naissance)?\s*[:\s]*([A-Z][A-Z\- ]{1,40})", text)
+                m = re.search(r"[Nn]om\s*(?:de\s*naissance)?\s*[:\s]*([A-ZÀ-ÿ][A-ZÀ-ÿ\- ]{1,40})", text)
                 if m:
                     data["nom_naissance"] = m.group(1).strip()
 
@@ -236,12 +259,17 @@ class IdentiteExtractor(BaseExtractor[ExtractedIdentite]):
         date_expiration = _parse_date(data.get("date_expiration_str", ""))
         date_delivrance = _parse_date(data.get("date_delivrance_str", ""))
 
-        if not data.get("nom_naissance") or not date_naissance or not date_expiration:
+        if not data.get("nom_naissance") or not date_naissance:
             return ExtractionResult(
                 success=False,
                 errors=["Champs obligatoires manquants (nom, date naissance, date expiration)"],
                 raw_text=text[:500],
             )
+
+        # date_expiration absente = confidence réduite (OCR a capturé un fragment)
+        confidence = 0.8 if m_mrz else 0.6
+        if not date_expiration:
+            confidence -= 0.2
 
         return ExtractionResult(
             success=True,
@@ -252,13 +280,13 @@ class IdentiteExtractor(BaseExtractor[ExtractedIdentite]):
                 "lieu_naissance": lieu,
                 "departement_naissance": dept,
                 "sexe": sexe,
-                "date_expiration": date_expiration.isoformat(),
+                "date_expiration": date_expiration.isoformat() if date_expiration else None,
                 "date_delivrance": date_delivrance.isoformat() if date_delivrance else None,
                 "n_document": data.get("n_document", ""),
                 "nationalite": data.get("nationalite"),
                 "type_document": type_document,
             },
-            confidence=0.8 if m_mrz else 0.6,
+            confidence=confidence,
         )
 
     # ─── Interface BaseExtractor (LLM — futur) ───
@@ -293,7 +321,7 @@ RÈGLES IMPORTANTES :
                 "date_delivrance": {"type": ["string", "null"], "format": "date"},
                 "n_document": {"type": "string"},
                 "nationalite": {"type": ["string", "null"]},
-                "type_document": {"type": "string", "enum": ["CNI", "PASSEPORT", "TITRE_SEJOUR"]},
+                "type_document": {"type": "string", "enum": ["CNI", "PASSEPORT"]},
             }
         }
 

@@ -52,9 +52,16 @@ DOC_TYPES = {
         ("categories", 0.3), ("prefet", 0.4),
     ],
     "COC": [
-        ("certificat de conformite", 1.0), ("certificate of conformity", 0.9),
+        # FR
+        ("certificat de conformite", 1.0),
         ("homologation", 0.5), ("cnit", 0.5), ("puissance nette", 0.6),
         ("masse en charge", 0.4),
+        # EN — la plupart des COC européens sont rédigés en anglais
+        ("certificate of conformity", 1.0),
+        ("ec certificate", 1.0),
+        ("complete vehicles", 0.6),
+        ("manufacturer", 0.4), ("vehicle identification number", 0.5),
+        ("type approval", 0.6),
     ],
     "FACTURE": [
         ("facture n", 0.9), ("total ttc", 0.7), ("prix", 0.3),
@@ -68,8 +75,9 @@ DOC_TYPES = {
         ("destinataire", 0.5), ("facture electricite", 0.8),
     ],
     "CG_BARREE": [
-        ("certificat d'immatriculation", 0.6), ("carte grise", 0.6),
-        ("vendu le", 0.9), ("formule", 0.3), ("titulaire", 0.3),
+        ("certificat d'immatriculation", 1.0), ("carte grise", 1.0),
+        ("vendu le", 0.9), ("formule", 0.4), ("titulaire", 0.4),
+        ("date de 1", 0.5),  # "Date de 1ère immatriculation" = quasi unique CG
     ],
     "CERTIFICAT_CESSION": [
         ("declaration de cession", 1.0), ("cerfa 15776", 1.0),
@@ -172,23 +180,46 @@ def _ocr_tesseract(file_bytes: bytes, mime_type: str) -> dict:
 
 def _ocr_google_docai(file_bytes: bytes, mime_type: str) -> dict:
     """
-    Fallback OCR via Google Document AI (payant, pour docs que Tesseract ne gere pas).
+    DEPRECATED — conservé pour compatibilité avec les anciens appels du pipeline.
+
+    Dans la version locale d'Imatra, l'OCR passe par PaddleOCR (ou
+    Tesseract en fallback) via la factory `get_ocr_provider()`. Cette
+    fonction reste un proxy synchrone pour les anciens appels du moteur.
 
     Retourne {"text": str, "confidence": float}.
     """
-    from integrations.ocr_providers.google_docai import GoogleDocAIProvider
+    import asyncio
+    import concurrent.futures
 
-    creds = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS", "")
-    if not creds:
-        for f_cred in Path(".").glob("**/gen-lang-client*.json"):
-            creds = str(f_cred)
-            break
-    if not creds:
+    try:
+        from integrations.ocr_providers import get_ocr_provider
+        from config.settings import get_settings
+
+        provider = get_ocr_provider(get_settings().ocr_provider)
+
+        # Le pipeline appelle cette fonction en synchrone — on emballe l'async.
+        try:
+            running_loop = asyncio.get_running_loop()
+        except RuntimeError:
+            running_loop = None
+
+        if running_loop is not None:
+            # On est dans un event loop — exécuter dans un thread séparé
+            with concurrent.futures.ThreadPoolExecutor() as ex:
+                fut = ex.submit(
+                    asyncio.run, provider.process_document(file_bytes, mime_type)
+                )
+                result = fut.result()
+        else:
+            result = asyncio.run(provider.process_document(file_bytes, mime_type))
+
+        return {
+            "text": result.full_text,
+            "confidence": result.average_confidence,
+        }
+    except Exception as e:
+        logger.warning(f"[OCR local proxy] échec : {e}")
         return {"text": "", "confidence": 0.0}
-
-    ocr = GoogleDocAIProvider(credentials_path=creds)
-    result = ocr.process_sync(file_bytes, mime_type)
-    return {"text": result.full_text, "confidence": result.average_confidence}
 
 
 
@@ -355,15 +386,26 @@ def extract_data(doc_type: str, text: str) -> dict:
 
         # ─── Extraction specifique CNI ───
         if doc_type == "CNI":
-            # Format Google DocAI CNI (champs sur lignes separees)
             if not data.get("nom_naissance"):
                 m = re.search(r"C\.?1\s+([A-Z]{2,30})", text)
                 if m: data["nom_naissance"] = m.group(1).strip()
-            if not data.get("prenoms"):
-                nom = data.get("nom_naissance", "")
-                if nom:
-                    m = re.search(re.escape(nom) + r"\s*\n\s*([A-Z][a-zÀ-ÿ]{1,20})", text)
-                    if m: data["prenoms"] = m.group(1).strip()
+            # Prenoms : capture la (les) ligne(s) qui suivent l'étiquette
+            # "Prénom(s) :" — surtout PAS le mot "Prénom" lui-même.
+            if not data.get("prenoms") or data.get("prenoms", "").lower().startswith("pr"):
+                m = re.search(
+                    r"[Pp]r[eé]nom[s]?\(?\s*s?\s*\)?\s*:?\s*\n+([A-ZÀ-Ÿ][A-Za-zÀ-ÿ\-' ]{1,30})(?:\s*\n([A-ZÀ-Ÿ][A-Za-zÀ-ÿ\-' ]{1,30}))?",
+                    text,
+                )
+                if m:
+                    p1 = m.group(1).strip()
+                    p2 = (m.group(2) or "").strip()
+                    # Filtre les faux positifs (mots qui sont en fait des labels)
+                    bad = {"sexe", "ne", "née", "à", "signature", "carte", "nationalité", "république"}
+                    if p1.lower() not in bad and len(p1) >= 2:
+                        if p2 and p2.lower() not in bad and len(p2) >= 2:
+                            data["prenoms"] = f"{p1}, {p2}"
+                        else:
+                            data["prenoms"] = p1
             # NOTE : l'adresse de la CNI n'est PAS extraite pour le Cerfa.
             # L'adresse du Cerfa vient du justificatif de domicile uniquement.
 
@@ -451,15 +493,103 @@ def extract_data(doc_type: str, text: str) -> dict:
                 data["date_obtention_b"] = data["date_delivrance"]
 
     elif doc_type == "COC":
-        # Marque (FR: "Marque", EN: "Make", ou champ 0.1)
-        m = re.search(r"(?:0\.1\.?\s*)?(?:[Mm]arque|[Mm]ake)\s*[:\s(]*([A-Z][A-Za-z\-]{1,20})", text)
-        if m: data["marque"] = m.group(1).strip()
-        # Modele / denomination commerciale (FR + EN)
-        m = re.search(r"(?:[Dd]enomination\s*(?:commerciale)?|[Cc]ommercial\s*name)\s*[:\s]*(.{2,50})", text)
-        if m: data["modele"] = m.group(1).strip()
-        # Type (champ 0.2)
-        m = re.search(r"(?:0\.2\.?\s*)?[Tt]ype\s*[:\s]*([A-Z][A-Za-z0-9\- ]{1,30})", text)
-        if m and not data.get("modele"): data["modele"] = m.group(1).strip()
+        # Helper : ligne après une étiquette précise
+        def _next_line(label_pattern: str) -> str | None:
+            m = re.search(label_pattern + r"[^\n]*\n([^\n]+)", text)
+            return m.group(1).strip() if m else None
+
+        # 0.1 Marque (commercial trade name)
+        v = _next_line(r"0\.1\.?\s*\n?\s*(?:Make|Marque)")
+        if v and v.lower() not in ("trade", "make", "marque"):
+            data["marque"] = v.split()[0]  # premier mot uniquement
+
+        # 0.2 Type
+        v = _next_line(r"0\.2\.?\s*\n?\s*Type")
+        if v and v.lower() not in ("type",):
+            data["type_variante_version"] = v
+            if not data.get("modele"):
+                data["modele"] = v
+
+        # 0.2.3 Commercial name (le vrai nom commercial - "VARG")
+        v = _next_line(r"0\.2\.3\.?")
+        if v and v.upper() not in ("VARG",) and len(v) <= 30 and not any(c in v for c in [':', '.']):
+            data["modele"] = v
+        elif v:
+            # Cas STARK : "0.2.3.\nVARG" → on récupère VARG
+            if re.match(r"^[A-Z][A-Z0-9 \-]{0,30}$", v):
+                data["modele"] = v
+
+        # 0.3 Vehicle category
+        v = _next_line(r"0\.3\.?\s*\n?\s*Vehicle\s*category")
+        if v and re.match(r"^[A-Z]\d", v):
+            data["categorie_j"] = v
+
+        # 0.4 Constructeur (nom complet) — déjà capturé via les regex `soussigne`
+
+        # 1.0 VIN (Vehicle identification number)
+        v = _next_line(r"1\.0\.?\s*\n?\s*Vehicle\s*identification\s*number")
+        if v:
+            # VIN = 17 caractères alphanumériques (sans I, O, Q)
+            mvin = re.search(r"\b([A-HJ-NPR-Z0-9]{17})\b", v)
+            if mvin:
+                data["vin"] = mvin.group(1)
+
+        # 1.8 Vitesse maximale [km/h]
+        v = _next_line(r"1\.8\.?\s*\n?\s*Maximum\s*speed")
+        if v:
+            mn = re.search(r"\d+", v)
+            if mn:
+                data["vitesse_max"] = int(mn.group(0))
+
+        # 2.1.1 Mass in running order = G (poids vide en service)
+        v = _next_line(r"2\.1\.1\.?\s*\n?\s*Mass\s*in\s*running\s*order")
+        if v:
+            mn = re.search(r"\d+", v)
+            if mn:
+                data["masse_g"] = mn.group(0)
+                data["poids_vide_g1"] = mn.group(0)
+
+        # 2.1.3 Technically permissible max laden mass = F.1
+        v = _next_line(r"2\.1\.3\.?\s*\n?\s*Technically\s*permissible\s*max\w*\s*laden\s*mass")
+        if v:
+            mn = re.search(r"\d+", v)
+            if mn:
+                data["masse_f1"] = mn.group(0)
+                data["ptac_kg"] = int(mn.group(0))
+
+        # 3.3.1 Electric vehicle configuration → énergie
+        v = _next_line(r"3\.3\.1\.?\s*\n?\s*Electric\s*vehicle\s*configuration")
+        if v and re.search(r"electric", v, re.IGNORECASE):
+            data["energie"] = "electrique"
+
+        # 3.3.3.4 Puissance électrique max 30 min [kW] → P.2
+        v = _next_line(r"3\.3\.3\.4\.?\s*\n?\s*Maximum\s*30\s*minutes\s*power")
+        if v:
+            mn = re.search(r"\d+", v)
+            if mn:
+                data["puissance_nette_p2"] = mn.group(0)
+                data["puissance_kw"] = int(mn.group(0))
+
+        # 6.16.1 Number of seating positions → S.1
+        v = _next_line(r"6\.16\.1\.?\s*\n?\s*Number\s*of\s*seating\s*positions")
+        if v:
+            mn = re.search(r"\d+", v)
+            if mn:
+                data["places_assises"] = int(mn.group(0))
+                data["places_s1"] = mn.group(0)
+
+        # 4.0.1 Environmental step → V.9 classe environnementale
+        v = _next_line(r"4\.0\.1\.?\s*\n?\s*Environmental\s*step")
+        if v and len(v) <= 30:
+            data["classe_env"] = v.strip()
+
+        # Q : rapport puissance/masse (moto uniquement, kW/kg) — calculé
+        if data.get("puissance_kw") and data.get("masse_g"):
+            try:
+                ratio = float(data["puissance_kw"]) / float(data["masse_g"])
+                data["rapport_puiss_masse"] = f"{ratio:.3f}".rstrip("0").rstrip(".")
+            except (ValueError, ZeroDivisionError):
+                pass
         # Energie (FR: Carburant/Energie, EN: Electric/Fuel, ou "pure electric")
         m = re.search(r"(?:[Cc]arburant|[Ee]nergie|[Ff]uel|[Ee]lectric\s*vehicle\s*configuration)\s*[:\s]*([A-Za-z\s]{2,30})", text)
         if m:
@@ -482,12 +612,40 @@ def extract_data(doc_type: str, text: str) -> dict:
         # Champs supplementaires COC
         m = re.search(r"(?:D\.?2\s*)?[Tt]ype\s*[Vv]ariante\s*[Vv]ersion\s*[:\s]*([A-Z0-9][A-Za-z0-9 ]{2,30})", text)
         if m: data["type_variante_version"] = m.group(1).strip()
-        m = re.search(r"[Ss]oussign[eé]\s*[:\s]*(.{2,50})", text)
-        if m: data["soussigne"] = m.group(1).strip()
+        # Nom du constructeur (= "Je soussigné" du Cerfa 13749).
+        # Sur un COC européen standard, le constructeur figure dans :
+        #   0.4. Company name and address of manufacturer / Nom et adresse du constructeur
+        #   3.1.2.1. Manufacturer / Constructeur (backup)
+        # Le champ "The undersigned (Anton Wass)" en haut est la PERSONNE qui signe,
+        # pas le constructeur — on ne l'utilise PAS.
+        constructeur_patterns = [
+            r"0\.4\.?\s*(?:Company\s+name\s+and\s+address\s+of\s+manufacturer|Nom\s+et\s+adresse\s+du\s+constructeur)\s*[:\s]*([A-Z][A-Za-zÀ-ÿ0-9&\.\,\- ]{2,80}?)(?:\n|\s{2,}|Carrer|Calle|Rue|Strasse|Via|Avenue|Avenida|Bahnhofstr)",
+            r"3\.1\.2\.1\.?\s*(?:Manufacturer|Constructeur)\s*[:\s]*([A-Z][A-Za-zÀ-ÿ0-9&\.\,\- ]{2,80}?)(?:\n|\s{2,})",
+        ]
+        for pat in constructeur_patterns:
+            m = re.search(pat, text)
+            if m:
+                # Strip trailing comma/space mais préserve les "." des acronymes (S.L., S.A.)
+                data["soussigne"] = m.group(1).strip().rstrip(", ")
+                break
+        # Date de réception par type — FR ("réception le 15/06/2025")
+        # ou EN ("granted on 30.10.2025"). Normalisation en JJ/MM/AAAA.
         m = re.search(r"[Rr]eception\s*(?:par\s*type)?\s*(?:le)?\s*[:\s]*(\d{2}/\d{2}/\d{4})", text)
-        if m: data["date_reception"] = m.group(1)
-        m = re.search(r"(?:n[.\s]*\(K\)|sous\s*le\s*n[.\s]*)\s*[:\s]*(e\d\*[\d/\*]+\w+)", text)
-        if m: data["numero_k"] = m.group(1).strip()
+        if m:
+            data["date_reception"] = m.group(1)
+        else:
+            m = re.search(r"granted\s+on\s+(\d{1,2})[./\-](\d{1,2})[./\-](\d{4})", text, re.IGNORECASE)
+            if m:
+                data["date_reception"] = f"{m.group(1).zfill(2)}/{m.group(2).zfill(2)}/{m.group(3)}"
+
+        # Numéro de réception européen "K" — format eN*directive/année*base*extension
+        # Présent sur tous les COC européens. Exemples :
+        #   e2*2007/46*0001*15  (voiture FR)
+        #   e9*168/2013*16436*02  (moto STARK)
+        # On match directement le format, sans dépendre du libellé qui varie selon les pays.
+        m = re.search(r"\b(e\d{1,2}\*\d{2,4}/\d{2,4}\*\d{3,6}\*\d{1,4})\b", text)
+        if m:
+            data["numero_k"] = m.group(1)
         m = re.search(r"(?:J\.?1|[Gg]enre\s*national)\s*[:\s]*([A-Z]{2,10})", text)
         if m: data["genre_national"] = m.group(1).strip()
         m = re.search(r"[Dd]enomination\s*commerciale\s*[:\s]*(.{2,50})", text)
@@ -627,6 +785,14 @@ def extract_data(doc_type: str, text: str) -> dict:
         m = re.search(r"[Vv]endu\s*le\s*[:\s]*(\d{2}[./]\d{2}[./]\d{4})", text)
         if m: data["date_vente"] = m.group(1)
         data["barre_diagonale"] = bool(re.search(r"barr[eé]|diagonale|vendu le", text, re.IGNORECASE))
+        # Couleur (case R de la CG française) — laissée vide si ambigu, le SIV
+        # met "INDÉTERMINÉE" par défaut. Cf. décision produit : pas de mapping
+        # marketing étendu, on ne reconnaît que les 10 couleurs standard.
+        m = re.search(r"\bR\s*[:\s]+([A-Za-zÀ-ÿ ]{2,30})", text)
+        if not m:
+            m = re.search(r"[Cc]ouleur\s*[:\s]*([A-Za-zÀ-ÿ ]{2,30})", text)
+        if m:
+            data["couleur"] = m.group(1).strip().lower()
 
         # Nom de l'acheteur inscrit sur la barre horizontale
         # Formats courants : "vendu le JJ/MM/AAAA à NOM PRENOM"
@@ -901,21 +1067,61 @@ def run_diagnostic(dossier: dict) -> dict:
             except (ValueError, IndexError):
                 warnings.append({"code": "CNI_DATE_ILLISIBLE", "message": "Date d'expiration CNI non lisible"})
 
+    # ─── 4 bis. Lisibilité OCR du nom/prénom (CNI / Passeport) ────────────
+    # Si l'OCR n'a pas pu lire correctement le nom ou le prénom, on émet un
+    # warning (non bloquant) pour informer l'agent — le Cerfa reste générable.
+    # L'agent peut ensuite saisir manuellement les valeurs avant soumission SIV.
+    def _looks_illegible(value: str) -> bool:
+        if not value:
+            return True
+        v = value.strip()
+        if len(v) < 2:
+            return True
+        # Beaucoup de chiffres ou caractères spéciaux dans un nom => OCR raté
+        bad_chars = sum(1 for c in v if not (c.isalpha() or c in " -'À-ÿ"))
+        if bad_chars / max(len(v), 1) > 0.3:
+            return True
+        return False
+
+    for d in by_type.get("CNI", []) + by_type.get("PASSEPORT", []):
+        ext = d.get("extracted_data", {})
+        nom_brut = ext.get("nom_naissance", "") or ""
+        prenoms_brut = ext.get("prenoms", "") or ""
+        if _looks_illegible(nom_brut):
+            warnings.append({
+                "code": "NOM_OCR_ILLISIBLE",
+                "message": (
+                    "Le nom n'a pas pu être lu correctement par l'OCR sur la pièce d'identité. "
+                    "Vérifiez et corrigez manuellement avant soumission SIV."
+                ),
+            })
+        if _looks_illegible(prenoms_brut):
+            warnings.append({
+                "code": "PRENOM_OCR_ILLISIBLE",
+                "message": (
+                    "Le prénom n'a pas pu être lu correctement par l'OCR sur la pièce d'identité. "
+                    "Vérifiez et corrigez manuellement avant soumission SIV."
+                ),
+            })
+
     # ─── 5. CG barree (VO uniquement) ─────────────────────────────────────
     if flow == "VO":
         for d in by_type.get("CG_BARREE", []):
             ext = d.get("extracted_data", {})
-            # 5a. Barre diagonale
+            # 5a. Barre diagonale — warning au lieu de blocage : on extrait
+            # quand même les données du véhicule, l'agent peut continuer mais
+            # devra obtenir la CG barrée avant soumission SIV.
             if ext.get("barre_diagonale"):
                 infos.append({"code": "CG_BARREE_OK", "message": "CG barree en diagonale - OK"})
             else:
-                blocages.append({
-                    "code": "CG_NON_BARREE",
-                    "message": "La carte grise n'est pas barree en diagonale",
-                    "correction": (
-                        "Tracez une barre diagonale sur la carte grise, "
-                        "inscrivez \"vendu le\" suivi de la date et l'heure de la vente, "
-                        "ainsi que le nom et prenom de l'acheteur, puis signez."
+                warnings.append({
+                    "code": "CG_NON_BARREE_WARNING",
+                    "message": (
+                        "La carte grise n'est pas encore barree. Vous pouvez generer "
+                        "le Cerfa, mais avant la soumission au SIV, le vendeur doit "
+                        "tracer une barre diagonale, inscrire \"vendu le\" suivi de la "
+                        "date et l'heure de la vente, le nom et prenom de l'acheteur, "
+                        "puis signer."
                     ),
                 })
             # 5b. Date de vente sur la barre
@@ -965,6 +1171,30 @@ def run_diagnostic(dossier: dict) -> dict:
             if ext.get("co2_wltp"):
                 infos.append({"code": "COC_CO2", "message": f"CO2 WLTP : {ext['co2_wltp']} g/km"})
 
+            # Warning : puissance administrative P.6 manquante.
+            # Pour les motos électriques (et plus généralement les véhicules
+            # dont le COC ne contient pas la puissance fiscale française),
+            # l'agent doit la saisir à la main avant soumission SIV.
+            cat = (ext.get("categorie_j") or "").upper()
+            if not ext.get("puissance_cv"):
+                if cat.startswith("L"):
+                    msg_complement = (
+                        " Pour les motos électriques considérées comme "
+                        "équivalentes >125 cc, la valeur dépend de l'arrêté "
+                        "ministériel de réception type — vérifiez auprès "
+                        "de la base SIV ou du constructeur."
+                    )
+                else:
+                    msg_complement = ""
+                warnings.append({
+                    "code": "P6_PUISSANCE_ADMIN_MANQUANTE",
+                    "message": (
+                        "La puissance administrative (P.6) n'a pas été "
+                        "trouvée dans le COC. Saisissez-la manuellement "
+                        "sur le Cerfa avant soumission SIV." + msg_complement
+                    ),
+                })
+
     # ─── 7. Estimation taxes (si COC disponible) ──────────────────────────
     tax_estimate = None
     coc_data = {}
@@ -985,9 +1215,15 @@ def run_diagnostic(dossier: dict) -> dict:
         )
 
     # ─── 8. Diagnostic final ──────────────────────────────────────────────
-    # Binaire : VERT (tout ok, Cerfa generable) ou ROUGE (blocage)
+    # Tri-couleur :
+    #   ROUGE  = au moins un blocage (Cerfa non générable, relance client requise)
+    #   ORANGE = pas de blocage mais des warnings (Cerfa générable, agent doit
+    #            vérifier manuellement les points signalés avant soumission SIV)
+    #   VERT   = aucun blocage, aucun warning (Cerfa générable sereinement)
     if blocages:
         diagnostic = "ROUGE"
+    elif warnings:
+        diagnostic = "ORANGE"
     else:
         diagnostic = "VERT"
 
@@ -999,7 +1235,8 @@ def run_diagnostic(dossier: dict) -> dict:
         "tax_estimate": tax_estimate,
         "documents_analyses": len(docs),
         "types_detectes": list(by_type.keys()),
-        "cerfa_disponible": diagnostic == "VERT",
+        # Cerfa générable en VERT et ORANGE — bloqué uniquement en ROUGE
+        "cerfa_disponible": diagnostic in ("VERT", "ORANGE"),
     }
 
 
@@ -1155,13 +1392,13 @@ def _build_recap_validation(dossier: dict) -> dict:
             "responsabilite_soumission": (
                 "En tant que professionnel habilite SIV, vous restez seul responsable "
                 "de la veracite et de la completude du dossier soumis a l'administration. "
-                "AutoDoc Pro est un outil d'aide a la constitution du dossier et ne se "
+                "Imatra est un outil d'aide a la constitution du dossier et ne se "
                 "substitue pas a votre obligation de verification."
             ),
             "verification_ocr": (
                 "Les donnees extraites automatiquement des documents (OCR via Google Document AI "
                 "et IA via Claude/Anthropic) peuvent contenir des erreurs. Il vous appartient de "
-                "verifier les informations avant toute soumission au SIV. AutoDoc Pro ne peut etre "
+                "verifier les informations avant toute soumission au SIV. Imatra ne peut etre "
                 "tenu responsable des erreurs d'extraction."
             ),
             "sous_traitants": (
@@ -1180,7 +1417,7 @@ def _build_recap_validation(dossier: dict) -> dict:
                 "Voir notre politique de confidentialite."
             ),
             "limitation_responsabilite": (
-                "AutoDoc Pro ne garantit pas l'acceptation du dossier par le SIV. "
+                "Imatra ne garantit pas l'acceptation du dossier par le SIV. "
                 "En cas de rejet, les honoraires factures ne sont pas remboursables "
                 "si le rejet est du a des documents incorrects fournis par le vendeur ou le client."
             ),
@@ -1239,20 +1476,23 @@ def _deduce_sexe_from_prenom(prenom: str | None) -> str | None:
 
 def _auto_detect_dossier_type(dossier: dict) -> None:
     """
-    Deduit automatiquement VN ou VO a partir des documents deposes par le pro.
+    Déduit automatiquement VN ou VO à partir des documents déposés par le pro.
 
-    - CG barrée detectee → VO (vehicule occasion)
-    - COC + Facture detectes → VN (vehicule neuf)
-    - COC seul → indetermine (peut etre VN ou VO)
+    Règle métier : la présence d'un COC est l'indicateur fort d'un véhicule
+    NEUF. Pour une occasion, le SIV a déjà l'homologation en base et le COC
+    n'est jamais redemandé. Donc :
+      - COC présent → VN (même si une CG est aussi présente, ex: CG provisoire,
+        moto qui vient d'être immatriculée par le concessionnaire, etc.)
+      - CG_BARREE seule (sans COC) → VO
+      - FACTURE seule → VN (le COC suivra)
     """
     doc_types = {d.get("type", "").upper() for d in dossier.get("documents_vendeur", [])}
 
-    if "CG_BARREE" in doc_types:
-        dossier["type"] = "VO"
-    elif "COC" in doc_types and "FACTURE" in doc_types:
+    if "COC" in doc_types:
         dossier["type"] = "VN"
+    elif "CG_BARREE" in doc_types:
+        dossier["type"] = "VO"
     elif "FACTURE" in doc_types:
-        # Facture seule → probablement VN (le COC manque encore)
         dossier["type"] = "VN"
     # Sinon on ne change pas (reste None ou la valeur precedente)
 
@@ -1278,17 +1518,16 @@ def _auto_extract_dossier_fields(dossier: dict) -> None:
         if not dossier.get("immatriculation") and ext.get("immatriculation"):
             dossier["immatriculation"] = ext["immatriculation"]
 
-        # Nom/prenom client depuis facture (VN) ou CG barree (VO)
+        # Nom/prenom client (= ACHETEUR) :
+        # - VN : depuis la facture (case "Acheteur")
+        # - VO : exclusivement depuis la CNI de l'acheteur (cf. _auto_extract_client_fields).
+        #   On n'utilise NI le titulaire C.1 de la CG (= vendeur),
+        #   NI la barre manuscrite (souvent illisible).
         if dtype == "FACTURE":
             if not dossier.get("client_nom") and ext.get("acheteur_nom"):
                 dossier["client_nom"] = ext["acheteur_nom"]
             if not dossier.get("client_prenom") and ext.get("acheteur_prenom"):
                 dossier["client_prenom"] = ext["acheteur_prenom"]
-        elif dtype == "CG_BARREE":
-            if not dossier.get("client_nom") and ext.get("titulaire_nom"):
-                dossier["client_nom"] = ext["titulaire_nom"]
-            if not dossier.get("client_prenom") and ext.get("titulaire_prenom"):
-                dossier["client_prenom"] = ext["titulaire_prenom"]
 
 
 
@@ -1298,19 +1537,26 @@ def _auto_extract_client_fields(dossier: dict) -> None:
     - Sexe deduit du prenom (CNI)
     - Detection personne morale (si Kbis uploade)
     """
-    for d in dossier.get("documents_client", []):
+    # En version locale, tous les docs sont dans documents_vendeur.
+    # On parcourt les deux listes pour rester compatible avec l'historique.
+    for d in dossier.get("documents_client", []) + dossier.get("documents_vendeur", []):
         ext = d.get("extracted_data", {})
         if not ext:
             continue
 
         dtype = d.get("type", "").upper()
 
-        # Deduire le sexe depuis le prenom de la CNI
+        # Sexe : prioritairement extrait directement de la CNI/passeport
+        # (champ "Sexe : M/F"), sinon en dernier recours déduit du prénom.
         if dtype in ("CNI", "PASSEPORT") and not dossier.get("client_sexe"):
-            prenom = ext.get("prenoms") or ext.get("prenom")
-            sexe = _deduce_sexe_from_prenom(prenom)
-            if sexe:
-                dossier["client_sexe"] = sexe
+            sexe_extrait = (ext.get("sexe") or "").upper().strip()
+            if sexe_extrait in ("M", "F"):
+                dossier["client_sexe"] = sexe_extrait
+            else:
+                prenom = ext.get("prenoms") or ext.get("prenom")
+                sexe = _deduce_sexe_from_prenom(prenom)
+                if sexe:
+                    dossier["client_sexe"] = sexe
 
             # Mettre a jour nom/prenom depuis la CNI (plus fiable que facture/CG)
             if ext.get("nom_naissance"):
@@ -2667,29 +2913,10 @@ def _check_identite_permis_coherence(dossier: dict) -> list:
                 dossier, doc_types_concernes,
             ))
 
-    # ─── 4. Nom acheteur sur CG barree ↔ CNI client ───
-    # La CG barree contient le nom de l'acheteur inscrit sur la barre horizontale.
-    # Ce nom doit correspondre au nom sur la CNI du client.
-    for d in dossier.get("documents_vendeur", []):
-        if d.get("type", "").upper() == "CG_BARREE":
-            ext_cg = d.get("extracted_data", {})
-            nom_acheteur_barre = (ext_cg.get("acheteur_nom_barre") or "").upper().strip()
-
-            if nom_acheteur_barre and nom_id and len(nom_acheteur_barre) > 1:
-                if (nom_acheteur_barre != nom_id
-                        and nom_acheteur_barre not in nom_id
-                        and nom_id not in nom_acheteur_barre):
-                    problems.append(_make_incoherence_problem(
-                        "INCOHERENCE_NOM_CG_BARREE",
-                        "Nom acheteur sur CG barree different de la CNI",
-                        (
-                            f"Nom acheteur inscrit sur la CG barree : '{nom_acheteur_barre}' — "
-                            f"Nom sur la CNI/passeport : '{nom_id}'. "
-                            "Le nom sur la barre de la CG doit correspondre a l'acheteur."
-                        ),
-                        dossier, ["CNI", "PASSEPORT", "CG_BARREE"],
-                    ))
-            break
+    # ─── 4. Nom acheteur sur CG barree — supprimé ───
+    # L'identité de l'acquéreur vient désormais directement de la CNI uploadée
+    # par l'agent. La barre manuscrite de la CG ne sert plus à rien dans le
+    # rapprochement (souvent illisible OCR + redondante avec la CNI).
 
     # ─── 5. Date vente CG barree ↔ date cession certificat 15776 ───
     date_vente_cg = None

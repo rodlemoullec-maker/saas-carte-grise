@@ -1,6 +1,11 @@
 """
-Configuration centralisée via Pydantic Settings.
-Toutes les valeurs sont chargées depuis les variables d'environnement.
+Configuration centralisée — version locale d'Imatra.
+
+Toutes les valeurs sont chargées depuis les variables d'environnement
+ou utilisent leurs valeurs par défaut adaptées à un déploiement local.
+
+En version locale, l'application tourne entièrement sur la machine
+de l'agent. Aucune dépendance à un service cloud n'est nécessaire.
 """
 from __future__ import annotations
 from enum import Enum
@@ -10,70 +15,61 @@ from pydantic_settings import BaseSettings
 
 class AppEnv(str, Enum):
     DEVELOPMENT = "development"
-    STAGING = "staging"
     PRODUCTION = "production"
 
 
 class Settings(BaseSettings):
-    # App
-    app_env: AppEnv = AppEnv.DEVELOPMENT
-    app_secret_key: str = "changeme"
-    app_debug: bool = True
-    app_host: str = "0.0.0.0"
-    app_port: int = 8000
+    # ───────────────────────────────────────────────
+    # Application
+    # ───────────────────────────────────────────────
+    app_env: AppEnv = AppEnv.PRODUCTION
+    app_secret_key: str = "local-default-change-me"  # Généré au premier démarrage
+    app_debug: bool = False
+    app_host: str = "127.0.0.1"  # Local uniquement
+    app_port: int = 8001
 
-    # Base de données
-    database_url: str = "postgresql+asyncpg://user:password@localhost:5432/carte_grise"
-    database_pool_size: int = 10
+    # ───────────────────────────────────────────────
+    # Base de données — SQLite locale
+    # ───────────────────────────────────────────────
+    database_url: str = "sqlite+aiosqlite:///./data/imatra.db"
+    database_pool_size: int = 5  # Ignoré pour SQLite
 
-    # Redis
-    redis_url: str = "redis://localhost:6379/0"
+    # ───────────────────────────────────────────────
+    # Stockage local des documents (chiffré)
+    # ───────────────────────────────────────────────
+    storage_path: str = "./data/documents"
+    storage_encryption_key: str = ""  # Généré automatiquement au premier démarrage
 
-    # Storage
-    storage_backend: str = "local"
-    storage_local_path: str = "./data/documents"
-
-    # OCR
-    ocr_provider: str = "google_docai"
+    # ───────────────────────────────────────────────
+    # OCR — local (PaddleOCR par défaut)
+    # ───────────────────────────────────────────────
+    ocr_provider: str = "paddle"  # paddle
     ocr_confidence_threshold: float = 0.70
+    ocr_language: str = "fr"
 
-    # Google Document AI
-    google_project_id: str = ""
-    google_location: str = "eu"
-    google_docai_processor_id: str = ""
-    google_application_credentials: str = ""
+    # ───────────────────────────────────────────────
+    # Système de licences (seul appel cloud autorisé)
+    # ───────────────────────────────────────────────
+    license_server_url: str = "https://licenses.imatra.fr"
+    license_check_interval_hours: int = 24
+    license_offline_grace_days: int = 30
 
-    # LLM
-    llm_provider: str = "anthropic"
-    anthropic_api_key: str = ""
+    # ───────────────────────────────────────────────
+    # Mises à jour des règles V-XX/C-XX
+    # ───────────────────────────────────────────────
+    rules_update_url: str = "https://licenses.imatra.fr/rules/latest"
+    rules_check_interval_hours: int = 24
 
-    # INSEE
-    insee_api_key: str = ""
-
-    # SIV
-    siv_api_url: str = ""
-    siv_api_key: str = ""
-    siv_habilitation_id: str = ""
-    siv_environment: str = "sandbox"
-
-    # JWT
-    jwt_algorithm: str = "HS256"
-    jwt_access_token_expire_minutes: int = 60
-
-    # Rate limiting
-    rate_limit_per_minute: int = 60
-
-    # Celery
-    celery_broker_url: str = "redis://localhost:6379/1"
-    celery_result_backend: str = "redis://localhost:6379/2"
-
-    # Monitoring
-    sentry_dsn: str = ""
+    # ───────────────────────────────────────────────
+    # Logs
+    # ───────────────────────────────────────────────
     log_level: str = "INFO"
+    log_path: str = "./data/logs"
 
     class Config:
         env_file = ".env"
         case_sensitive = False
+        extra = "ignore"  # Ignorer les vieilles vars d'env de l'ère SaaS
 
 
 @lru_cache
