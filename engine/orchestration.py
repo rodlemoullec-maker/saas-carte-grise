@@ -247,13 +247,19 @@ class DocumentOrchestrator:
                 "document_type": str
             }
         """
-        result = self.extract(ocr_text)
+        # Détection en amont pour inclure le type même en cas d'échec d'extraction
+        detected_type, _ = self.detect_document_type(ocr_text)
+        result = self.extract(ocr_text, detected_type=detected_type)
+        doc_type_value = (
+            detected_type.value if detected_type else
+            (result.data.get("__document_type") if result.data else None)
+        )
         return {
             "success": result.success,
             "data": result.data or {},
             "confidence": result.confidence,
             "errors": result.errors,
-            "document_type": result.data.get("__document_type") if result.data else None,
+            "document_type": doc_type_value,
         }
 
 
