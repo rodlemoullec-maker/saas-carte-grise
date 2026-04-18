@@ -131,7 +131,6 @@ class TestRoutesStructure:
             "/dossiers/{dossier_id}/relance-email",
             "/dossiers/{dossier_id}/admin",
             "/dossiers/{dossier_id}/download-zip",
-            "/dossiers/siv-payload",
             "/clients",
             "/clients/{client_id}",
             "/clients/{client_id}/dossiers",
@@ -189,9 +188,9 @@ class TestConfig:
         default_url = Settings.model_fields["database_url"].default
         assert "sqlite" in default_url.lower()
 
-    def test_settings_default_ocr_paddle(self) -> None:
+    def test_settings_default_ocr_auto(self) -> None:
         from config.settings import Settings
-        assert Settings.model_fields["ocr_provider"].default == "paddle"
+        assert Settings.model_fields["ocr_provider"].default == "auto"
 
     def test_settings_default_imatra_db(self) -> None:
         from config.settings import Settings

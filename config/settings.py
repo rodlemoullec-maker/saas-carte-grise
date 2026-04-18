@@ -43,7 +43,7 @@ class Settings(BaseSettings):
     # ───────────────────────────────────────────────
     # OCR — local (PaddleOCR par défaut)
     # ───────────────────────────────────────────────
-    ocr_provider: str = "paddle"  # paddle | tesseract
+    ocr_provider: str = "auto"  # auto | paddle | tesseract
     ocr_confidence_threshold: float = 0.70
     ocr_language: str = "fr"
 
