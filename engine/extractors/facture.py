@@ -12,6 +12,7 @@ from typing import Any
 
 from engine.extractors.base import BaseExtractor, ExtractionResult
 from engine.models.documents import ExtractedFacture
+from engine.ocr_patterns import OptimizedExtraction
 
 
 class FactureExtractor(BaseExtractor[ExtractedFacture]):
@@ -93,12 +94,10 @@ RÈGLES IMPORTANTES :
                 raw_text=text[:300],
             )
 
-        # ── VIN (17 chars, pas de I/O/Q — S/V/W/X/Y/Z sont valides) ──────────
-        m = re.search(r"\bVIN\s*[:/]?\s*([A-HJ-NPR-Z0-9]{17,18})(?![A-HJ-NPR-Z0-9])", text, re.IGNORECASE)
-        if not m:
-            m = re.search(r"(?<![A-HJ-NPR-Z0-9])([A-HJ-NPR-Z0-9]{17,18})(?![A-HJ-NPR-Z0-9])", text)
-        if m:
-            data["vin"] = m.group(1).strip()  # stocke tel quel
+        # ── VIN (17-18 chars, pas de I/O/Q) — Pattern optimisé robuste aux variations OCR ─
+        vin = OptimizedExtraction.extract_vin(text)
+        if vin:
+            data["vin"] = vin
 
         # ── Marque ────────────────────────────────────────────────────────────
         m = re.search(r"[Mm]arque\s*[:/]?\s*([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ ]{1,29})", text)

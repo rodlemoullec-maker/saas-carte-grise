@@ -11,6 +11,7 @@ from typing import Any
 
 from engine.extractors.base import BaseExtractor, ExtractionResult
 from engine.models.documents import ExtractedKbis
+from engine.ocr_patterns import OptimizedExtraction
 
 
 def _parse_date(s: str) -> str | None:
@@ -38,20 +39,14 @@ class KbisExtractor(BaseExtractor[ExtractedKbis]):
             text,
         ))
 
-        # ── SIREN (9 chiffres) ────────────────────────────────────────────────
-        m = re.search(r"(?:[Ss][Ii][Rr][Ee][Nn]\s*[:/]?\s*)(\d{3}\s?\d{3}\s?\d{3})", text)
-        if not m:
-            # Fallback : chercher 9 chiffres isolés (pas dans un SIRET plus long)
-            m = re.search(r"\b(\d{3}\s?\d{3}\s?\d{3})(?!\s?\d)", text)
-        if m:
-            data["siren"] = re.sub(r"\s", "", m.group(1))
+        # ── SIREN (9 chiffres) — Pattern optimisé avec tirets/espaces ─────────────
+        siren = OptimizedExtraction.extract_siren(text)
+        if siren:
+            data["siren"] = siren
 
-        # ── SIRET siège (14 chiffres) ─────────────────────────────────────────
-        m = re.search(r"(?:[Ss][Ii][Rr][Ee][Tt]\s*[:/]?\s*)(\d{3}\s?\d{3}\s?\d{3}\s?\d{5})", text)
-        if not m:
-            m = re.search(r"\b(\d{3}\s?\d{3}\s?\d{3}\s?\d{5})\b", text)
-        if m:
-            siret = re.sub(r"\s", "", m.group(1))
+        # ── SIRET siège (14 chiffres) — Pattern optimisé ────────────────────
+        siret = OptimizedExtraction.extract_siret(text)
+        if siret:
             data["siret_siege"] = siret
             # Déduire SIREN si pas encore trouvé
             if not data.get("siren"):

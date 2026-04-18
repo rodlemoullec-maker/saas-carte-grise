@@ -16,6 +16,7 @@ from typing import Any
 
 from engine.extractors.base import BaseExtractor, ExtractionResult
 from engine.models.documents import ExtractedCession
+from engine.ocr_patterns import OptimizedExtraction
 
 
 def _parse_date(date_str: str) -> str | None:
@@ -103,16 +104,9 @@ class CessionExtractor(BaseExtractor[ExtractedCession]):
             if m:
                 data["immatriculation"] = m.group(1).strip()
 
-        # ── VIN ───────────────────────────────────────────────────────────────
-        # Accepte 17-18 chars (OCR peut ajouter un caractère), tronque à 17
-        m = re.search(
-            r"(?:VIN|[Nn]um[eé]ro\s*(?:d.)?identification)\s*[:\s]*([A-HJ-NPR-Z0-9]{17,18})(?![A-HJ-NPR-Z0-9])",
-            text,
-        )
-        if not m:
-            m = re.search(r"(?<![A-HJ-NPR-Z0-9])([A-HJ-NPR-Z0-9]{17,18})(?![A-HJ-NPR-Z0-9])", text)
-        if m:
-            vin_raw = m.group(1)  # stocke tel quel (les tests attendent le VIN complet)
+        # ── VIN — Pattern optimisé, préserve la logique de rejet des marqueurs invalides ─
+        vin_raw = OptimizedExtraction.extract_vin(text)
+        if vin_raw:
             # Détecte les marqueurs d'invalidité OCR
             vin_invalid = bool(re.search(r"\[only.*incomplete\]|\[invalid\]|\[bad", text, re.IGNORECASE))
             data["vin"] = None if vin_invalid else vin_raw

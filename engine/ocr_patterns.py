@@ -21,11 +21,12 @@ class OptimizedPatterns:
     """Patterns regex robustes testés contre données réelles OCR."""
 
     # ─── VIN (Vehicle Identification Number) ────────────────────────────
-    # Accepte: "VIN:", "v.i.n.:", "V.I.N.:", "Numéro VIN:", espaces variables
-    VIN = r"(?:v\.?i\.?n\.?|vin|n[uú]m[e]?ro\s+vin)\s*[:\s]+([A-HJ-NPR-Z0-9][\s]*[A-HJ-NPR-Z0-9][\s]*){16,}([A-HJ-NPR-Z0-9])(?![A-HJ-NPR-Z0-9])"
+    # Accepte: "VIN:", "v.i.n.:", "V.I.N.:", "Numéro VIN:", espaces intra-VIN
+    # {16,17} + 1 terminal = 17-18 chars total
+    VIN = r"(?:v\.?i\.?n\.?|vin|n[uú]m[e]?ro\s+vin)\s*[:\s]+((?:[A-HJ-NPR-Z0-9][ ]?){16,17}[A-HJ-NPR-Z0-9])"
     
-    # Alternative simplifié - accepte VIN avec espaces
-    VIN_ALT = r"(?:v\.?i\.?n\.?|vin|n[uú]m[e]?ro\s+vin)\s*[:\s]+((?:[A-HJ-NPR-Z0-9]\s*){17,18})"
+    # Fallback sans label — espace max 1 (pas de saut de ligne)
+    VIN_ALT = r"(?<![A-HJ-NPR-Z0-9])((?:[A-HJ-NPR-Z0-9][ ]?){16,17}[A-HJ-NPR-Z0-9])(?![A-HJ-NPR-Z0-9])"
 
     # ─── Immatriculation (SIV moderne: AB-123-CD) ────────────────────────
     # Accepte: avec/sans espaces, tirets, labels optionnels, casse variable
@@ -82,18 +83,24 @@ class OptimizedExtraction:
     @staticmethod
     def extract_vin(text: str) -> Optional[str]:
         """Extrait VIN de manière robuste."""
+        # Essaie d'abord le pattern avec label (VIN:, v.i.n., etc.)
         m = re.search(OptimizedPatterns.VIN, text, re.IGNORECASE)
         if m:
             vin = m.group(1).replace(' ', '')  # Enlève espaces
             if len(vin) in [17, 18]:
                 return vin
         
-        # Fallback: essaie pattern alternatif
+        # Fallback: essaie pattern alternatif (VIN standalone)
         m = re.search(OptimizedPatterns.VIN_ALT, text, re.IGNORECASE)
         if m:
             vin = m.group(1).replace(' ', '')  # Enlève espaces
             if len(vin) in [17, 18]:
                 return vin
+        
+        # Dernier recours: cherche directement une séquence 17-18 alphanum valides
+        m = re.search(r"(?<![A-HJ-NPR-Z0-9])([A-HJ-NPR-Z0-9]{17,18})(?![A-HJ-NPR-Z0-9])", text)
+        if m:
+            return m.group(1)
         
         return None
 

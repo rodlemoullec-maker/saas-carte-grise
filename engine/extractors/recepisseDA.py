@@ -13,6 +13,7 @@ from typing import Any
 
 from engine.extractors.base import BaseExtractor, ExtractionResult
 from engine.models.documents import ExtractedRecepisseDA
+from engine.ocr_patterns import OptimizedExtraction
 
 
 def _parse_date(s: str) -> str | None:
@@ -45,10 +46,10 @@ class RecepissedaExtractor(BaseExtractor[ExtractedRecepisseDA]):
             text,
         ))
 
-        # ── VIN ───────────────────────────────────────────────────────────────
-        m = VIN_RE.search(text)
-        if m:
-            data["vin"] = m.group(1)
+        # ── VIN — Pattern optimisé robuste aux variations OCR ─────────────────
+        vin = OptimizedExtraction.extract_vin(text)
+        if vin:
+            data["vin"] = vin
 
         # ── Immatriculation ───────────────────────────────────────────────────
         m = IMMAT_RE.search(text)
