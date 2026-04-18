@@ -188,9 +188,9 @@ class TestConfig:
         default_url = Settings.model_fields["database_url"].default
         assert "sqlite" in default_url.lower()
 
-    def test_settings_default_ocr_auto(self) -> None:
+    def test_settings_default_ocr_paddle(self) -> None:
         from config.settings import Settings
-        assert Settings.model_fields["ocr_provider"].default == "auto"
+        assert Settings.model_fields["ocr_provider"].default == "paddle"
 
     def test_settings_default_imatra_db(self) -> None:
         from config.settings import Settings
