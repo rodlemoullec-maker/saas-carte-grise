@@ -28,7 +28,6 @@ class DocumentType(str, Enum):
     FACTURE = "FACTURE"
     CNI = "CNI"
     PASSEPORT = "PASSEPORT"
-    TITRE_SEJOUR = "TITRE_SEJOUR"
     PERMIS = "PERMIS"
     # Domicile
     DOMICILE = "DOMICILE"
@@ -36,11 +35,9 @@ class DocumentType(str, Enum):
     CG_BARREE = "CG_BARREE"         # D-17
     ASSURANCE = "ASSURANCE"         # D-19
     RECEPISEE_DA = "RECEPISEE_DA"   # D-21
-    CSA_HISTOVEC = "CSA_HISTOVEC"   # D-22
     # Personne morale
     KBIS = "KBIS"                   # D-23
-    # Attestation pro
-    ATTESTATION_IDENTITE_PRO = "ATTESTATION_IDENTITE_PRO"  # D-31
+    # Attestations diverses
     ATTESTATION_FORMATION = "ATTESTATION_FORMATION"      # Formation 7h moto 125cc/L5e
     ATTESTATION_HEBERGEMENT = "ATTESTATION_HEBERGEMENT"  # Attestation manuscrite hebergement
     CNI_HEBERGEANT = "CNI_HEBERGEANT"                    # CNI de l'hebergeant
@@ -132,7 +129,7 @@ class ExtractedIdentite(BaseModel):
     mrz_ligne1: str | None = None
     mrz_ligne2: str | None = None
     mrz_valide: bool | None = None
-    type_document: str  # CNI | PASSEPORT | TITRE_SEJOUR
+    type_document: str  # CNI | PASSEPORT
     # Note : l'adresse sur la CNI/passeport n'est PAS extraite pour le Cerfa.
     # L'adresse du Cerfa vient du justificatif de domicile uniquement.
     ocr_confidence: float = 0.0
@@ -290,24 +287,70 @@ class ExtractedKbis(BaseModel):
     ocr_confidence: float = 0.0
 
 
-class HistoVecStatut(str, Enum):
-    GAGE = "GAGE"
-    OTCI = "OTCI"       # Opposition au Transfert de Carte Grise
-    VOL = "VOL"
-    VEC = "VEC"         # Véhicule Économiquement Compromis
-    VEI = "VEI"         # Véhicule Économiquement Irréparable
-    SAIN = "SAIN"       # Aucune anomalie
+class ExtractedMandat(BaseModel):
+    """D-04 — Mandat de vente / procuration (Cerfa 13757)."""
+    mandant_nom: str | None = None          # Nom du donneur de mandat (vendeur)
+    mandant_prenom: str | None = None
+    mandataire_nom: str | None = None       # Nom du mandataire (professionnel)
+    mandataire_siret: str | None = None
+    vin: str | None = None
+    immatriculation: str | None = None
+    date_mandat: date | None = None
+    signature_mandant: bool = False
+    ocr_confidence: float = 0.0
 
 
-class ExtractedHistoVec(BaseModel):
-    """D-22 — Résultat consultation HistoVec / CSA."""
-    immatriculation: str
-    statuts: list[HistoVecStatut] = Field(default_factory=list)
-    gage_actif: bool = False
-    otci_active: bool = False
-    vol_signale: bool = False
-    vec: bool = False
-    vei: bool = False
-    date_consultation: date | None = None
-    # Kilométrage relevé au dernier CT (optionnel)
-    km_dernier_ct: int | None = None
+class ExtractedAttestationFormation(BaseModel):
+    """ATTESTATION_FORMATION — Attestation de suivi de formation 7h (moto 125cc / L5e)."""
+    nom_stagiaire: str | None = None
+    prenom_stagiaire: str | None = None
+    date_naissance: date | None = None
+    organisme_formation: str | None = None
+    date_formation: date | None = None
+    duree_heures: int | None = None         # Doit être >= 7
+    type_formation: str | None = None       # "125cc" ou "L5e" ou "moto"
+    numero_attestation: str | None = None
+    signature_organisme: bool = False
+    ocr_confidence: float = 0.0
+
+
+class ExtractedAttestationHebergement(BaseModel):
+    """ATTESTATION_HEBERGEMENT — Attestation d'hébergement (manuscrite ou imprimée)."""
+    hebergeant_nom: str | None = None
+    hebergeant_prenom: str | None = None
+    heberge_nom: str | None = None          # Nom de la personne hébergée
+    heberge_prenom: str | None = None
+    adresse_hebergement: str | None = None
+    code_postal: str | None = None
+    ville: str | None = None
+    date_attestation: date | None = None
+    signature_hebergeant: bool = False
+    ocr_confidence: float = 0.0
+
+
+class ExtractedCNIHebergeant(BaseModel):
+    """CNI_HEBERGEANT — CNI de l'hébergeant (même structure que ExtractedIdentite)."""
+    nom: str | None = None
+    prenom: str | None = None
+    date_naissance: date | None = None
+    lieu_naissance: str | None = None
+    numero_document: str | None = None
+    date_expiration: date | None = None
+    nationalite: str | None = None
+    ocr_confidence: float = 0.0
+
+
+class ExtractedCertificatCession(BaseModel):
+    """CERTIFICAT_CESSION — Cerfa 15776 déposé/tamponné par le professionnel."""
+    vin: str | None = None
+    immatriculation: str | None = None
+    vendeur_nom: str | None = None
+    vendeur_siret: str | None = None
+    acheteur_nom: str | None = None
+    date_cession: date | None = None
+    signatures_vendeur: bool = False
+    signature_acheteur: bool = False
+    tampon_pro: bool = False                # Cachet pro présent (différenciateur vs ExtractedCession)
+    numero_cerfa: str | None = None        # "15776" attendu
+    ocr_confidence: float = 0.0
+

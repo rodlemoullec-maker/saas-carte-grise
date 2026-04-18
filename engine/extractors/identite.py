@@ -1,5 +1,5 @@
 """
-Extracteur pour les pièces d'identité (CNI, Passeport, Titre de séjour).
+Extracteur pour les pièces d'identité (CNI, Passeport).
 
 Deux modes d'extraction :
 1. Regex sur texte OCR (rapide, gratuit) — utilisé en premier
@@ -293,7 +293,7 @@ RÈGLES IMPORTANTES :
                 "date_delivrance": {"type": ["string", "null"], "format": "date"},
                 "n_document": {"type": "string"},
                 "nationalite": {"type": ["string", "null"]},
-                "type_document": {"type": "string", "enum": ["CNI", "PASSEPORT", "TITRE_SEJOUR"]},
+                "type_document": {"type": "string", "enum": ["CNI", "PASSEPORT"]},
             }
         }
 
